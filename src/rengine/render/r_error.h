@@ -11,12 +11,20 @@ enum class r_error_code_t : rcommon::u8 {
 
     ERR_IS_INIT,
     ERR_NOT_INIT,
+    
     ERR_OPENGL_INIT,
     ERR_OPENGL_BEGIN_DRAW,
     ERR_OPENGL_END_DRAW,
     ERR_BEGIN_DRAW,
     ERR_END_DRAW,
+    
     ERR_INVALID_WINDOW_CFG,
+    ERR_INVALID_FUNC_PARAMETER,
+    
+    ERR_SHADER_REGISTRY_FULL,
+    ERR_SHADER_LOAD,
+    ERR_SHADER_COMPILE,
+    
     ERR_INVALID_VIEWPORT,
     ERR_FRAME_ALREADY_ACTIVE,
     ERR_FRAME_NOT_ACTIVE,
@@ -36,12 +44,20 @@ constexpr inline const char *R_ErrorName( const r_error_code_t error ) {
         return "ERR_OPENGL_BEGIN_DRAW";
     case r_error_code_t::ERR_OPENGL_END_DRAW:
         return "ERR_OPENGL_END_DRAW";
+    case r_error_code_t::ERR_SHADER_LOAD:
+        return "ERR_SHADER_LOAD";
+    case r_error_code_t::ERR_SHADER_COMPILE:
+        return "ERR_SHADER_COMPILE";
     case r_error_code_t::ERR_BEGIN_DRAW:
         return "ERR_BEGIN_DRAW";
     case r_error_code_t::ERR_END_DRAW:
         return "ERR_END_DRAW";
     case r_error_code_t::ERR_INVALID_WINDOW_CFG:
         return "ERR_INVALID_WINDOW_CFG";
+    case r_error_code_t::ERR_INVALID_FUNC_PARAMETER:
+        return "ERR_INVALID_FUNC_PARAMETER";
+    case r_error_code_t::ERR_SHADER_REGISTRY_FULL:
+        return "ERR_SHADER_REGISTRY_FULL";
     case r_error_code_t::ERR_INVALID_VIEWPORT:
         return "ERR_INVALID_VIEWPORT";
     case r_error_code_t::ERR_FRAME_ALREADY_ACTIVE:
@@ -67,12 +83,20 @@ constexpr inline const char *R_ErrorDesc( const r_error_code_t error ) {
         return "failed to start OpenGL drawing";
     case r_error_code_t::ERR_OPENGL_END_DRAW:
         return "failed to end OpenGL drawing";
+    case r_error_code_t::ERR_SHADER_LOAD:
+        return "error loading shader program";
+    case r_error_code_t::ERR_SHADER_COMPILE:
+        return "error compiling a shader";
     case r_error_code_t::ERR_BEGIN_DRAW:
         return "failed to begin draw the frame";
     case r_error_code_t::ERR_END_DRAW:
         return "failed to end draw the frame";
     case r_error_code_t::ERR_INVALID_WINDOW_CFG:
         return "invalid render window configuration";
+    case r_error_code_t::ERR_INVALID_FUNC_PARAMETER:
+        return "invalid parameter passed to the function";
+    case r_error_code_t::ERR_SHADER_REGISTRY_FULL:
+        return "shader registry is full";
     case r_error_code_t::ERR_INVALID_VIEWPORT:
         return "invalid render viewport dimensions";
     case r_error_code_t::ERR_FRAME_ALREADY_ACTIVE:

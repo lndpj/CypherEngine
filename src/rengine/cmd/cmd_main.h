@@ -3,11 +3,12 @@
 #include "rengine/cmd/cmd_error.h"
 #include "rengine/rcommon/com_main.h"
 
+#define CMD_MAX_COMMANDS        256u
+#define CMD_MAX_ARGUMENTS       16u
+
 namespace reap::rengine::cmd
 {
     
-#define CMD_MAX_COMMANDS        256u
-#define CMD_MAX_ARGUMENTS       16u
 
 using cmd_fn_t = void (*)( void *extra_data, rcommon::u32 argc, char **argv );
 

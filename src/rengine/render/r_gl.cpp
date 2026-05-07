@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-05 22:02:15
    Last Modified by: ksiric
-   Last Modified: 2026-05-06 14:30:02
+   Last Modified: 2026-05-06 18:20:08
    ---------------------------------------------------------------------
    Description:
        
@@ -154,5 +154,36 @@ r_error_code_t R_GLEndFrame( const sys::sys_window_t &window )
     
     return r_error_code_t::OK;
 }
+
+r_error_code_t R_GLCreateShaderProgram( const char *vertex_source, const char *fragment_source, rcommon::u32 &out_shader_program_id )
+{
+    out_shader_program_id = 0;
+    
+    if ( vertex_source == nullptr || vertex_source[0] == '\0' ) {
+        return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;       
+    }
+    
+    if ( fragment_source == nullptr || fragment_source[0] == '\0') {
+        return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;       
+    }
+    
+    GLuint vertex_shader_id = R_GLCompileShader( GL_VERTEX_SHADER, vertex_source );
+    if ( vertex_shader_id == 0 ) {
+        return r_error_code_t::ERR_SHADER_COMPILE;
+    }
+    GLuint fragment_shader_id = R_GLCompileShader( GL_FRAGMENT_SHADER, fragment_source );
+    if ( fragment_shader_id == 0 ) {
+        return r_error_code_t::ERR_SHADER_COMPILE;
+    }
+    
+    GLuint shader_program_id = glCreateProgram();
+       
+       
+       
+       
+    
+    return r_error_code_t::OK;
+}
+
 
 }       // namespace reap::rengine::render

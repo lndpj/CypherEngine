@@ -16,5 +16,7 @@ void R_GLShutdown( r_gl_state_t &gl_state );
 r_error_code_t R_GLBeginFrame( const sys::sys_window_t &window );
 
 r_error_code_t R_GLEndFrame( const sys::sys_window_t &window );
+
+r_error_code_t R_GLCreateShaderProgram( const char *vertex_source, const char *fragment_source, rcommon::u32 &out_shader_program_id );
     
 }       // namespace reap::rengine::render

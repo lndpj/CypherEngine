@@ -4,7 +4,6 @@
 
 #include <cstdarg>
 
-
 namespace reap::rengine::rcommon
 {
 
