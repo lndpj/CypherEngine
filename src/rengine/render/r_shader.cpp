@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-06 15:03:52
    Last Modified by: ksiric
-   Last Modified: 2026-05-06 18:07:13
+   Last Modified: 2026-05-08 00:04:01
    ---------------------------------------------------------------------
    Description:
        
@@ -46,12 +46,12 @@ r_error_code_t R_ShaderLoad( r_shader_registry_t &shader_registry, const char *n
         return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
     
-    if ( vertex_path == nullptr || vertex_path[0] != '\0' ) {
+    if ( vertex_path == nullptr || vertex_path[0] == '\0' ) {
         rcommon::Com_Errorf( R_ErrorCode( r_error_code_t::ERR_INVALID_FUNC_PARAMETER ), "R_ShaderLoad: failed passing invalid vertex shader path.\n" );
         return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
     
-    if ( fragment_path == nullptr || fragment_path[0] != '\0' ) {
+    if ( fragment_path == nullptr || fragment_path[0] == '\0' ) {
         rcommon::Com_Errorf( R_ErrorCode( r_error_code_t::ERR_INVALID_FUNC_PARAMETER ), "R_ShaderLoad: failed passing invalid fragment shader path.\n" );
         return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
@@ -94,7 +94,7 @@ r_error_code_t R_ShaderLoad( r_shader_registry_t &shader_registry, const char *n
         
      */
     
-    // @NOTE: Step one is hook the FS of the engine to actually read the vertex_shader and frament_shader!!
+    // @NOTE: Step one is hook the FS of the engine to actually read the vertex_shader and frament_shader
     
     char vertex_source[R_MAX_SHADER_SOURCE_SIZE + 1u]{};
     char fragment_source[R_MAX_SHADER_SOURCE_SIZE + 1u]{};
@@ -134,5 +134,43 @@ r_error_code_t R_ShaderLoad( r_shader_registry_t &shader_registry, const char *n
     return r_error_code_t::OK;
 }
 
-}       // namespace reap::rengine::render
+r_shader_t *R_ShaderFind( r_shader_registry_t &registry, char *name )
+{
+    if ( name == nullptr || name[0] == '\0' ) {
+        return nullptr;
+    }
+    
+    for ( int i = 0; i < registry.shader_count; ++i ) {
+        if ( std::strcmp( registry.shaders[i].name, name ) == 0 ) {
+            return &registry.shaders[i];
+        }
+    }
+    
+    return nullptr;
+}
 
+r_error_code_t R_ShaderBind( r_shader_t &shader )
+{
+    if ( shader.gl_shader_program_id == 0  || !shader.loaded ) {
+        rcommon::Com_Errorf( R_ErrorCode( r_error_code_t::ERR_INVALID_FUNC_PARAMETER ), "R_BindShader: Invalid shader program id passed; %d\n", shader.gl_shader_program_id );
+        return r_error_code_t::ERR_SHADER_LOAD;
+    }
+    
+    return R_GLBindShaderProgram( shader.gl_shader_program_id );
+}
+
+void R_ShaderUnload( r_shader_t &shader )
+{
+    if ( !shader.loaded ) {
+        return ;
+    }   
+    
+    if ( shader.gl_shader_program_id != 0u ) {
+        R_GLDestroyShaderProgram( shader.gl_shader_program_id );
+    }
+    
+    shader = {};
+    return ;
+}
+
+}       // namespace reap::rengine::render

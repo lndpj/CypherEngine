@@ -24,6 +24,8 @@ enum class r_error_code_t : rcommon::u8 {
     ERR_SHADER_REGISTRY_FULL,
     ERR_SHADER_LOAD,
     ERR_SHADER_COMPILE,
+    ERR_SHADER_LINK,
+    ERR_SHADER_BIND,
     
     ERR_INVALID_VIEWPORT,
     ERR_FRAME_ALREADY_ACTIVE,
@@ -48,6 +50,10 @@ constexpr inline const char *R_ErrorName( const r_error_code_t error ) {
         return "ERR_SHADER_LOAD";
     case r_error_code_t::ERR_SHADER_COMPILE:
         return "ERR_SHADER_COMPILE";
+    case r_error_code_t::ERR_SHADER_LINK:
+        return "ERR_SHADER_LINK";
+    case r_error_code_t::ERR_SHADER_BIND:
+        return "ERR_SHADER_BIND";
     case r_error_code_t::ERR_BEGIN_DRAW:
         return "ERR_BEGIN_DRAW";
     case r_error_code_t::ERR_END_DRAW:
@@ -87,6 +93,10 @@ constexpr inline const char *R_ErrorDesc( const r_error_code_t error ) {
         return "error loading shader program";
     case r_error_code_t::ERR_SHADER_COMPILE:
         return "error compiling a shader";
+    case r_error_code_t::ERR_SHADER_LINK:
+        return "error linking shader program";
+    case r_error_code_t::ERR_SHADER_BIND:
+        return "error binding shader program";
     case r_error_code_t::ERR_BEGIN_DRAW:
         return "failed to begin draw the frame";
     case r_error_code_t::ERR_END_DRAW:

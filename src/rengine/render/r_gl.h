@@ -1,7 +1,9 @@
 #pragma once
 
 #include "rengine/render/r_error.h"
+#include "rengine/sys/sys_opengl.h"
 #include "rengine/sys/sys_window.h"
+
 namespace reap::rengine::render
 {
 
@@ -17,6 +19,12 @@ r_error_code_t R_GLBeginFrame( const sys::sys_window_t &window );
 
 r_error_code_t R_GLEndFrame( const sys::sys_window_t &window );
 
-r_error_code_t R_GLCreateShaderProgram( const char *vertex_source, const char *fragment_source, rcommon::u32 &out_shader_program_id );
-    
+r_error_code_t R_GLCreateShaderProgram( const char *vertex_source, const char *fragment_source, rcommon::u32 &out_shader_program_id ); 
+
+GLuint R_GLCompileShader( const GLenum shader_type, const char *shader_source );
+
+r_error_code_t R_GLBindShaderProgram( const rcommon::u32 shader_program_id );
+
+void R_GLDestroyShaderProgram( const rcommon::u32 shader_program_id );
+
 }       // namespace reap::rengine::render

@@ -33,7 +33,10 @@ void R_ShaderRegistryShutdown( r_shader_registry_t &shader_registry );
 
 r_error_code_t R_ShaderLoad( r_shader_registry_t &shader_registry, const char *name, const char *vertex_path, const char *fragment_path, r_shader_t **out_shader );
 
+r_shader_t *R_ShaderFind( r_shader_registry_t &registry, const char *name );
 
+r_error_code_t R_ShaderBind( r_shader_t &shader );
 
+void R_ShaderUnload( r_shader_t &shader );
     
 }       // namespace reap::rengine::render

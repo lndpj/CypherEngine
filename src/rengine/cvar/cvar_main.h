@@ -5,7 +5,7 @@
 #define CVAR_MAX_CVARS 256u
 
 namespace reap::rengine::cvar {
-
+    
 enum cvar_flags_t : rcommon::u32 {
 	CVAR_NONE = 0,
 	CVAR_ARCHIVE = 1 << 0,
