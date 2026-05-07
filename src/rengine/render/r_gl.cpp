@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-05 22:02:15
    Last Modified by: ksiric
-   Last Modified: 2026-05-08 00:03:28
+   Last Modified: 2026-05-08 00:14:46
    ---------------------------------------------------------------------
    Description:
        
@@ -174,6 +174,7 @@ r_error_code_t R_GLCreateShaderProgram( const char *vertex_source, const char *f
     
     GLuint fragment_shader_id = R_GLCompileShader( GL_FRAGMENT_SHADER, fragment_source );
     if ( fragment_shader_id == 0 ) {
+        glDeleteShader( vertex_shader_id );
         return r_error_code_t::ERR_SHADER_COMPILE;
     }
     
@@ -239,7 +240,11 @@ r_error_code_t R_GLBindShaderProgram( const rcommon::u32 shader_program_id )
 
 void R_GLDestroyShaderProgram( const rcommon::u32 shader_program_id )
 {
+    if ( shader_program_id == 0u ) {
+        return ;
+    }   
     
+    glDeleteShader( shader_program_id );
     
     return ;   
 }

@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-06 15:03:52
    Last Modified by: ksiric
-   Last Modified: 2026-05-08 00:04:01
+   Last Modified: 2026-05-08 00:16:04
    ---------------------------------------------------------------------
    Description:
        
@@ -34,6 +34,10 @@ void R_ShaderRegistryInit( r_shader_registry_t &shader_registry )
 
 void R_ShaderRegistryShutdown( r_shader_registry_t &shader_registry )
 {
+    for ( rcommon::u32 i = 0u; i < shader_registry.shader_count; ++i ) {
+        R_ShaderUnload( shader_registry.shaders[i] );
+    }
+    
     shader_registry = {};
     
     return ;
@@ -134,7 +138,7 @@ r_error_code_t R_ShaderLoad( r_shader_registry_t &shader_registry, const char *n
     return r_error_code_t::OK;
 }
 
-r_shader_t *R_ShaderFind( r_shader_registry_t &registry, char *name )
+r_shader_t *R_ShaderFind( r_shader_registry_t &registry, const char *name )
 {
     if ( name == nullptr || name[0] == '\0' ) {
         return nullptr;
