@@ -6,6 +6,11 @@
 namespace reap::rengine::cmd
 {
 
+/*
+================
+Command Error Codes
+================
+*/
 enum class cmd_error_code_t : rcommon::u8 {
     OK,
 
@@ -19,6 +24,11 @@ enum class cmd_error_code_t : rcommon::u8 {
     ERR_INVALID_CALLBACK
 };
 
+/*
+================
+Command Error Helpers
+================
+*/
 constexpr inline const char *Cmd_ErrorName( const cmd_error_code_t error ) {
     switch ( error ) {
     case cmd_error_code_t::OK:

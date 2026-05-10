@@ -17,11 +17,18 @@
 #include "rengine/sys/sys_window.h"
 #include "rengine/rcommon/com_print.h"
 
-#include <SDL3/SDL.h>
+#include <SDL3/SDL.h>      // Cross-platform window and event API.
 
 namespace reap::rengine::sys
 {
-    
+
+/*
+================
+Sys_CreateWindow
+
+Creates the SDL window used later by the renderer backend.
+================
+*/
 sys_error_code_t Sys_CreateWindow( const sys_window_desc_t &window_description, sys_window_t &out_window )
 {
     SDL_WindowFlags flags{};
@@ -69,6 +76,11 @@ sys_error_code_t Sys_CreateWindow( const sys_window_desc_t &window_description, 
     return sys_error_code_t::OK;   
 }
 
+/*
+================
+Sys_DestroyWindow
+================
+*/
 void Sys_DestroyWindow( sys_window_t &window ) {
     SDL_Window *sdl_window{ nullptr };
     
@@ -86,6 +98,13 @@ void Sys_DestroyWindow( sys_window_t &window ) {
     return ; 
 }
 
+/*
+================
+Sys_PollWindowEvents
+
+Updates window state from SDL events.
+================
+*/
 void Sys_PollWindowEvents( sys_window_t &window ) {
     SDL_Event event{};
     
@@ -113,6 +132,11 @@ void Sys_PollWindowEvents( sys_window_t &window ) {
     }
 }
 
+/*
+================
+Sys_WindowShouldClose
+================
+*/
 bool Sys_WindowShouldClose( const sys_window_t &window ) {
     return window.should_close;   
 }

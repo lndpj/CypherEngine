@@ -6,6 +6,13 @@
 namespace reap::rengine::host
 {
 
+/*
+================
+Host Initialization Steps
+
+Kept separate so startup order stays readable and failure cleanup is explicit.
+================
+*/
 void Host_PrepareStateForInit( host_state_t &host_state );
 
 host_error_code_t Host_InitCoreEngineSystems( host_state_t &host_state );
@@ -26,6 +33,11 @@ host_error_code_t Host_InitRenderer( host_state_t &host_state );
 
 host_error_code_t Host_FinishInit( host_state_t &host_state );
 
+/*
+================
+Host Runtime API
+================
+*/
 host_error_code_t Host_Init( host_state_t &host_state );
 
 void Host_RequestShutdown( host_state_t &host_state );

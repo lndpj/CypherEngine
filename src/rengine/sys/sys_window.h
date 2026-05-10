@@ -6,6 +6,13 @@
 namespace reap::rengine::sys 
 {
 
+/*
+================
+System Window Types
+
+The public engine-facing wrapper around native SDL window state.
+================
+*/
 struct sys_window_desc_t {
     const char *title{ rcommon::COM_GAME_INFO.name };
     rcommon::u32 width{ 1280u };
@@ -26,6 +33,11 @@ struct sys_window_t {
     bool valid{ false };
 };
 
+/*
+================
+System Window API
+================
+*/
 sys_error_code_t Sys_CreateWindow( const sys_window_desc_t &window_description, sys_window_t &out_window );
 
 void Sys_DestroyWindow( sys_window_t &window );

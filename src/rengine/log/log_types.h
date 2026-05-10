@@ -2,7 +2,7 @@
 
 #include "rengine/rcommon/com_main.h"
 
-#include <ctime>
+#include <ctime>       // std::time_t timestamps.
 
 namespace reap::rengine::log {
 
@@ -10,6 +10,13 @@ constexpr rcommon::usize REAP_LOG_MESSAGE_MAX = 1024u;
 
 constexpr rcommon::usize REAP_LOG_FILE_PATH_MAX = 512u;
 
+/*
+================
+Log Types
+
+Severity, output policy, channel and record descriptions for the log system.
+================
+*/
 enum class log_level_t : rcommon::u8 {
 	TRACE,
 	DEBUG,
@@ -55,6 +62,11 @@ enum class log_channel_t : rcommon::u8 {
 	COUNT
 };
 
+/*
+================
+Log Runtime Records
+================
+*/
 struct log_record_t {
 	log_level_t level{ log_level_t::INFO };
 	log_channel_t channel{ log_channel_t::CORE };
@@ -77,6 +89,11 @@ struct log_config_t {
     char file_path[REAP_LOG_FILE_PATH_MAX]{ "reap.log" };
 };
 
+/*
+================
+Log Name Helpers
+================
+*/
 constexpr inline const char *Log_LevelName( const log_level_t log_level ) {
 	switch ( log_level ) {
         case log_level_t::TRACE:        return "TRACE";

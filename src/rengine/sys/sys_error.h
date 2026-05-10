@@ -4,6 +4,11 @@
 
 namespace reap::rengine::sys {
 
+/*
+================
+System Error Codes
+================
+*/
 enum class sys_error_code_t : rcommon::u8 {
 	OK = 0,
 
@@ -26,6 +31,11 @@ enum class sys_error_code_t : rcommon::u8 {
 	ERR_INTERNAL_ERROR
 };
 
+/*
+================
+System Error Helpers
+================
+*/
 constexpr inline const char *Sys_ErrorName( const sys_error_code_t error ) {
     switch ( error ) {
     case sys_error_code_t::OK:

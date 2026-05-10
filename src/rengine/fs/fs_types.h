@@ -2,7 +2,7 @@
 
 #include "rengine/rcommon/com_main.h"
 
-#include <ctime>
+#include <ctime>       // std::time_t file timestamps.
 
 namespace reap::rengine::fs
 {
@@ -11,6 +11,13 @@ constexpr rcommon::u32 FS_MAX_MOUNTS                    = 32u;
 constexpr rcommon::u32 FS_MAX_PATH_LENGTH               = 260u;
 constexpr rcommon::u32 FS_MAX_VIRTUAL_ROOT_LENGTH       = 64u;
 
+/*
+================
+Filesystem Types
+
+Virtual mounts map engine paths onto physical storage backends.
+================
+*/
 enum class fs_mount_type_t : rcommon::u8 {
     FS_DIRECTORY    = 0,
     FS_PACKAGE
@@ -45,6 +52,11 @@ enum class fs_seek_origin_t : rcommon::u8 {
     FS_SEEK_END
 };
 
+/*
+================
+Filesystem Records
+================
+*/
 struct fs_mount_t {
     fs_mount_type_t type{ fs_mount_type_t::FS_DIRECTORY };
     char virtual_root[FS_MAX_VIRTUAL_ROOT_LENGTH]{};

@@ -18,21 +18,26 @@
 
 #if REAP_PLATFORM_LINUX
 
-#include <chrono>
-#include <cstdlib>
-#include <cerrno>
-#include <ctime>
-#include <cstring>
-#include <filesystem>
-#include <string>
-#include <system_error>
-#include <unistd.h>
+#include <chrono>          // Reserved for future platform timing extensions.
+#include <cstdlib>         // getenv.
+#include <cerrno>          // EINTR while sleeping.
+#include <ctime>           // nanosleep / timespec.
+#include <cstring>         // strcmp / strncpy for path buffers.
+#include <filesystem>      // Path normalization and directory creation.
+#include <string>          // Temporary path strings.
+#include <system_error>    // std::error_code for non-throwing filesystem calls.
+#include <unistd.h>        // readlink / nanosleep platform headers.
 
 namespace reap::rengine::sys
 {
     
 namespace {
 
+/*
+================
+Sys_CopyPath
+================
+*/
 bool Sys_CopyPath( char *out_path, const rcommon::u32 out_path_size, const std::filesystem::path &path ) {
     if ( out_path == nullptr || out_path_size == 0u ) {
         return false;
@@ -51,6 +56,11 @@ bool Sys_CopyPath( char *out_path, const rcommon::u32 out_path_size, const std::
     return true;
 }
 
+/*
+================
+Sys_FindArgvValue
+================
+*/
 const char *Sys_FindArgvValue( const sys_init_info_t &info, const char *argv_name ) {
     if ( info.argv == nullptr || argv_name == nullptr ) {
         return nullptr;
@@ -67,6 +77,13 @@ const char *Sys_FindArgvValue( const sys_init_info_t &info, const char *argv_nam
 
 }    
 
+/*
+================
+Sys_PlatformBuildPaths
+
+Builds Linux executable, base and user paths.
+================
+*/
 sys_error_code_t Sys_PlatformBuildPaths(const sys_init_info_t &info_init, sys_paths_t &out_paths ) {
     std::error_code ec{}; 
     out_paths = {};
@@ -152,6 +169,11 @@ sys_error_code_t Sys_PlatformBuildPaths(const sys_init_info_t &info_init, sys_pa
     return sys_error_code_t::OK;
 }
 
+/*
+================
+Sys_PlatformSleepMilliseconds
+================
+*/
 void Sys_PlatformSleepMilliseconds( const rcommon::u64 milliseconds ) {
     timespec request{};
     request.tv_sec = static_cast<time_t>( milliseconds / 1000u );

@@ -16,11 +16,19 @@
                                                                        */
 #include "rengine/host/host_main.h"
 
-#include <cstdlib>
+#include <cstdlib>     // EXIT_SUCCESS / EXIT_FAILURE.
 
 namespace rr = reap::rengine;
 namespace host = rr::host;
 
+/*
+================
+main
+
+Keeps the executable entry point thin; host owns engine startup, frame flow
+and shutdown ordering.
+================
+*/
 int main(int argc, char const *argv[])
 {   
     host::host_state_t  host_state{};

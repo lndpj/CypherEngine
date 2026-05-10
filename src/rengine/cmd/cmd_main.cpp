@@ -19,14 +19,19 @@
 #include "rengine/cmd/cmd_error.h"
 #include "rengine/rcommon/com_print.h"
 
-#include <cctype>
-#include <cstring>
+#include <cctype>      // std::isspace while tokenizing command lines.
+#include <cstring>     // strcmp / strncpy for fixed command strings.
 
 namespace reap::rengine::cmd
 {
 
 cmd_registry_t g_cmd_registery{};
 
+/*
+================
+Cmd_Init
+================
+*/
 cmd_error_code_t Cmd_Init( ) {
     if ( g_cmd_registery.initialized ) {
         rcommon::Com_Printf( "Cmd_Init: command system already initialized." );
@@ -41,6 +46,11 @@ cmd_error_code_t Cmd_Init( ) {
     return cmd::cmd_error_code_t::OK;
 }
 
+/*
+================
+Cmd_Shutdown
+================
+*/
 void Cmd_Shutdown() {
     if ( !g_cmd_registery.initialized ) {
         rcommon::Com_Printf( "Cmd_Shutdown: command system is not initialized; nothing to shutdown" );
@@ -48,20 +58,25 @@ void Cmd_Shutdown() {
     }
 
     g_cmd_registery = {};
-    // @NOTE: Additional setting, might not be neded but still
     g_cmd_registery.cmd_count = 0;
     g_cmd_registery.initialized = false;
 
     return ;
 }
 
+/*
+================
+Cmd_Register
+
+Adds a named command callback to the fixed registry.
+================
+*/
 cmd_error_code_t Cmd_Register( const char *cmd_name, cmd_fn_t callback_fn, void *extra_data, const char *cmd_description ) {
     if ( !g_cmd_registery.initialized ) {
         rcommon::Com_Printf( "Cmd_Register: command system is not initialized." );
         return cmd::cmd_error_code_t::ERR_NOT_INIT;
     }
 
-    // @NOTE: Safety checks that the function has to go through
     if ( cmd_name == nullptr || cmd_name[0] == '\0' ) {
         rcommon::Com_Printf( "Cmd_Register: invalid cmd passed to registery." );
         return cmd::cmd_error_code_t::ERR_INVALID_COMMAND;
@@ -69,7 +84,6 @@ cmd_error_code_t Cmd_Register( const char *cmd_name, cmd_fn_t callback_fn, void 
 
     const cmd_t *command = Cmd_Find( cmd_name );
 
-    // @NOTE: command not found !
     if ( command != nullptr ) {
         rcommon::Com_Printf( "Cmd_Register: cmd '%s' already exists and is registered.", cmd_name );
         return cmd::cmd_error_code_t::ERR_COMMAND_ALREADY_EXISTS;
@@ -98,6 +112,11 @@ cmd_error_code_t Cmd_Register( const char *cmd_name, cmd_fn_t callback_fn, void 
     return cmd::cmd_error_code_t::OK;
 }
 
+/*
+================
+Cmd_Find
+================
+*/
 const cmd_t *Cmd_Find( const char *cmd_name ) {
     if ( !g_cmd_registery.initialized ) {
         rcommon::Com_Printf( "Cmd_Find: cmd system is not initialized." );
@@ -118,6 +137,13 @@ const cmd_t *Cmd_Find( const char *cmd_name ) {
     return nullptr;
 }
 
+/*
+================
+Cmd_Parse
+
+Splits a mutable command line into argv-style tokens.
+================
+*/
 cmd_error_code_t Cmd_Parse( char *command_line, rcommon::u32 &argc, char **argv ) {
 
     if ( command_line == nullptr || command_line[0] == '\0' ) {
@@ -155,6 +181,13 @@ cmd_error_code_t Cmd_Parse( char *command_line, rcommon::u32 &argc, char **argv 
     return ( argc > 0u ) ? cmd_error_code_t::OK : cmd_error_code_t::ERR_INVALID_COMMAND;
 }
 
+/*
+================
+Cmd_Execute
+
+Parses a command line, finds the command, and calls its callback.
+================
+*/
 cmd_error_code_t Cmd_Execute( const char *command_line ) {
     if ( !g_cmd_registery.initialized ) {
         rcommon::Com_Printf( "Cmd_Execute: cmd system is not initialized; nothing to execute." );
@@ -173,7 +206,6 @@ cmd_error_code_t Cmd_Execute( const char *command_line ) {
 
     strncpy( buffer, command_line, sizeof( buffer ) - 1 );
 
-    // @TODO: Parsing the command line in the first place.
     cmd_error_code_t err = Cmd_Parse( buffer, cmd_argc, cmd_argv );
     
     if ( err != cmd::cmd_error_code_t::OK ) {

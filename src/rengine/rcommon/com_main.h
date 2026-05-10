@@ -1,8 +1,8 @@
 #pragma once
 
-#include <cstddef>
-#include <cstdint>
-#include <limits>
+#include <cstddef>     // std::size_t.
+#include <cstdint>     // Fixed-width integer types.
+#include <limits>      // Numeric limits for invalid handles and constants.
 
 #define REAP_STRINGIFY( x ) #x
 
@@ -12,6 +12,14 @@
 
 namespace reap::rengine::rcommon {
 
+/*
+================
+Core Scalar Types
+
+Engine-wide fixed-size aliases. These keep every subsystem speaking the same
+integer, float and id language.
+================
+*/
 using com_i8 = std::int8_t;
 using com_i16 = std::int16_t;
 using com_i32 = std::int32_t;
@@ -54,6 +62,11 @@ constexpr com_entity_id_t COM_INVALID_ENTITY_ID = std::numeric_limits<com_entity
 constexpr frame_index_t INVALID_FRAME_INDEX = COM_INVALID_FRAME_INDEX;
 constexpr entity_id_t INVALID_ENTITY_ID = COM_INVALID_ENTITY_ID;
 
+/*
+================
+Common Math Constants
+================
+*/
 constexpr com_f32 COM_PI_F = 3.14159265358979323846f;
 constexpr com_f32 COM_TAU_F = 6.28318530717958647692f;
 constexpr com_f32 COM_DEG2RAD_F = COM_PI_F / 180.0f;
@@ -78,6 +91,13 @@ static_assert( sizeof( com_u16 ) == 2, "com_u16 must be 2 bytes" );
 static_assert( sizeof( com_u32 ) == 4, "com_u32 must be 4 bytes" );
 static_assert( sizeof( com_u64 ) == 8, "com_u64 must be 8 bytes" );
 
+/*
+================
+Product Information
+
+Static identity data printed by the engine and exposed to commands/config.
+================
+*/
 struct com_version_t {
 	rcommon::u32 major{ 0u };
 	rcommon::u32 minor{ 1u };

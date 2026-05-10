@@ -5,7 +5,14 @@
 #define CVAR_MAX_CVARS 256u
 
 namespace reap::rengine::cvar {
-    
+
+/*
+================
+Cvar Types
+
+Cvars are named runtime variables used by configs, console and engine systems.
+================
+*/
 enum cvar_flags_t : rcommon::u32 {
 	CVAR_NONE = 0,
 	CVAR_ARCHIVE = 1 << 0,
@@ -34,6 +41,11 @@ struct cvar_registry_t {
 constexpr rcommon::u32 CVAR_REGISTER_ALLOWED_FLAGS =
 	CVAR_ARCHIVE | CVAR_READONLY | CVAR_CHEAT | CVAR_DEV;
 
+/*
+================
+Cvar API
+================
+*/
 cvar_error_code_t Cvar_Init();
 
 cvar_error_code_t Cvar_Register( const char *name, const char *default_value, cvar_flags_t flags );

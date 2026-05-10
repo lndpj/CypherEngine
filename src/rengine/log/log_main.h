@@ -3,11 +3,18 @@
 #include "rengine/log/log_error.h"
 #include "rengine/log/log_types.h"
 
-#include <cstdarg>
+#include <cstdarg>     // va_list for log formatting.
 
 namespace reap::rengine::log
 {
 
+/*
+================
+Log API
+
+Structured logging with severity levels, channels and optional file output.
+================
+*/
 log_error_code_t Log_Init( const log_config_t &config = {} );
 
 void Log_Shutdown();
@@ -32,6 +39,13 @@ void Log_Emitfv( const log_level_t log_level, const log_channel_t channel,
 
 }
 
+/*
+================
+Log Macros
+
+Capture source file, function and line while keeping call sites compact.
+================
+*/
 #define REAP_LOG_IF_ENABLED( LOG_LEVEL, LOG_CHANNEL )                                                           \
 	if ( reap::rengine::log::Log_LevelEnabled( ( LOG_LEVEL ), ( LOG_CHANNEL ) ) )
 

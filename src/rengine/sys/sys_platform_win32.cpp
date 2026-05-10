@@ -26,18 +26,23 @@
 #   define NOMINMAX
 #endif
 
-#include <windows.h>
+#include <windows.h>       // Win32 path and sleep APIs.
 
-#include <cstdlib>
-#include <cstring>
-#include <filesystem>
-#include <string>
-#include <system_error>
+#include <cstdlib>         // Environment access compatibility.
+#include <cstring>         // strcmp / strncpy for path buffers.
+#include <filesystem>      // Path normalization and directory creation.
+#include <string>          // Temporary path strings.
+#include <system_error>    // std::error_code for non-throwing filesystem calls.
 
 namespace reap::rengine::sys {
 
 namespace {
 
+/*
+================
+Sys_CopyPath
+================
+*/
 bool Sys_CopyPath( char *out_path, const rcommon::u32 out_path_size, const std::filesystem::path &path ) {
     if ( out_path == nullptr || out_path_size == 0u ) {
         return false;
@@ -56,6 +61,11 @@ bool Sys_CopyPath( char *out_path, const rcommon::u32 out_path_size, const std::
     return true;
 }
 
+/*
+================
+Sys_FindArgvValue
+================
+*/
 const char *Sys_FindArgvValue( const sys_init_info_t &info, const char *argv_name ) {
     if ( info.argv == nullptr || argv_name == nullptr ) {
         return nullptr;
@@ -72,6 +82,13 @@ const char *Sys_FindArgvValue( const sys_init_info_t &info, const char *argv_nam
 
 }
 
+/*
+================
+Sys_PlatformBuildPaths
+
+Builds Win32 executable, base and user paths.
+================
+*/
 sys_error_code_t Sys_PlatformBuildPaths( const sys_init_info_t &info_init, sys_paths_t &out_paths ) {
 	out_paths = {};
 
@@ -167,6 +184,11 @@ sys_error_code_t Sys_PlatformBuildPaths( const sys_init_info_t &info_init, sys_p
     return sys_error_code_t::OK;
 }
 
+/*
+================
+Sys_PlatformSleepMilliseconds
+================
+*/
 void Sys_PlatformSleepMilliseconds( const rcommon::u64 milliseconds ) {
 	Sleep( static_cast<DWORD>( milliseconds ) );
 }

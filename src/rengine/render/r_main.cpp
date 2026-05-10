@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-20 21:01:21
    Last Modified by: ksiric
-   Last Modified: 2026-05-10 20:45:19
+   Last Modified: 2026-05-11 00:49:44
    ---------------------------------------------------------------------
    Description:
 
@@ -18,12 +18,19 @@
 #include "rengine/log/log_main.h"
 #include "rengine/render/r_gl.h"
 
-#include <SDL3/SDL.h>
+#include <SDL3/SDL.h>      // Temporary renderer-side SDL visibility while backend matures.
 
 namespace reap::rengine::render {
 
 render_runtime_state_t g_render_runtime_state{};
 
+/*
+================
+R_Init
+
+Validates host/window config, starts the GL backend and loads core shaders.
+================
+*/
 r_error_code_t R_Init( const sys::sys_window_t &window, const host::window_config_t &window_config ) {
 	if ( R_IsInitialized() ) {
 		REAP_LOG_WARNING( log::log_channel_t::RENDER, "renderer already initialized." );
@@ -57,7 +64,6 @@ r_error_code_t R_Init( const sys::sys_window_t &window, const host::window_confi
 		g_render_runtime_state.viewport_width,
 		g_render_runtime_state.viewport_height );
 
-	// @NOTE: Calling "R_GLinit" setting up the OpengGL pipeline getting things ready!
 	const auto gl_result = R_GLInit( window, window_config.vsync, g_render_runtime_state.gl_state );
 	if ( gl_result != r_error_code_t::OK ) {
 		g_render_runtime_state = {};
@@ -66,7 +72,6 @@ r_error_code_t R_Init( const sys::sys_window_t &window, const host::window_confi
 
 	R_ShaderRegistryInit( g_render_runtime_state.shader_registry );
 
-	// @NOTE: loading shaders and here we will do all of the shader loadings later.
 	r_shader_t *basic_shader{ nullptr };
 
 	const auto shader_result = R_ShaderLoad( g_render_runtime_state.shader_registry, "basic_color", "data/shaders/gl/basic_color.vert",
@@ -76,20 +81,57 @@ r_error_code_t R_Init( const sys::sys_window_t &window, const host::window_confi
         R_ShaderRegistryShutdown( g_render_runtime_state.shader_registry );
         R_GLShutdown( g_render_runtime_state.gl_state );
         g_render_runtime_state = {};
-        return shader_result; 
+        return shader_result;
     }
+
+    g_render_runtime_state.basic_shader = basic_shader;
+    
+    /*
+    Temporary pipeline test mesh. Kept here as reference while real 3D
+    transform/camera rendering is built.
+
+    const r_vertex_t vertices[] = {
+        { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+        { {  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+        { {  0.0f,  0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
+    };
+
+    const rcommon::u32 indices[] = {
+        0u, 1u, 2u
+    };
+
+    const auto mesh_result = R_MeshCreate(
+        vertices,
+        3u,
+        indices,
+        3u,
+        g_render_runtime_state.test_mesh );
+
+    if ( mesh_result != r_error_code_t::OK ) {
+        R_ShaderRegistryShutdown( g_render_runtime_state.shader_registry );
+        R_GLShutdown( g_render_runtime_state.gl_state );
+        g_render_runtime_state = {};
+        return mesh_result;
+    }
+    */
 
     g_render_runtime_state.initialized = true;
 
 	return r_error_code_t::OK;
 }
 
+/*
+================
+R_Shutdown
+================
+*/
 void R_Shutdown() {
 	if ( !R_IsInitialized() ) {
 		REAP_LOG_INFO( log::log_channel_t::RENDER, "renderer was not initialized; nothing to shutdown." );
 		return;
 	}
 
+	R_MeshDestroy( g_render_runtime_state.test_mesh );
 	R_ShaderRegistryShutdown( g_render_runtime_state.shader_registry );
 	R_GLShutdown( g_render_runtime_state.gl_state );
 
@@ -98,6 +140,13 @@ void R_Shutdown() {
 	REAP_LOG_INFO( log::log_channel_t::RENDER, "renderer shutdown complete." );
 }
 
+/*
+================
+R_BeginFrame
+
+Opens a render frame and prepares the backend for drawing.
+================
+*/
 r_error_code_t R_BeginFrame( const rcommon::com_f32 delta_time_seconds ) {
 	if ( !R_IsInitialized() ) {
 		return r_error_code_t::ERR_NOT_INIT;
@@ -118,6 +167,13 @@ r_error_code_t R_BeginFrame( const rcommon::com_f32 delta_time_seconds ) {
 	return r_error_code_t::OK;
 }
 
+/*
+================
+R_RenderFrame
+
+Submits scene rendering work for the active frame.
+================
+*/
 r_error_code_t R_RenderFrame() {
 	if ( !R_IsInitialized() ) {
 		return r_error_code_t::ERR_NOT_INIT;
@@ -127,9 +183,31 @@ r_error_code_t R_RenderFrame() {
 		return r_error_code_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
-	return r_error_code_t::OK;
+    /*
+    Temporary pipeline test draw. Disabled now that the RGB triangle path is
+    proven and we are moving toward real 3D transforms.
+
+    if ( g_render_runtime_state.basic_shader == nullptr ) {
+        return r_error_code_t::ERR_SHADER_BIND;
+    }
+
+    const auto shader_result = R_ShaderBind( *g_render_runtime_state.basic_shader );
+    if ( shader_result != r_error_code_t::OK ) {
+        return shader_result;
+    }
+	// return R_MeshDraw( g_render_runtime_state.test_mesh );
+    */
+
+    return r_error_code_t::OK;
 }
 
+/*
+================
+R_EndFrame
+
+Closes the render frame and presents the back buffer.
+================
+*/
 r_error_code_t R_EndFrame() {
 	if ( !R_IsInitialized() ) {
 		return r_error_code_t::ERR_NOT_INIT;
@@ -149,6 +227,11 @@ r_error_code_t R_EndFrame() {
 	return r_error_code_t::OK;
 }
 
+/*
+================
+R_IsInitialized
+================
+*/
 bool R_IsInitialized() {
 	return g_render_runtime_state.initialized;
 }

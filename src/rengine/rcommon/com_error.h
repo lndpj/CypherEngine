@@ -6,6 +6,13 @@ namespace reap::rengine::rcommon {
 
 using com_error_t = com_u32;
 
+/*
+================
+Common Error Encoding
+
+Errors are packed as high 16 bits domain, low 16 bits subsystem-local code.
+================
+*/
 enum class com_domain_t : u16 {
 	COM_DOMAIN_COMMON = 0,
 	COM_DOMAIN_RENDER,
@@ -37,6 +44,11 @@ enum class com_error_code_t : com_u8 {
 	ERR_INTERNAL_ERROR
 };
 
+/*
+================
+Common Error Helpers
+================
+*/
 constexpr bool Com_ErrorOk( const com_error_code_t code ) {
 	return code == com_error_code_t::OK;
 }

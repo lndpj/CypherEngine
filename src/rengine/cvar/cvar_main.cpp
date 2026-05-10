@@ -18,14 +18,19 @@
 #include "rengine/cvar/cvar_error.h"
 #include "rengine/rcommon/com_print.h"
 
-#include <cctype>
-#include <cstdlib>
-#include <cstring>
+#include <cctype>      // std::tolower for bool parsing.
+#include <cstdlib>     // atoi / atof numeric conversion.
+#include <cstring>     // strcmp / strncpy for cvar storage.
 
 namespace reap::rengine::cvar {
 
 cvar_registry_t g_cvar_registry;
 
+/*
+================
+Cvar_Init
+================
+*/
 cvar_error_code_t Cvar_Init() {
 	if ( g_cvar_registry.initialized ) {
 		rcommon::Com_Printf( "Cvar_Init: %s: %s\n", Cvar_ErrorName( cvar_error_code_t::ERR_IS_INIT ), Cvar_ErrorDesc( cvar_error_code_t::ERR_IS_INIT ) );
@@ -38,9 +43,14 @@ cvar_error_code_t Cvar_Init() {
 	return cvar_error_code_t::OK;
 }
 
-// @NOTE(karlo): helper func for parsing the proper bool lower
+/*
+================
+Cvar_ParseBool
+
+Accepts common console-friendly true/false strings.
+================
+*/
 bool Cvar_ParseBool( const char *value ) {
-	// @NOTE(karlo) -> for design wise choice I went for nullptr, 0, false, "", "false", "off", "no" to be a bool false value.
 	if ( value == nullptr || value[0] == '\0' ) {
 		return false;
 	}
@@ -64,6 +74,13 @@ bool Cvar_ParseBool( const char *value ) {
 	return ( std::atoi( lower ) != 0 );
 }
 
+/*
+================
+Cvar_Register
+
+Adds a cvar with default string and cached numeric views.
+================
+*/
 cvar_error_code_t Cvar_Register( const char *name, const char *default_value, cvar_flags_t flags ) {
 	if ( !g_cvar_registry.initialized ) {
 		rcommon::Com_Printf( "Cvar_Register: %s: %s\n", Cvar_ErrorName( cvar_error_code_t::ERR_NOT_INIT ), Cvar_ErrorDesc( cvar_error_code_t::ERR_NOT_INIT ) );
@@ -80,12 +97,6 @@ cvar_error_code_t Cvar_Register( const char *name, const char *default_value, cv
 		return cvar_error_code_t::ERR_INVALID_DEFAULT_VALUE;
 	}
 
-	/*
-	 * @NOTE(Karlo): importnat here to make a flags bits mask and check like that.
-	 *
-	 * More professional structure then, and we ensure that we do not miss any masks.
-	 *
-	 */
 	rcommon::u32 flags_bits = static_cast<rcommon::u32>( flags );
 
 	if ( ( flags_bits & CVAR_MODIFIED ) != 0u ) {
@@ -93,16 +104,14 @@ cvar_error_code_t Cvar_Register( const char *name, const char *default_value, cv
 		return cvar_error_code_t::ERR_INVALID_FLAG;
 	}
 
-	// @NOTE(karlo): Additional safety checking for the masking part.
+	// CVAR_MODIFIED is runtime-owned; registration only accepts authoring flags.
 	if ( ( flags_bits & ~CVAR_REGISTER_ALLOWED_FLAGS ) != 0 ) {
 		rcommon::Com_Printf( "Cvar_Register: %s: %s\n", Cvar_ErrorName( cvar_error_code_t::ERR_INVALID_FLAG ), Cvar_ErrorDesc( cvar_error_code_t::ERR_INVALID_FLAG ) );
 		return cvar_error_code_t::ERR_INVALID_FLAG;
 	}
 
-	// @NOTE(karlo): checking if we have that cvar already
 	const cvar_t *cvar = Cvar_Find( name );
 
-	// @NOTE(karlo): checking not by strcmp but by checking pointer dangling
 	if ( cvar != nullptr ) {
 		rcommon::Com_Printf( "Cvar_Register: %s: %s\n", Cvar_ErrorName( cvar_error_code_t::ERR_CVAR_ALREADY_EXISTS ), Cvar_ErrorDesc( cvar_error_code_t::ERR_CVAR_ALREADY_EXISTS ) );
 		return cvar_error_code_t::ERR_CVAR_ALREADY_EXISTS;
@@ -129,8 +138,13 @@ cvar_error_code_t Cvar_Register( const char *name, const char *default_value, cv
 	return cvar_error_code_t::OK;
 }
 
-// @TODO(karlo): adding other functions tommorow
+/*
+================
+Cvar_Set
 
+Changes a cvar string and updates its cached int/float/bool values.
+================
+*/
 cvar_error_code_t Cvar_Set( const char *name, const char *value ) {
 	if ( !g_cvar_registry.initialized ) {
 		rcommon::Com_Printf( "Cvar_Set: %s: %s\n", Cvar_ErrorName( cvar_error_code_t::ERR_NOT_INIT ), Cvar_ErrorDesc( cvar_error_code_t::ERR_NOT_INIT ) );
@@ -153,7 +167,8 @@ cvar_error_code_t Cvar_Set( const char *name, const char *value ) {
     }
     
     cvar_t *target = nullptr;
-    // @NOTE: O(n) because we do not know, we need to check everything basically.
+
+    // Linear for now; later this can become a hash table without changing API.
     for ( rcommon::u32 i = 0; i < g_cvar_registry.cvar_count; ++i ) {
         if ( std::strcmp( g_cvar_registry.cvars[i].name, name ) == 0 ) {
             target = &g_cvar_registry.cvars[i];
@@ -171,7 +186,7 @@ cvar_error_code_t Cvar_Set( const char *name, const char *value ) {
         return cvar_error_code_t::ERR_READONLY;
     }
     
-    // @TODO(karlo): later this will need to be replaced with real cheats if we enable these and stuff 
+    // Cheat protection will later be controlled by server/game authority.
     const bool cheats_enabled = false;
     if ( ( static_cast<rcommon::u32>( target->flags ) & CVAR_CHEAT ) != 0 && !cheats_enabled ) {
         rcommon::Com_Printf( "Cvar_Set: %s: %s\n",
@@ -192,6 +207,11 @@ cvar_error_code_t Cvar_Set( const char *name, const char *value ) {
     return cvar_error_code_t::OK;
 }
 
+/*
+================
+Cvar_Shutdown
+================
+*/
 cvar_error_code_t Cvar_Shutdown() {
     if ( !g_cvar_registry.initialized ) {
         rcommon::Com_Printf( "Cvar_Shutdown: %s: %s\n", Cvar_ErrorName( cvar_error_code_t::ERR_NOT_INIT ), Cvar_ErrorDesc( cvar_error_code_t::ERR_NOT_INIT ) );
@@ -202,6 +222,11 @@ cvar_error_code_t Cvar_Shutdown() {
     return cvar_error_code_t::OK;
 }
 
+/*
+================
+Cvar_Find
+================
+*/
 const cvar_t *Cvar_Find( const char *name ) {
     if ( !g_cvar_registry.initialized ) {
         return nullptr;
@@ -226,6 +251,11 @@ const cvar_t *Cvar_Find( const char *name ) {
     return cvar;
 }
 
+/*
+================
+Cvar_GetString
+================
+*/
 const char *Cvar_GetString( const char *name ) {
     if ( !g_cvar_registry.initialized ) {
         return nullptr;
@@ -238,13 +268,17 @@ const char *Cvar_GetString( const char *name ) {
     const cvar_t *cvar = Cvar_Find( name );
     
     if ( cvar == nullptr ) {
-        // @TODO: we just return an empty string
         return "";
     } 
     
     return cvar->value_string;
 }
 
+/*
+================
+Cvar_GetInt
+================
+*/
 rcommon::u32 Cvar_GetInt( const char *name ) {
     if ( !g_cvar_registry.initialized ) {
         return (rcommon::u32)0u;
@@ -263,6 +297,11 @@ rcommon::u32 Cvar_GetInt( const char *name ) {
     return cvar->value_int;
 }
 
+/*
+================
+Cvar_GetFloat
+================
+*/
 rcommon::f32 Cvar_GetFloat( const char *name ) {
     if ( !g_cvar_registry.initialized ) {
         return (rcommon::f32)0.0f;
@@ -281,6 +320,11 @@ rcommon::f32 Cvar_GetFloat( const char *name ) {
     return cvar->value_float;
 }
 
+/*
+================
+Cvar_GetBool
+================
+*/
 bool Cvar_GetBool( const char *name ) {
     if ( !g_cvar_registry.initialized ) {
         return false;

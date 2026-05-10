@@ -17,19 +17,20 @@
 #include "rengine/log/log_main.h"
 #include "rengine/sys/sys_platform.h"
 
-#include <cstdio>
-#include <cstring>
-#include <ctime>
+#include <cstdio>      // FILE and stdio logging sinks.
+#include <cstring>     // strncmp for file path changes.
+#include <ctime>       // Timestamps.
 
 namespace reap::rengine::log
 {
 
-/**
- * @brief Owns the mutable runtime state of the logging subsystem.
- *
- * The logger is intentionally simple for now and keeps only configuration
- * and initialization state in process-global storage.
- */
+/*
+================
+Log Runtime State
+
+Owns the active configuration and optional file sink.
+================
+*/
 struct log_runtime_state_t {
     log_config_t config{};
     bool initialized{ false };
@@ -43,14 +44,13 @@ log_runtime_state_t g_log_runtime_state_t;
 
 namespace reap::rengine::log {
 
-// @TODO: Once the platform header is setup we will add the log_basename and
-//        log naming and so forth depending on different architectures
+/*
+================
+Log_Init
 
-/**
- * @brief Installs the active logging configuration and marks the subsystem ready.
- *
- * @param[in] config Logging configuration to install.
- */
+Installs the active logging configuration and opens the file sink if requested.
+================
+*/
 log_error_code_t Log_Init( const log_config_t &config ){
     if ( g_log_runtime_state_t.file_handle != nullptr ) {
         std::fclose( g_log_runtime_state_t.file_handle );
@@ -77,32 +77,36 @@ log_error_code_t Log_Init( const log_config_t &config ){
     return log_error_code_t::OK;
 }
 
-/**
- * @brief Resets the logging subsystem back to its uninitialized state.
- */
+/*
+================
+Log_Shutdown
+================
+*/
 void Log_Shutdown( ) {
     if ( g_log_runtime_state_t.file_handle != nullptr ) {
         std::fflush( g_log_runtime_state_t.file_handle );
         std::fclose( g_log_runtime_state_t.file_handle );
     }
-    g_log_runtime_state_t.initialized = false;      // @NOTE: not really needed.
+    g_log_runtime_state_t.initialized = false;
     g_log_runtime_state_t = {};
 }
 
-/**
- * @brief Returns the active runtime logging configuration.
- *
- * @return Read-only reference to the active logging configuration.
- */
+/*
+================
+Log_GetConfig
+================
+*/
 const log_config_t &Log_GetConfig( ) {
     return g_log_runtime_state_t.config;
 }
 
-/**
- * @brief Replaces the active logging configuration.
- *
- * @param[in] config New logging configuration to install.
- */
+/*
+================
+Log_SetConfig
+
+Replaces the active logging configuration and rotates file output if needed.
+================
+*/
 log_error_code_t Log_SetConfig( const log_config_t &config ) {
     if ( !g_log_runtime_state_t.initialized ) {
         return log_error_code_t::ERR_NOT_INIT;
@@ -139,14 +143,13 @@ log_error_code_t Log_SetConfig( const log_config_t &config ) {
     return log_error_code_t::OK;
 }
 
-/**
- * @brief Tests whether a log event should be emitted under current policy.
- *
- * @param[in] level Severity level to test.
- * @param[in] channel Logging channel to test.
- *
- * @return True if the log event is enabled.
- */
+/*
+================
+Log_LevelEnabled
+
+Checks severity and channel filters before building a log record.
+================
+*/
 bool Log_LevelEnabled( const log_level_t level, const log_channel_t channel ) {
     if ( !g_log_runtime_state_t.initialized ) {
         return false;
@@ -166,31 +169,19 @@ bool Log_LevelEnabled( const log_level_t level, const log_channel_t channel ) {
     return Log_ChannelEnabled( g_log_runtime_state_t.config.channel_mask, channel );
 }
 
-/**
- * @brief Tests whether a specific channel is enabled within a mask.
- *
- * @param[in] channel_mask Bit mask containing enabled channels.
- * @param[in] channel Channel to test.
- *
- * @return True if the supplied channel bit is enabled.
- *
- * 0xFFFFFFFF -> 1111 1111 1111 1111
- *
- * Channel -> HOST
- *
- */
+/*
+================
+Log_ChannelEnabled
+
+Checks a channel bit against the active channel mask.
+================
+*/
 bool Log_ChannelEnabled( const rcommon::com_u32 channel_mask, const log_channel_t channel ) {
     if ( channel == log_channel_t::NONE || channel == log_channel_t::COUNT ) {
         return false;
     }
 
     const auto channel_as_int = static_cast<rcommon::com_u32>( channel );
-
-    // 5 ->                 0000 0000 0000 0101
-    // mask -> 0xFFFFFFF -> 1111 1111 1111 1111
-    // 1u                   0000 0000 0010 0000 << 2
-    //
-    //
 
     if ( channel_as_int >= 32 ) {
         return false;
@@ -199,13 +190,11 @@ bool Log_ChannelEnabled( const rcommon::com_u32 channel_mask, const log_channel_
     return ( channel_mask & ( 1u << channel_as_int ) ) != 0u;
 }
 
-/************
- *
- * Helper function
- *
- * for flushing
- *
- ***********/
+/*
+================
+Log_ShouldFlush
+================
+*/
 bool Log_ShouldFlush( const log_flush_policy_t flush_policy, const log_level_t level ) {
 
     switch ( flush_policy ) {
@@ -220,11 +209,13 @@ bool Log_ShouldFlush( const log_flush_policy_t flush_policy, const log_level_t l
     }
 }
 
-/**
- * @brief Emits a fully built log record to the current output sink.
- *
- * @param[in] record Fully constructed log record to emit.
- */
+/*
+================
+Log_Emit
+
+Writes a fully built log record to console and/or file sinks.
+================
+*/
 void Log_Emit( const log_record_t &record ) {
     if ( record.message[0] == '\0' ) {
         return;
@@ -236,7 +227,7 @@ void Log_Emit( const log_record_t &record ) {
 
     const auto &cfg = Log_GetConfig();
 
-    // @TODO: For now we will not be touching this, because this will need to be addressed later only
+    // If no sink is enabled, the record is intentionally dropped.
     if ( !cfg.console_enabled && !( cfg.file_enabled && g_log_runtime_state_t.file_handle != nullptr ) ) {
         return ;
     }
@@ -306,19 +297,13 @@ void Log_Emit( const log_record_t &record ) {
     }
 }
 
-/**
- * @brief Formats and emits a log event from variadic arguments.
- *
- * This is the convenience wrapper used by logging macros. The actual
- * formatting work is forwarded into `Log_Emitfv`.
- *
- * @param[in] level Severity level of the log event.
- * @param[in] channel Logging channel associated with the event.
- * @param[in] file Source file where the event originated.
- * @param[in] function Source function where the event originated.
- * @param[in] line Source line where the event originated.
- * @param[in] format Printf-style message format string.
- */
+/*
+================
+Log_Emitf
+
+Formats and emits a log event from variadic arguments.
+================
+*/
 void Log_Emitf( const log_level_t level, const log_channel_t channel,
                 const char *file, const char *function, const rcommon::com_i32 line,
                 const char *format, ... ) {
@@ -331,17 +316,13 @@ void Log_Emitf( const log_level_t level, const log_channel_t channel,
     va_end( args );
 }
 
-/**
- * @brief Formats and emits a log event from an existing `va_list`.
- *
- * @param[in] level Severity level of the log event.
- * @param[in] channel Logging channel associated with the event.
- * @param[in] file Source file where the event originated.
- * @param[in] function Source function where the event originated.
- * @param[in] line Source line where the event originated.
- * @param[in] format Printf-style message format string.
- * @param[in] args Existing variadic argument list used for formatting.
- */
+/*
+================
+Log_Emitfv
+
+Builds a log record from an existing va_list.
+================
+*/
 void Log_Emitfv( const log_level_t level, const log_channel_t channel,
                  const char *file, const char *function, const rcommon::com_i32 line,
                  const char *format, va_list args ) {

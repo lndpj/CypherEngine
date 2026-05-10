@@ -8,8 +8,14 @@
 
 namespace reap::rengine::cmd
 {
-    
 
+/*
+================
+Command Types
+
+Commands bind a text name to a callback used by configs, console and tools.
+================
+*/
 using cmd_fn_t = void (*)( void *extra_data, rcommon::u32 argc, char **argv );
 
 struct cmd_t {
@@ -25,6 +31,11 @@ struct cmd_registry_t {
     bool initialized;
 };
 
+/*
+================
+Command API
+================
+*/
 cmd_error_code_t Cmd_Init( );
 
 void Cmd_Shutdown();

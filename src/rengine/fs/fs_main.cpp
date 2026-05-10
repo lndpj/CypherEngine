@@ -17,15 +17,20 @@
 
 #include "rengine/fs/fs_main.h"
 
-#include <cstdio>
-#include <cstring>
-#include <filesystem>
-#include <system_error>
+#include <cstdio>          // stdio file handles and read/write operations.
+#include <cstring>         // strcmp / strncpy for fixed path buffers.
+#include <filesystem>      // Path probing and directory creation.
+#include <system_error>    // std::error_code for non-throwing filesystem calls.
 
 namespace reap::rengine::fs {
 
 namespace {
 
+/*
+================
+Filesystem Runtime State
+================
+*/
 struct fs_runtime_state_t {
 	bool initialized{ false };
 	fs_mount_t mounts[FS_MAX_MOUNTS]{};
@@ -37,6 +42,11 @@ fs_runtime_state_t g_fs_runtime_state{};
 
 } // namespace
 
+/*
+================
+FS_Init
+================
+*/
 fs_error_code_t FS_Init() {
 	if ( g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_IS_INIT;
@@ -48,6 +58,11 @@ fs_error_code_t FS_Init() {
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_Shutdown
+================
+*/
 fs_error_code_t FS_Shutdown() {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -57,14 +72,31 @@ fs_error_code_t FS_Shutdown() {
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_MountCount
+================
+*/
 rcommon::u32 FS_MountCount() {
 	return g_fs_runtime_state.mount_count;
 }
 
+/*
+================
+FS_IsInitialized
+================
+*/
 bool FS_IsInitialized() {
 	return g_fs_runtime_state.initialized;
 }
 
+/*
+================
+FS_MountDirectory
+
+Adds a physical directory to the virtual search path list.
+================
+*/
 fs_error_code_t FS_MountDirectory( const char *virtual_root, const char *physical_path, rcommon::u32 flags, rcommon::u32 priority ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -102,6 +134,11 @@ fs_error_code_t FS_MountDirectory( const char *virtual_root, const char *physica
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_UnmountDirectory
+================
+*/
 fs_error_code_t FS_UnmountDirectory( const char *virtual_root ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -123,6 +160,11 @@ fs_error_code_t FS_UnmountDirectory( const char *virtual_root ) {
 	return fs_error_code_t::ERR_MOUNT_NOT_FOUND;
 }
 
+/*
+================
+FS_SetWritePath
+================
+*/
 fs_error_code_t FS_SetWritePath( const char *physical_path ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -138,6 +180,11 @@ fs_error_code_t FS_SetWritePath( const char *physical_path ) {
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_GetWritePath
+================
+*/
 const char *FS_GetWritePath() {
 	if ( !g_fs_runtime_state.initialized ) {
 		return nullptr;
@@ -148,6 +195,13 @@ const char *FS_GetWritePath() {
 	return g_fs_runtime_state.write_path;
 }
 
+/*
+================
+FS_ResolvePath
+
+Finds the first mounted physical path matching a virtual engine path.
+================
+*/
 fs_error_code_t FS_ResolvePath( const char *virtual_path, char *out_resolved_path, rcommon::u32 out_resolved_path_size ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -161,7 +215,7 @@ fs_error_code_t FS_ResolvePath( const char *virtual_path, char *out_resolved_pat
 	out_resolved_path[0] = '\0';
 	for ( rcommon::u32 i = 0u; i < g_fs_runtime_state.mount_count; ++i ) {
 		const fs_mount_t &mount = g_fs_runtime_state.mounts[i];
-		// @NOTE: Adding later for the so called packaging system.
+		// Package backends will plug in here later.
 		if ( mount.type != fs_mount_type_t::FS_DIRECTORY ) {
 			continue;
 		}
@@ -210,6 +264,11 @@ fs_error_code_t FS_ResolvePath( const char *virtual_path, char *out_resolved_pat
 	return fs_error_code_t::ERR_PATH_NOT_FOUND;
 }
 
+/*
+================
+FS_Exists
+================
+*/
 bool FS_Exists( const char *virtual_path ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return false;
@@ -221,6 +280,11 @@ bool FS_Exists( const char *virtual_path ) {
 	return err == fs_error_code_t::OK;
 }
 
+/*
+================
+FS_GetFileInfo
+================
+*/
 fs_error_code_t FS_GetFileInfo( const char *virtual_path, fs_file_info_t &out_info ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -255,6 +319,11 @@ fs_error_code_t FS_GetFileInfo( const char *virtual_path, fs_file_info_t &out_in
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_OpenModeToCMode
+================
+*/
 static const char *FS_OpenModeToCMode( const fs_open_mode_t mode ) {
 	switch ( mode ) {
 	case fs_open_mode_t::READ_TEXT:
@@ -274,6 +343,13 @@ static const char *FS_OpenModeToCMode( const fs_open_mode_t mode ) {
 	}
 }
 
+/*
+================
+FS_Open
+
+Opens an OS-backed file resolved through the virtual filesystem.
+================
+*/
 fs_error_code_t FS_Open( const char *virtual_path, fs_open_mode_t mode, fs_file_t &file ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -340,6 +416,11 @@ fs_error_code_t FS_Open( const char *virtual_path, fs_open_mode_t mode, fs_file_
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_Close
+================
+*/
 fs_error_code_t FS_Close( fs_file_t &file ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -365,6 +446,11 @@ fs_error_code_t FS_Close( fs_file_t &file ) {
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_Read
+================
+*/
 fs_error_code_t FS_Read( fs_file_t &file, void *buffer, rcommon::u64 bytes_to_read, rcommon::u64 &bytes_read_out ) {
 	bytes_read_out = 0u;
 
@@ -411,6 +497,11 @@ fs_error_code_t FS_Read( fs_file_t &file, void *buffer, rcommon::u64 bytes_to_re
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_Write
+================
+*/
 fs_error_code_t FS_Write( fs_file_t &file, const void *buffer, rcommon::u64 bytes_to_write, rcommon::u64 &bytes_written_out ) {
 	bytes_written_out = 0u;
 
@@ -454,6 +545,11 @@ fs_error_code_t FS_Write( fs_file_t &file, const void *buffer, rcommon::u64 byte
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_Seek
+================
+*/
 fs_error_code_t FS_Seek( fs_file_t &file, rcommon::i64 offset, fs_seek_origin_t origin ) {
 	if ( !g_fs_runtime_state.initialized ) {
 		return fs_error_code_t::ERR_NOT_INIT;
@@ -499,6 +595,11 @@ fs_error_code_t FS_Seek( fs_file_t &file, rcommon::i64 offset, fs_seek_origin_t 
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_Tell
+================
+*/
 fs_error_code_t FS_Tell( fs_file_t &file, rcommon::u64 &out_position ) {
 	out_position = 0u;
 
@@ -527,6 +628,11 @@ fs_error_code_t FS_Tell( fs_file_t &file, rcommon::u64 &out_position ) {
 	return fs_error_code_t::OK;
 }
 
+/*
+================
+FS_ReadEntireFile
+================
+*/
 fs_error_code_t FS_ReadEntireFile( const char *virtual_path, void *buffer, rcommon::u64 bytes_to_read, rcommon::u64 &bytes_read_out ) {
 	bytes_read_out = 0u;
 

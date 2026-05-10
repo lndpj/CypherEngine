@@ -6,6 +6,13 @@
 namespace reap::rengine::fs
 {
 
+/*
+================
+Filesystem API
+
+Mount-based virtual file system used by configs, shaders and future assets.
+================
+*/
 fs_error_code_t FS_Init();
 
 fs_error_code_t FS_Shutdown();

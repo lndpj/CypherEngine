@@ -6,6 +6,11 @@
 
 namespace reap::rengine::cfg {
 
+/*
+================
+Config Error Codes
+================
+*/
 enum class cfg_error_code_t : rcommon::u8 {
 	OK = 0,
 	ERR_NOT_INIT,
@@ -18,6 +23,11 @@ enum class cfg_error_code_t : rcommon::u8 {
 	ERR_IO_ERROR
 };
 
+/*
+================
+Config Error Helpers
+================
+*/
 constexpr inline const char *Cfg_ErrorName( const cfg_error_code_t error ) {
 	switch ( error ) {
 	case cfg_error_code_t::OK:

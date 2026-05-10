@@ -3,7 +3,7 @@
 #include "rengine/sys/sys_error.h"
 #include "rengine/rcommon/com_main.h"
 
-#include <ctime>
+#include <ctime>       // std::time_t / std::tm for local time conversion.
 
 namespace reap::rengine::sys
 {
@@ -11,6 +11,11 @@ namespace reap::rengine::sys
 constexpr rcommon::u32 SYS_MAX_PATH_LENGTH = 1024u;
 constexpr rcommon::u32 SYS_MAX_NAME_LENGTH = 256;
 
+/*
+================
+Platform Detection Types
+================
+*/
 enum class platform_t : rcommon::com_u8 {
     UNKNOWN = 0,
     WINDOWS,
@@ -25,6 +30,11 @@ enum class compiler_t : rcommon::com_u8 {
     MSVC
 };
 
+/*
+================
+System Startup Data
+================
+*/
 struct sys_init_info_t {
     int argc{ 0 };
     const char *const *argv{ nullptr };
@@ -56,6 +66,11 @@ struct sys_runtime_state_t {
 
 extern sys_runtime_state_t g_sys_runtime_state;
 
+/*
+================
+System API
+================
+*/
 sys_error_code_t Sys_Init( const sys_init_info_t &init_info );
 sys_error_code_t Sys_Shutdown();
 
@@ -77,7 +92,11 @@ void Sys_SleepMilliseconds( rcommon::u64 milliseconds );
 
 bool Sys_LocalTime( std::time_t time_value, std::tm &time_out );
 
-/* CROSS PLATFORM AND COMPILER DETECTION */
+/*
+================
+Cross Platform And Compiler Detection
+================
+*/
 
 #   if  defined( _WIN32 ) || defined( __WIN32__ ) || defined( WIN32 ) || defined( MINGW32 )
 #       define REAP_PLATFORM_WINDOWS    1

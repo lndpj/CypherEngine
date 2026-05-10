@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-19 01:23:58
    Last Modified by: ksiric
-   Last Modified: 2026-05-06 14:53:53
+   Last Modified: 2026-05-10 23:44:08
    ---------------------------------------------------------------------
    Description:
 
@@ -28,6 +28,11 @@ namespace rc = reap::rengine::rcommon;
 
 namespace {
 
+/*
+================
+Host Builtin Commands
+================
+*/
 void Host_CmdEcho( void *extra_data, rc::u32 argc, char **argv ) {
     ( void )extra_data;
     for ( rc::u32 i = 1u; i < argc; ++i ) {
@@ -73,10 +78,15 @@ void Host_CmdQuit( void *extra_data, rc::u32 argc, char **argv ) {
     Host_RequestShutdown( *host_state );
 }
 
-} // namespace
+}       // namespace
 
 namespace reap::rengine::host {
 
+/*
+================
+Host_PrepareStateForInit
+================
+*/
 void Host_PrepareStateForInit( host_state_t &host_state ) {
     host_state.stage = host_stage_t::INITIALIZING;
     host_state.running = false;
@@ -84,6 +94,13 @@ void Host_PrepareStateForInit( host_state_t &host_state ) {
     host_state.frame = {};
 }
 
+/*
+================
+Host_InitCoreEngineSystems
+
+Brings up low-level systems in dependency order.
+================
+*/
 host_error_code_t Host_InitCoreEngineSystems( host_state_t &host_state ) {
     sys::sys_init_info_t sys_info {
         .argc = host_state.config.argc,
@@ -92,7 +109,6 @@ host_error_code_t Host_InitCoreEngineSystems( host_state_t &host_state ) {
         .organization_name = rcommon::COM_GAME_INFO.organization_name
     };
 
-    // @NOTE: we will first be initializing the sys subsystems
     const auto sys_result = sys::Sys_Init( sys_info );
     if ( sys_result != sys::sys_error_code_t::OK ) {
         rcommon::Com_Errorf( Sys_ErrorCode( sys_result ) , "Host_Init: Sys_Init failed: %s", sys::Sys_ErrorDesc( sys_result ) );
@@ -106,7 +122,6 @@ host_error_code_t Host_InitCoreEngineSystems( host_state_t &host_state ) {
     if ( log_result != log::log_error_code_t::OK ) {
         rcommon::Com_Errorf( log::Log_ErrorCode( log_result ), "Host_Init: Log_Init failed: %s", log::Log_ErrorDesc( log_result ) );
 
-        // @NOTE: Shutting things down here before we return and exit.
         sys::Sys_Shutdown();
 
         host_state.running = false;
@@ -124,7 +139,6 @@ host_error_code_t Host_InitCoreEngineSystems( host_state_t &host_state ) {
         host_state.stage = host_stage_t::SHUTDOWN;
         return host_error_code_t::ERR_INITIALIZING;
     }
-    // @NOTE: CMD SYSTEM INIT
     const auto cmd_result = cmd::Cmd_Init();
     if ( cmd_result != cmd::cmd_error_code_t::OK )
     {
@@ -139,7 +153,6 @@ host_error_code_t Host_InitCoreEngineSystems( host_state_t &host_state ) {
         return host_error_code_t::ERR_INITIALIZING;
     }
 
-    // @NOTE: CVAR SYSTEM INIT
     const auto cvar_result = cvar::Cvar_Init();
 
     if ( cvar_result != cvar::cvar_error_code_t::OK )
@@ -156,9 +169,8 @@ host_error_code_t Host_InitCoreEngineSystems( host_state_t &host_state ) {
         return host_error_code_t::ERR_INITIALIZING;
     }
 
-    // @NOTE: CFG SYSTEM INIT
     const auto cfg_result = cfg::Cfg_Init();
-    // @TODO(karlo - 2.5.2026):Tommorow continue working on this system.
+
     if ( cfg_result != cfg::cfg_error_code_t::OK )
     {
         rcommon::Com_Errorf( Cfg_ErrorCode( cfg_result ), "Host_Init: Cfg_Init failed: %s", cfg::Cfg_ErrorDesc( cfg_result ) );
@@ -177,6 +189,11 @@ host_error_code_t Host_InitCoreEngineSystems( host_state_t &host_state ) {
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_MountFileSystem
+================
+*/
 host_error_code_t Host_MountFileSystem( void ) {
     const sys::sys_paths_t &paths = sys::Sys_Paths();
 
@@ -206,6 +223,11 @@ host_error_code_t Host_MountFileSystem( void ) {
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_RegisterBuiltinCvars
+================
+*/
 host_error_code_t Host_RegisterBuiltinCvars( void ) {
     struct builtin_cvar_t {
         const char *name;
@@ -251,6 +273,11 @@ host_error_code_t Host_RegisterBuiltinCvars( void ) {
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_RegisterBuiltinCommands
+================
+*/
 host_error_code_t Host_RegisterBuiltinCommands( host_state_t &host_state ) {
     struct builtin_command_t {
         const char *name;
@@ -285,6 +312,11 @@ host_error_code_t Host_RegisterBuiltinCommands( host_state_t &host_state ) {
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_LoadStartupConfig
+================
+*/
 host_error_code_t Host_LoadStartupConfig( void ) {
     const auto default_result = cfg::Cfg_LoadFile( "config/default.cfg", false );
     if ( default_result != cfg::cfg_error_code_t::OK ) {
@@ -307,6 +339,11 @@ host_error_code_t Host_LoadStartupConfig( void ) {
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_ApplyCvarsToConfig
+================
+*/
 host_error_code_t Host_ApplyCvarsToConfig( host_state_t &host_state ) {
     host::window_config_t &window_config = host_state.config.window_config;
 
@@ -332,6 +369,11 @@ host_error_code_t Host_ApplyCvarsToConfig( host_state_t &host_state ) {
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_CreateWindow
+================
+*/
 host_error_code_t Host_CreateWindow( host_state_t &host_state ) 
 {
     sys::sys_window_desc_t window_description{};
@@ -351,6 +393,11 @@ host_error_code_t Host_CreateWindow( host_state_t &host_state )
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_InitRenderer
+================
+*/
 host_error_code_t Host_InitRenderer( host_state_t &host_state ) {
     const auto render_result = render::R_Init( host_state.window, host_state.config.window_config );
     if ( render_result != render::r_error_code_t::OK ) {
@@ -363,6 +410,11 @@ host_error_code_t Host_InitRenderer( host_state_t &host_state ) {
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_FinishInit
+================
+*/
 host_error_code_t Host_FinishInit( host_state_t &host_state ) {
     host_state.running = true;
     host_state.stage = host_stage_t::RUNNING;
@@ -375,6 +427,11 @@ host_error_code_t Host_FinishInit( host_state_t &host_state ) {
     return host_error_code_t::OK;
 }
 
+/*
+================
+Host_RequestShutdown
+================
+*/
 void Host_RequestShutdown( host_state_t &host_state )
 {
     if ( host_state.stage == host_stage_t::SHUTDOWN ) {
@@ -387,8 +444,14 @@ void Host_RequestShutdown( host_state_t &host_state )
     return ;
 }
 
+/*
+================
+Host_Init
+
+Main engine startup sequence.
+================
+*/
 host_error_code_t Host_Init( host_state_t &host_state ) {
-    // @NOTE: We are preparing things for making the engine wire up  properly.
     host_error_code_t result{};
 
     Host_PrepareStateForInit( host_state );
@@ -449,11 +512,14 @@ host_error_code_t Host_Init( host_state_t &host_state ) {
     return result;
 }
 
+/*
+================
+Host_Shutdown
+================
+*/
 void Host_Shutdown( host_state_t &host_state ) {
 	host_state.running = false;
 	host_state.stage = host_stage_t::SHUTDOWN;
-
-    // @NOTE(karlo): Added shutdown of the entire host system
 
     render::R_Shutdown();
     sys::Sys_DestroyWindow( host_state.window );
@@ -465,6 +531,13 @@ void Host_Shutdown( host_state_t &host_state ) {
     sys::Sys_Shutdown();
 }
 
+/*
+================
+Host_BeginFrame
+
+Updates frame timing and opens the renderer frame.
+================
+*/
 void Host_BeginFrame( host_state_t &host_state ) {
 	if ( host_state.stage == host_stage_t::SHUTDOWN ) {
 		return;
@@ -506,6 +579,13 @@ void Host_BeginFrame( host_state_t &host_state ) {
 	}
 }
 
+/*
+================
+Host_Update
+
+Polls platform events and advances runtime systems.
+================
+*/
 void Host_Update( host_state_t &host_state ) {
 	if ( host_state.stage != host_stage_t::RUNNING ) {
 		return;
@@ -515,8 +595,6 @@ void Host_Update( host_state_t &host_state ) {
 		return;
 	}
 
-	// @TODO: Update the host stage, and handle input, AI, gameplay etc.
-    
     sys::Sys_PollWindowEvents( host_state.window );   
     
     if ( sys::Sys_WindowShouldClose( host_state.window ) ) {
@@ -524,25 +602,22 @@ void Host_Update( host_state_t &host_state ) {
         return ;
     }
     
-    // @TODO: will still add it later all, but if it is not requesting shutdown, then we need to process all the events and update the engine state and the game state for that matter.
-    
     /*
-      e.g.
-      Host_UpdateInput( host_state )
-      Host_UpdateConsole( host_state )
-      Host_UpdateGame( host_state )
-      Host_UpdateAudio( host_state )
-      etc etc...
-     
+    Future order:
+    Host_UpdateInput -> Host_UpdateConsole -> Host_UpdateGame -> Host_UpdateAudio.
      */
 }
 
+/*
+================
+Host_Render
+================
+*/
 void Host_Render( host_state_t &host_state ) {
 	if ( host_state.stage != host_stage_t::RUNNING || !host_state.running ) {
 		return;
 	}
 
-	// @TODO: Render the host stage, and handle rendering of the scene, UI, etc.
 	const auto render_result = render::R_RenderFrame();
 
 	if ( render_result != render::r_error_code_t::OK ) {
@@ -555,6 +630,11 @@ void Host_Render( host_state_t &host_state ) {
 	}
 }
 
+/*
+================
+Host_EndFrame
+================
+*/
 void Host_EndFrame( host_state_t &host_state ) {
 	if ( host_state.stage == host_stage_t::SHUTDOWN ) {
 		return;
@@ -578,6 +658,11 @@ void Host_EndFrame( host_state_t &host_state ) {
 	}
 }
 
+/*
+================
+Host_IsRunning
+================
+*/
 bool Host_IsRunning( host_state_t &host_state ) {
 	return host_state.running && ( host_state.stage != host_stage_t::SHUTTINGDOWN && host_state.stage != host_stage_t::SHUTDOWN );
 }

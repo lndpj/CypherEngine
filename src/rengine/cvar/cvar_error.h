@@ -5,6 +5,11 @@
 
 namespace reap::rengine::cvar {
 
+/*
+================
+Cvar Error Codes
+================
+*/
 enum class cvar_error_code_t : rcommon::u8 {
 	OK = 0,
 
@@ -20,6 +25,11 @@ enum class cvar_error_code_t : rcommon::u8 {
 	ERR_CHEAT_PROTECTED
 };
 
+/*
+================
+Cvar Error Helpers
+================
+*/
 constexpr inline const char *Cvar_ErrorName( const cvar_error_code_t error ) {
 	switch ( error ) {
 	case cvar_error_code_t::OK:

@@ -19,12 +19,17 @@
 #include "rengine/cvar/cvar_main.h"
 #include "rengine/fs/fs_main.h"
 
-#include <cctype>
-#include <cstdio>
-#include <cstring>
+#include <cctype>      // std::isspace while parsing cfg lines.
+#include <cstdio>      // Reserved for future cfg diagnostics.
+#include <cstring>     // strlen / strcmp / strncpy for line parsing.
 
 namespace reap::rengine::cfg {
 
+/*
+================
+Config Runtime State
+================
+*/
 struct cfg_runtime_state_t {
 	bool initialized{ false };
 };
@@ -34,6 +39,11 @@ cfg_runtime_state_t g_cfg_runtime_state;
 constexpr const char *CFG_DEFAULT_PATH  = "config/default.cfg";
 constexpr const char *CFG_AUTOEXEC_PATH = "config/autoexec.cfg";
 
+/*
+================
+Cfg_Init
+================
+*/
 cfg_error_code_t Cfg_Init() {
 	if ( g_cfg_runtime_state.initialized ) {
 		return cfg_error_code_t::ERR_IS_INIT;
@@ -43,6 +53,11 @@ cfg_error_code_t Cfg_Init() {
 	return cfg_error_code_t::OK;
 }
 
+/*
+================
+Cfg_Shutdown
+================
+*/
 cfg_error_code_t Cfg_Shutdown() {
 	if ( !g_cfg_runtime_state.initialized ) {
 		return cfg_error_code_t::ERR_NOT_INIT;
@@ -51,6 +66,13 @@ cfg_error_code_t Cfg_Shutdown() {
 	return cfg_error_code_t::OK;
 }
 
+/*
+================
+Cfg_LoadFile
+
+Loads a cfg file through FS and executes it one line at a time.
+================
+*/
 cfg_error_code_t Cfg_LoadFile( const char *path, const bool required ) {
 	if ( path == nullptr || path[0] == '\0' ) {
 		return cfg_error_code_t::ERR_INVALID_PATH;
@@ -117,7 +139,7 @@ cfg_error_code_t Cfg_LoadFile( const char *path, const bool required ) {
         
         line_start = line_end + 1;
         
-        // @NOTE: SKipping for the CLFR Line endings on Windows that occurs.
+        // Skip the second byte of Windows CRLF line endings.
         if ( save_line_end == '\r' && *line_start == '\n' ) {
             ++line_start;
         }
@@ -126,6 +148,11 @@ cfg_error_code_t Cfg_LoadFile( const char *path, const bool required ) {
     return result;
 }
 
+/*
+================
+Cfg_LoadDefault
+================
+*/
 cfg_error_code_t Cfg_LoadDefault() {
 	if ( !g_cfg_runtime_state.initialized ) {
 		return cfg_error_code_t::ERR_NOT_INIT;
@@ -133,6 +160,11 @@ cfg_error_code_t Cfg_LoadDefault() {
 	return Cfg_LoadFile( CFG_DEFAULT_PATH, true );
 }
 
+/*
+================
+Cfg_LoadAutoexec
+================
+*/
 cfg_error_code_t Cfg_LoadAutoexec() {
 	if ( !g_cfg_runtime_state.initialized ) {
 		return cfg_error_code_t::ERR_NOT_INIT;
@@ -140,6 +172,13 @@ cfg_error_code_t Cfg_LoadAutoexec() {
 	return Cfg_LoadFile( CFG_AUTOEXEC_PATH, false );
 }
 
+/*
+================
+Cfg_ExecuteLine
+
+Executes one trimmed cfg line: exec, set/seta, or regular command.
+================
+*/
 cfg_error_code_t Cfg_ExecuteLine( const char *command_line ) {
 	if ( !g_cfg_runtime_state.initialized ) {
 		return cfg_error_code_t::ERR_INVALID_LINE;
@@ -151,12 +190,6 @@ cfg_error_code_t Cfg_ExecuteLine( const char *command_line ) {
 	char line[CFG_MAX_LINE_LENGTH] {};
 	std::strncpy( line, command_line, sizeof( line ) - 1 );
 
-	// @NOTE: now we continue working, so we first trim whitespaces
-	//  - exec <file>    -> Cfg_LoadFile
-	//  - set / seta     -> cvar::Cvar_Set
-	//  - otherwise      -> cmd::Cmd_Execute
-	// return cfg_error_code_t codes consistently
-
 	char *cursor = line;
 	while ( std::isspace( static_cast<unsigned char>( *cursor ) ) ) {
 		++cursor;
@@ -166,7 +199,7 @@ cfg_error_code_t Cfg_ExecuteLine( const char *command_line ) {
 	}
 	bool in_quotes = false;
 	for ( char *it = cursor; *it != '\0'; ++it ) {
-		// @NOTE: we skipping these comments here, usual procedure like in the Cfg_LoadFile func
+		// Comments are ignored unless they are inside quoted values.
 		if ( *it == '"' ) {
 			in_quotes = !in_quotes;
 		}

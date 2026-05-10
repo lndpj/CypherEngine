@@ -5,12 +5,24 @@
 
 namespace reap::rengine::host
 {
-    
+
+/*
+================
+Host Defaults
+================
+*/
 constexpr rcommon::com_u32 HOST_DEFAULT_VIEWPORT_WIDTH  = 1280u;
 constexpr rcommon::com_u32 HOST_DEFAULT_VIEWPORT_HEIGHT = 720u;
 constexpr rcommon::com_u32 HOST_DEFAULT_TARGET_FPS      = 60u;    
 constexpr const char *HOST_DEFAULT_WINDOW_TITLE         = "REAP";
 
+/*
+================
+Host State Types
+
+The host owns high-level engine lifecycle and keeps subsystem-facing config.
+================
+*/
 enum class host_stage_t : rcommon::u8 {
     UNINITIALIZED,
     INITIALIZING,
@@ -27,6 +39,11 @@ enum class build_config_t : rcommon::u8 {
     DISTRIBUTION
 };
 
+/*
+================
+Host Runtime Data
+================
+*/
 struct viewport_t {
     rcommon::com_u32 width{ HOST_DEFAULT_VIEWPORT_WIDTH };
     rcommon::com_u32 height{ HOST_DEFAULT_VIEWPORT_HEIGHT };

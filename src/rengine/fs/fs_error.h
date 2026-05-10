@@ -5,6 +5,11 @@
 namespace reap::rengine::fs
 {
 
+/*
+================
+Filesystem Error Codes
+================
+*/
 enum class fs_error_code_t : rcommon::u8 {
     OK = 0,
 
@@ -33,6 +38,11 @@ enum class fs_error_code_t : rcommon::u8 {
     ERR_IO_ERROR
 };
 
+/*
+================
+Filesystem Error Helpers
+================
+*/
 constexpr inline const char *FS_ErrorName( const fs_error_code_t error ) {
     switch ( error ) {
     case fs_error_code_t::OK:

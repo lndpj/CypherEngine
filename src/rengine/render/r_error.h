@@ -5,7 +5,12 @@
 
 namespace reap::rengine::render
 {
-    
+
+/*
+================
+Renderer Error Codes
+================
+*/
 enum class r_error_code_t : rcommon::u8 {
     OK = 0,
 
@@ -32,6 +37,11 @@ enum class r_error_code_t : rcommon::u8 {
     ERR_FRAME_NOT_ACTIVE,
 };
 
+/*
+================
+Renderer Error Helpers
+================
+*/
 constexpr inline const char *R_ErrorName( const r_error_code_t error ) {
     switch ( error ) {
     case r_error_code_t::OK:

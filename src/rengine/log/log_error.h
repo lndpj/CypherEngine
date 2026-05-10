@@ -5,6 +5,11 @@
 namespace reap::rengine::log
 {
 
+/*
+================
+Log Error Codes
+================
+*/
 enum class log_error_code_t : rcommon::u8 {
       OK = 0,
 
@@ -17,6 +22,11 @@ enum class log_error_code_t : rcommon::u8 {
       ERR_INVALID_LEVEL
 };
 
+/*
+================
+Log Error Helpers
+================
+*/
 constexpr inline const char *Log_ErrorName( const log_error_code_t error ) {
     switch ( error ) {
     case log_error_code_t::OK:

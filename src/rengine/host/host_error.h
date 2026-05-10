@@ -5,6 +5,11 @@
 namespace reap::rengine::host
 {
 
+/*
+================
+Host Error Codes
+================
+*/
 enum class host_error_code_t : rcommon::u8 {
     OK = 0,
 
@@ -13,6 +18,11 @@ enum class host_error_code_t : rcommon::u8 {
     ERR_INITIALIZING,
 };
 
+/*
+================
+Host Error Helpers
+================
+*/
 constexpr inline const char *Host_ErrorName( const host_error_code_t error ) {
     switch ( error ) {
     case host_error_code_t::OK:

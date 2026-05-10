@@ -7,17 +7,27 @@
 namespace reap::rengine::render
 {
 
-constexpr rcommon::u32 R_MAX_SHADER_NAME            = 64u;    
-constexpr rcommon::u32 R_MAX_SHADER_PATH            = 256u;    
+/*
+================
+Shader Limits
+================
+*/
+constexpr rcommon::u32 R_MAX_SHADER_NAME            = 64u;
+constexpr rcommon::u32 R_MAX_SHADER_PATH            = 256u;
 constexpr rcommon::u32 R_MAX_SHADERS                = 1024u;
-constexpr rcommon::u64 R_MAX_SHADER_SOURCE_SIZE     = 1024u * 1024u;    // 1MB for shaders. 
+constexpr rcommon::u64 R_MAX_SHADER_SOURCE_SIZE     = 1024u * 1024u;    // 1MB for shaders.
 
+/*
+================
+Shader Types
+================
+*/
 struct r_shader_t {
     rcommon::com_u32 shader_id{ 0 };
     char name[R_MAX_SHADER_NAME]{};
     char vertex_path[R_MAX_SHADER_PATH]{};
     char fragment_path[R_MAX_SHADER_PATH]{};
-    
+
     rcommon::u32 gl_shader_program_id{ 0 };
     bool loaded{ false };
 };
@@ -27,6 +37,11 @@ struct r_shader_registry_t {
     rcommon::u32 shader_count{ 0 };
 };
 
+/*
+================
+Shader Registry API
+================
+*/
 void R_ShaderRegistryInit( r_shader_registry_t &shader_registry );
 
 void R_ShaderRegistryShutdown( r_shader_registry_t &shader_registry );
@@ -38,5 +53,5 @@ r_shader_t *R_ShaderFind( r_shader_registry_t &registry, const char *name );
 r_error_code_t R_ShaderBind( const r_shader_t &shader );
 
 void R_ShaderUnload( r_shader_t &shader );
-    
+
 }       // namespace reap::rengine::render

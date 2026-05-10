@@ -17,12 +17,17 @@
 
 #include "rengine/rcommon/com_print.h"
 
-#include <cstdarg>
-#include <cstdio>
+#include <cstdarg>     // va_list handling.
+#include <cstdio>      // stdio output and formatting.
 
 namespace reap::rengine::rcommon
 {
 
+/*
+================
+Com_Printf
+================
+*/
 void Com_Printf( const char *message, ... ) {
     va_list args;
     va_start( args, message );
@@ -30,19 +35,32 @@ void Com_Printf( const char *message, ... ) {
     va_end( args );
 }
 
+/*
+================
+Com_VPrintf
+
+Formats normal engine text and writes it to stdout.
+================
+*/
 void Com_VPrintf( const char *message, va_list args ) {
     char msg_buf[COM_MSG_MAX]{};
     const char *safe_message = message ? message : "<null message>";
     std::vsnprintf( msg_buf, sizeof( msg_buf ), safe_message, args );
 
-    // @TODO: Route this through registered print sinks once com_print owns
-    //        callback-based output targets.
+    // Later this should route through registered print sinks.
     std::fputs( msg_buf, stdout );
     std::fflush( stdout );
 }
 
+/*
+================
+Com_DPrintf
+
+Developer-print hook; later this should respect the developer cvar.
+================
+*/
 void Com_DPrintf( const char *message, ... ) {
-    // @NOTE: THis function is only called and printed once the Developer Mode is enabled, so it is used for more of a developer mode style of printing, while the game and the engine is being in active development state.
+    // Developer-only printing will later be gated by the developer cvar.
 
     va_list args;
     va_start( args, message );
@@ -50,6 +68,11 @@ void Com_DPrintf( const char *message, ... ) {
     va_end( args );
 }
 
+/*
+================
+Com_Errorf
+================
+*/
 void Com_Errorf( const com_error_t error, const char *message, ... ) {
     va_list args;
     va_start( args, message );
@@ -57,6 +80,13 @@ void Com_Errorf( const com_error_t error, const char *message, ... ) {
     va_end( args );
 }
 
+/*
+================
+Com_VErrorf
+
+Formats a domain-coded engine error and writes it to stderr.
+================
+*/
 void Com_VErrorf( const com_error_t error, const char *message, va_list args ) {
     char msg_buf[COM_MSG_MAX]{};
     char msg_final[COM_MSG_MAX + 256]{};

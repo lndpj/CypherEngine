@@ -17,14 +17,19 @@
 #include "rengine/sys/sys_platform.h"
 #include "rengine/sys/sys_platform_internal.h"
 
-#include <cstring>
-#include <chrono>
+#include <cstring>     // strncpy and path string helpers.
+#include <chrono>      // steady_clock timing.
 
 namespace reap::rengine::sys
 {
 
 sys_runtime_state_t g_sys_runtime_state;
 
+/*
+================
+Sys_PlatformType
+================
+*/
 platform_t Sys_PlatformType() {
 #   if      REAP_PLATFORM_WINDOWS
                 return platform_t::WINDOWS;
@@ -37,6 +42,11 @@ platform_t Sys_PlatformType() {
 #   endif
 }    
 
+/*
+================
+Sys_CompilerType
+================
+*/
 compiler_t Sys_CompilerType() {
 #   if      REAP_COMPILER_MSVC
                 return compiler_t::MSVC;
@@ -49,6 +59,13 @@ compiler_t Sys_CompilerType() {
 #   endif
 }
 
+/*
+================
+Sys_Init
+
+Copies startup info and builds platform paths.
+================
+*/
 sys_error_code_t Sys_Init( const sys_init_info_t &info_init ) {
     if ( g_sys_runtime_state.initialized ) {
         return sys_error_code_t::ERR_IS_INIT;
@@ -88,6 +105,11 @@ sys_error_code_t Sys_Init( const sys_init_info_t &info_init ) {
     return sys_error_code_t::OK;
 }
 
+/*
+================
+Sys_Shutdown
+================
+*/
 sys_error_code_t Sys_Shutdown() {
     if ( !g_sys_runtime_state.initialized ) {
         return sys_error_code_t::ERR_NOT_INIT;
@@ -100,10 +122,20 @@ sys_error_code_t Sys_Shutdown() {
     return sys_error_code_t::OK;
 }
 
+/*
+================
+Sys_IsInitialized
+================
+*/
 bool Sys_IsInitialized() {
     return g_sys_runtime_state.initialized;
 }
 
+/*
+================
+Sys_PlatformName
+================
+*/
 const char *Sys_PlatformName( platform_t type ) {
     switch( type ) {
         case platform_t::WINDOWS: return "Windows";
@@ -113,6 +145,11 @@ const char *Sys_PlatformName( platform_t type ) {
     }
 }   
 
+/*
+================
+Sys_CompilerName
+================
+*/
 const char *Sys_CompilerName( compiler_t type ) {
     switch( type ) {
         case compiler_t::CLANG: return "Clang";
@@ -122,6 +159,11 @@ const char *Sys_CompilerName( compiler_t type ) {
     }
 }
 
+/*
+================
+Sys_PathBasename
+================
+*/
 const char *Sys_PathBasename( const char *path ) {
     if ( path == nullptr || path[0] == '\0' ) {
         return "";
@@ -138,12 +180,22 @@ const char *Sys_PathBasename( const char *path ) {
     return basename;
 }
 
+/*
+================
+Sys_TimeNowSeconds
+================
+*/
 rcommon::com_f64 Sys_TimeNowSeconds() {
     const auto now = std::chrono::steady_clock::now();
     const auto seconds = std::chrono::duration<rcommon::com_f64>( now.time_since_epoch() );
     return seconds.count();
 }
 
+/*
+================
+Sys_LocalTime
+================
+*/
 bool Sys_LocalTime( std::time_t time_value, std::tm &time_out ) {
 
 #   if      REAP_PLATFORM_WINDOWS 
@@ -154,10 +206,20 @@ bool Sys_LocalTime( std::time_t time_value, std::tm &time_out ) {
                 
 }
 
+/*
+================
+Sys_Paths
+================
+*/
 const sys_paths_t &Sys_Paths() {
     return g_sys_runtime_state.sys_paths;
 }
 
+/*
+================
+Sys_GetPaths
+================
+*/
 sys_error_code_t Sys_GetPaths( sys_paths_t &out_paths ) {
     if ( !g_sys_runtime_state.initialized ) {
         return sys_error_code_t::ERR_NOT_INIT;
@@ -168,6 +230,11 @@ sys_error_code_t Sys_GetPaths( sys_paths_t &out_paths ) {
     return sys_error_code_t::OK;
 }
  
+/*
+================
+Sys_SleepMilliseconds
+================
+*/
 void Sys_SleepMilliseconds( rcommon::u64 milliseconds ) {
     Sys_PlatformSleepMilliseconds( milliseconds );
     return ;
