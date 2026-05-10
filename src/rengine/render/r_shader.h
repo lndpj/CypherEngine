@@ -35,7 +35,7 @@ r_error_code_t R_ShaderLoad( r_shader_registry_t &shader_registry, const char *n
 
 r_shader_t *R_ShaderFind( r_shader_registry_t &registry, const char *name );
 
-r_error_code_t R_ShaderBind( r_shader_t &shader );
+r_error_code_t R_ShaderBind( const r_shader_t &shader );
 
 void R_ShaderUnload( r_shader_t &shader );
     

@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-06 15:03:52
    Last Modified by: ksiric
-   Last Modified: 2026-05-08 00:16:04
+   Last Modified: 2026-05-10 19:38:42
    ---------------------------------------------------------------------
    Description:
        
@@ -153,7 +153,7 @@ r_shader_t *R_ShaderFind( r_shader_registry_t &registry, const char *name )
     return nullptr;
 }
 
-r_error_code_t R_ShaderBind( r_shader_t &shader )
+r_error_code_t R_ShaderBind( const r_shader_t &shader )
 {
     if ( shader.gl_shader_program_id == 0  || !shader.loaded ) {
         rcommon::Com_Errorf( R_ErrorCode( r_error_code_t::ERR_INVALID_FUNC_PARAMETER ), "R_BindShader: Invalid shader program id passed; %d\n", shader.gl_shader_program_id );
@@ -176,5 +176,7 @@ void R_ShaderUnload( r_shader_t &shader )
     shader = {};
     return ;
 }
+
+
 
 }       // namespace reap::rengine::render

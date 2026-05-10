@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-05 22:02:15
    Last Modified by: ksiric
-   Last Modified: 2026-05-08 00:14:46
+   Last Modified: 2026-05-10 19:43:07
    ---------------------------------------------------------------------
    Description:
        
@@ -154,6 +154,39 @@ r_error_code_t R_GLEndFrame( const sys::sys_window_t &window )
     
     return r_error_code_t::OK;
 }
+/*****************************
+ * @funcType: 
+ * HELPER FUNCTION
+ * 
+ * @brief: 
+ * Helper function for compiling shader's 
+ * into a single big shader program with it's own ID 
+ *
+******************************/
+GLuint R_GLCompileShader( const GLenum shader_type, const char *shader_source )
+{
+    if ( shader_source == nullptr || shader_source[0] == '\0' ) {
+        return 0;  
+    }
+    
+    GLuint shader_id = glCreateShader( shader_type );
+    glShaderSource( shader_id, 1, &shader_source, nullptr );
+    glCompileShader( shader_id );
+    
+    GLint compile_status = GL_FALSE;
+    
+    glGetShaderiv( shader_id, GL_COMPILE_STATUS, &compile_status ); 
+    if ( compile_status != GL_TRUE ) {
+        char info_log[2024]{};
+        glGetShaderInfoLog( shader_id, sizeof( info_log ), nullptr, info_log );
+        
+        REAP_LOG_ERROR( log::log_channel_t::RENDER, "R_GLCompileShader: OpenGL shader compile failed: %s\n", info_log );
+        glDeleteShader( shader_id );
+        return 0;
+    }
+    
+    return shader_id;
+}
 
 r_error_code_t R_GLCreateShaderProgram( const char *vertex_source, const char *fragment_source, rcommon::u32 &out_shader_program_id )
 {
@@ -202,31 +235,6 @@ r_error_code_t R_GLCreateShaderProgram( const char *vertex_source, const char *f
     return r_error_code_t::OK;
 }
 
-GLuint R_GLCompileShader( const GLenum shader_type, const char *shader_source )
-{
-    if ( shader_source == nullptr || shader_source[0] == '\0' ) {
-        return 0;  
-    }
-    
-    GLuint shader_id = glCreateShader( shader_type );
-    glShaderSource( shader_id, 1, &shader_source, nullptr );
-    glCompileShader( shader_id );
-    
-    GLint compile_status = GL_FALSE;
-    
-    glGetShaderiv( shader_id, GL_COMPILE_STATUS, &compile_status ); 
-    if ( compile_status != GL_TRUE ) {
-        char info_log[2024]{};
-        glGetShaderInfoLog( shader_id, sizeof( info_log ), nullptr, info_log );
-        
-        REAP_LOG_ERROR( log::log_channel_t::RENDER, "R_GLCompileShader: OpenGL shader compile failed: %s\n", info_log );
-        glDeleteShader( shader_id );
-        return 0;
-    }
-    
-    return shader_id;
-}
-
 r_error_code_t R_GLBindShaderProgram( const rcommon::u32 shader_program_id )
 {
     if ( shader_program_id == 0u ) {
@@ -244,10 +252,9 @@ void R_GLDestroyShaderProgram( const rcommon::u32 shader_program_id )
         return ;
     }   
     
-    glDeleteShader( shader_program_id );
+    glDeleteProgram( shader_program_id );
     
     return ;   
 }
 
 }       // namespace reap::rengine::render
-
