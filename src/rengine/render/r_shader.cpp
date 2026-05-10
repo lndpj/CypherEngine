@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-06 15:03:52
    Last Modified by: ksiric
-   Last Modified: 2026-05-10 19:38:42
+   Last Modified: 2026-05-10 19:44:25
    ---------------------------------------------------------------------
    Description:
        
@@ -88,7 +88,7 @@ r_error_code_t R_ShaderLoad( r_shader_registry_t &shader_registry, const char *n
     /*
         // @NOTE:
         
-        Next step is to load the shaders paths via the FS itself.
+        Next step is to load the shaders paths via theconst  FS itself.
         
         This is how the engine will be doing this as well everything will happen through the FS itself.
         read vertex_shader
