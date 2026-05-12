@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-11 22:30:00
    Last Modified by: ksiric
-   Last Modified: 2026-05-13 00:31:33
+   Last Modified: 2026-05-13 00:36:14
    ---------------------------------------------------------------------
    Description:
        
@@ -31,6 +31,20 @@ rcommon::f32 Math_Vec2Length( const vec2_t &v ) {
     return std::sqrt( Math_Vec2Dot( v, v ) );
 }
 
+rcommon::f32 Math_Vec2Distance( const vec2_t &v1, const vec2_t &v2 ) {
+    return Math_Vec2Length( Math_Vec2Sub( v1, v2 ) );   
+}
+
+vec2_t Math_Vec2Normalize(const vec2_t &v ) {
+    const rcommon::f32 vec_len = Math_Vec2Length( v );
+    
+    // @NOTE: In case the length of the vector is very very small we count it as 0.
+    if ( vec_len <= MATH_EPSILON_F ) {
+        return vec2_t{};
+    }
+    
+    return Math_Vec2Scale( v, 1.0f / vec_len );
+}
 
 
 
