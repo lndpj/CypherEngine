@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-11 22:30:00
    Last Modified by: ksiric
-   Last Modified: 2026-05-12 12:13:02
+   Last Modified: 2026-05-12 12:35:09
    ---------------------------------------------------------------------
    Description:
        
@@ -22,12 +22,12 @@
 namespace reap::rengine::math
 {
 
-vec3_t Math_Vec3Cross( const vec3_t &a, const vec3_t &b )
+vec3_t Math_Vec3Cross( const vec3_t &v1, const vec3_t &v2 )
 {
     return vec3_t{
-        a.y * b.z - a.z * b.y,
-        a.z * b.x - a.x * b.z,
-        a.x * b.y - a.y * b.x
+        v1.y * v2.z - v1.z * v2.y,
+        v1.z * v2.x - v1.x * v2.z,
+        v1.x * v2.y - v1.y * v2.x
     };
 }
 
