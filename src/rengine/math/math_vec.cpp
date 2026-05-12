@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-11 22:30:00
    Last Modified by: ksiric
-   Last Modified: 2026-05-12 12:35:09
+   Last Modified: 2026-05-13 00:31:33
    ---------------------------------------------------------------------
    Description:
        
@@ -17,10 +17,27 @@
 
 #include "rengine/math/math_vec.h"
 
-#include <cmath>    // std::sqrt
+#include <cmath>    // std::sqrt / std::fabs
 
 namespace reap::rengine::math
 {
+
+/*
+==================
+Vec2
+==================
+*/
+rcommon::f32 Math_Vec2Length( const vec2_t &v ) {
+    return std::sqrt( Math_Vec2Dot( v, v ) );
+}
+
+
+
+
+   
+    
+    
+    
 
 vec3_t Math_Vec3Cross( const vec3_t &v1, const vec3_t &v2 )
 {
