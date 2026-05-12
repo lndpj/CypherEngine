@@ -65,8 +65,11 @@ constexpr entity_id_t INVALID_ENTITY_ID = COM_INVALID_ENTITY_ID;
 /*
 ================
 Common Math Constants
+This was moved to math_types header and will be kept there. 
+This is a fallback just in case.
 ================
 */
+/*
 constexpr com_f32 COM_PI_F = 3.14159265358979323846f;
 constexpr com_f32 COM_TAU_F = 6.28318530717958647692f;
 constexpr com_f32 COM_DEG2RAD_F = COM_PI_F / 180.0f;
@@ -90,6 +93,7 @@ static_assert( sizeof( com_u8 ) == 1, "com_u8 must be 1 byte" );
 static_assert( sizeof( com_u16 ) == 2, "com_u16 must be 2 bytes" );
 static_assert( sizeof( com_u32 ) == 4, "com_u32 must be 4 bytes" );
 static_assert( sizeof( com_u64 ) == 8, "com_u64 must be 8 bytes" );
+*/
 
 /*
 ================

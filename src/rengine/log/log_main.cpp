@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-19 22:31:16
    Last Modified by: ksiric
-   Last Modified: 2026-05-03 02:23:35
+   Last Modified: 2026-05-11 23:21:12
    ---------------------------------------------------------------------
    Description:
 
@@ -180,7 +180,7 @@ bool Log_ChannelEnabled( const rcommon::com_u32 channel_mask, const log_channel_
     if ( channel == log_channel_t::NONE || channel == log_channel_t::COUNT ) {
         return false;
     }
-
+    
     const auto channel_as_int = static_cast<rcommon::com_u32>( channel );
 
     if ( channel_as_int >= 32 ) {
