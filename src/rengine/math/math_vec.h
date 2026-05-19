@@ -124,10 +124,6 @@ constexpr inline vec3_t Math_Vec3FromShort( const vec3_s_t &v ) {
 	};
 }
 
-constexpr inline vec3_t Math_Vec3Zero( const vec3_t &v ) {
-	return static_cast<vec3_t>( v ) = {};
-}
-
 constexpr inline vec3_t Math_Vec3Negate( const vec3_t &v ) {
 	return vec3_t{ -v.x, -v.y, -v.z };
 }

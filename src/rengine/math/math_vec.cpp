@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-11 22:30:00
    Last Modified by: ksiric
-   Last Modified: 2026-05-19 12:12:45
+   Last Modified: 2026-05-19 15:03:17
    ---------------------------------------------------------------------
    Description:
        
@@ -58,19 +58,52 @@ rcommon::f32 Math_Vec2NormalizeLength( vec2_t &v ) {
     return vec_len;
 }
 
+bool Math_Vec2Near( const vec2_t &v1, const vec2_t &v2, rcommon::f32 epsilon ) {
+    return ( std::fabs( v1.x - v2.x ) <= epsilon &&
+             std::fabs( v1.y - v2.y ) <= epsilon );
+}
 
+vec2_t Math_Vec2Lerp( const vec2_t &v1, const vec2_t &v2, rcommon::f32 t ) {
+    
+    return vec2_t{
+        v1.x + ( v2.x - v1.x ) * t,
+        v1.y + ( v2.y - v1.y ) * t
+    };
+}
 
+vec2_t Math_Vec2Min( const vec2_t &v1, const vec2_t &v2 ) {
+    return vec2_t{
+        ( v1.x < v2.x ) ? v1.x : v2.x,
+        ( v1.y < v2.y ) ? v1.y : v2.y
+    };
+}
 
-
-
-
-
+vec2_t Math_Vec2Max( const vec2_t &v1, const vec2_t &v2 ) {
+    return vec2_t{
+        ( v1.x > v2.x ) ? v1.x : v2.x,
+        ( v1.y > v2.y ) ? v1.y : v2.y
+    };
+}
 
 /*
 ==================
 Vec3
 ==================
 */
+
+/*
+ * @NOTE(Karlo 19.5.26) Adding all operations and vector3 construcvtors
+ *                      Constructors first and then the operations necessary.
+ */
+
+
+
+
+
+
+
+
+
 vec3_t Math_Vec3Cross( const vec3_t &v1, const vec3_t &v2 )
 {
     return vec3_t{
