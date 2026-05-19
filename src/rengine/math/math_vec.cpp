@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-11 22:30:00
    Last Modified by: ksiric
-   Last Modified: 2026-05-13 00:36:14
+   Last Modified: 2026-05-19 12:12:45
    ---------------------------------------------------------------------
    Description:
        
@@ -46,13 +46,31 @@ vec2_t Math_Vec2Normalize(const vec2_t &v ) {
     return Math_Vec2Scale( v, 1.0f / vec_len );
 }
 
+rcommon::f32 Math_Vec2NormalizeLength( vec2_t &v ) {
+    const rcommon::f32 vec_len = Math_Vec2Length( v );
+    
+    if ( vec_len <= MATH_EPSILON_F ) {
+        v = vec2_t{};
+        return 0.0f;
+    }
+    
+    v = Math_Vec2Scale( v, 1.0f / vec_len );
+    return vec_len;
+}
 
 
-   
-    
-    
-    
 
+
+
+
+
+
+
+/*
+==================
+Vec3
+==================
+*/
 vec3_t Math_Vec3Cross( const vec3_t &v1, const vec3_t &v2 )
 {
     return vec3_t{
