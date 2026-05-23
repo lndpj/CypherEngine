@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-11 22:30:00
    Last Modified by: ksiric
-   Last Modified: 2026-05-22 12:21:44
+   Last Modified: 2026-05-22 12:27:31
    ---------------------------------------------------------------------
    Description:
        
@@ -142,9 +142,9 @@ bool Math_Vec3Near( const vec3_t &v1, const vec3_t &v2, rcommon::f32 epsilon ) {
 
 vec3_t Math_Vec3Lerp( const vec3_t &v1, const vec3_t &v2, rcommon::f32 t ) {
     return vec3_t{
-        v1.x - ( v2.x - v1.x ) * t,
-        v1.y - ( v2.y - v1.y ) * t,
-        v1.z - ( v2.z - v1.z ) * t  
+        v1.x + ( v2.x - v1.x ) * t,
+        v1.y + ( v2.y - v1.y ) * t,
+        v1.z + ( v2.z - v1.z ) * t  
     };
 }
 
@@ -211,10 +211,10 @@ bool Math_Vec4Near( const vec4_t &v1, const vec4_t &v2, rcommon::f32 epsilon ) {
 
 vec4_t Math_Vec4Lerp( const vec4_t &v1, const vec4_t &v2, rcommon::f32 t ) {
     return vec4_t{
-        v1.x - ( v2.x - v1.x ) * t,
-        v1.y - ( v2.y - v1.y ) * t,
-        v1.z - ( v2.z - v1.z ) * t,
-        v1.w - ( v2.w - v1.w ) * t  
+        v1.x + ( v2.x - v1.x ) * t,
+        v1.y + ( v2.y - v1.y ) * t,
+        v1.z + ( v2.z - v1.z ) * t,
+        v1.w + ( v2.w - v1.w ) * t  
     };
 }
 
@@ -236,8 +236,4 @@ vec4_t Math_Vec4Max( const vec4_t &v1, const vec4_t &v2 ) {
     };
 }
 
-
 }       // namespace reap::rengine::math
-
-
-
