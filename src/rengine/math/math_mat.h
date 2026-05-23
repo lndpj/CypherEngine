@@ -40,6 +40,7 @@ mat4_t Math_Mat4Zero();
 
 mat4_t Math_Mat4Identity();
 
+mat4_t Math_Mat4Multiply( const mat4_t &m1, const mat4_t &m2 );
 
 
 
