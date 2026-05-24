@@ -46,8 +46,25 @@ struct vec4_t {
     rcommon::f32 w{};
 };
 
+/*
+================
+Matrix Types
+================
+*/
 struct mat4_t {
     rcommon::f32 m[16]{};
+};
+
+/*
+================
+Quaternion Types
+================
+*/
+struct quat_t {
+    rcommon::f32 x{};
+    rcommon::f32 y{};
+    rcommon::f32 z{};
+    rcommon::f32 w{ 1.0f };
 };
 
 /*

@@ -5,13 +5,6 @@
 namespace reap::rengine::math
 {
 
-struct quat_t {
-    rcommon::f32 x{};
-    rcommon::f32 y{};
-    rcommon::f32 z{};
-    rcommon::f32 w{ 1.0f };
-};
-
 quat_t Math_QuatIdentity();
 
 quat_t Math_QuatMake( rcommon::f32 x, rcommon::f32 y, rcommon::f32 z, rcommon::f32 w );
