@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-23 11:16:37
    Last Modified by: ksiric
-   Last Modified: 2026-05-23 12:22:59
+   Last Modified: 2026-05-24 13:20:20
    ---------------------------------------------------------------------
    Description:
        
@@ -16,6 +16,9 @@
                                                                        */
 
 #include "rengine/math/math_mat.h"
+#include "rengine/math/math_vec.h"
+
+#include <cmath>            // std::cos / std::sin etc / std::tan
 
 namespace reap::rengine::math
 {
@@ -75,9 +78,231 @@ mat4_t Math_Mat4Scale( const vec3_t &scale )
     return result;
 }
 
+mat4_t Math_Mat4RotateX( const rcommon::f32 radians ) 
+{
+    mat4_t result = Math_Mat4Identity();
+    
+    const rcommon::f32 c = std::cos( radians );
+    const rcommon::f32 s = std::sin( radians );
+    
+    result.m[Math_Mat4Index( 1u, 1u )] = c;
+    result.m[Math_Mat4Index( 1u, 2u )] = s;
+    result.m[Math_Mat4Index( 2u, 1u )] = -s;
+    result.m[Math_Mat4Index( 2u, 2u )] = c;
+    
+    return result;
+}
+
+mat4_t Math_Mat4RotateY( const rcommon::f32 radians )
+{
+    mat4_t result = Math_Mat4Identity();
+    
+    const rcommon::f32 c = std::cos( radians );
+    const rcommon::f32 s = std::sin( radians );
+    
+    result.m[Math_Mat4Index( 0u, 0u )] = c;
+    result.m[Math_Mat4Index( 0u, 2u )] = -s;
+    result.m[Math_Mat4Index( 2u, 0u )] = s;
+    result.m[Math_Mat4Index( 2u, 2u )] = c;
+    
+    return result;
+}
+
+mat4_t Math_Mat4RotateZ( const rcommon::f32 radians )
+{
+    mat4_t result = Math_Mat4Identity();
+    
+    const rcommon::f32 c = std::cos( radians );
+    const rcommon::f32 s = std::sin( radians );
+    
+    result.m[Math_Mat4Index( 0u, 0u )] = c;
+    result.m[Math_Mat4Index( 0u, 1u )] = s;
+    result.m[Math_Mat4Index( 1u, 0u )] = -s;
+    result.m[Math_Mat4Index( 1u, 1u )] = c;
+    
+    return result;
+}
+
+mat4_t Math_Mat4RotateAxis( const vec3_t &axis, const rcommon::f32 radians )
+{
+    const vec3_t n = Math_Vec3Normalize( axis );
+    
+    if ( Math_Vec3LengthSquared( n ) <= MATH_EPSILON_F ) {
+        return Math_Mat4Identity();
+    }
+    
+    const rcommon::f32 c = std::cos( radians );     //cos(theta)
+    const rcommon::f32 s = std::sin( radians );     //sin(theta)
+    const rcommon::f32 one_minus_c = 1.0f - c;      //1 minus cos(theta)
+    
+    const rcommon::f32 x = n.x;
+    const rcommon::f32 y = n.y;
+    const rcommon::f32 z = n.z;
+    
+    mat4_t result = Math_Mat4Identity();
+    
+    /*
+     * Rodirigues formula for rotation around arbitrary axis
+     * displayed in matrix form.
+     * 
+     * Rotation around some vector axis, we normalize it always so we dont have
+     * some weird scaling issues later. Also radians by how much we rotate around that
+     * axis.
+     */
+    
+    result.m[Math_Mat4Index( 0u, 0u )] = c + x * x * one_minus_c;
+    result.m[Math_Mat4Index( 0u, 1u )] = y * x * one_minus_c + z * s;
+    result.m[Math_Mat4Index( 0u, 2u )] = z * x * one_minus_c - y * s;
+
+    result.m[Math_Mat4Index( 1u, 0u )] = x * y * one_minus_c - z * s;
+    result.m[Math_Mat4Index( 1u, 1u )] = c + y * y * one_minus_c;
+    result.m[Math_Mat4Index( 1u, 2u )] = z * y * one_minus_c + x * s;
+
+    result.m[Math_Mat4Index( 2u, 0u )] = x * z * one_minus_c + y * s;
+    result.m[Math_Mat4Index( 2u, 1u )] = y * z * one_minus_c - x * s;
+    result.m[Math_Mat4Index( 2u, 2u )] = c + z * z * one_minus_c;
+    
+    return result;
+}
+
+mat4_t Math_Mat4Transpose( const mat4_t &m ) 
+{
+    mat4_t result = Math_Mat4Zero();
+    
+    /*
+     * Just pure swapping of rows and columns
+     * [a b c d ]
+     * [e f g h ]
+     * [i j k l ]
+     * [m n o p ]
+     * ->
+     * [a e i m ]
+     * [b f j n ]
+ .   * [c ....]
+     * and so forth.
+     */   
+    for ( rcommon::u32 column = 0; column < 4u; ++column ) {
+        for ( rcommon::u32 row = 0; row < 4u; ++row ) {
+            result.m[Math_Mat4Index( column, row )] = m.m[Math_Mat4Index( row, column )];
+        }
+    }
+    
+    return result;
+}
+
+vec4_t Math_Mat4MulVec4( const mat4_t &m, const vec4_t &v ) 
+{
+    return vec4_t{
+        m.m[Math_Mat4Index( 0u, 0u )] * v.x +
+        m.m[Math_Mat4Index( 1u, 0u )] * v.y +
+        m.m[Math_Mat4Index( 2u, 0u )] * v.z +
+        m.m[Math_Mat4Index( 3u, 0u )] * v.w,
+        
+        m.m[Math_Mat4Index( 0u, 1u )] * v.x +
+        m.m[Math_Mat4Index( 1u, 1u )] * v.y +
+        m.m[Math_Mat4Index( 2u, 1u )] * v.z +
+        m.m[Math_Mat4Index( 3u, 1u )] * v.w,
+        
+        m.m[Math_Mat4Index( 0u, 2u )] * v.x +
+        m.m[Math_Mat4Index( 1u, 2u )] * v.y +
+        m.m[Math_Mat4Index( 2u, 2u )] * v.z +
+        m.m[Math_Mat4Index( 3u, 2u )] * v.w,
+        
+        m.m[Math_Mat4Index( 0u, 3u )] * v.x +
+        m.m[Math_Mat4Index( 1u, 3u )] * v.y +
+        m.m[Math_Mat4Index( 2u, 3u )] * v.z +
+        m.m[Math_Mat4Index( 3u, 3u )] * v.w,
+    };
+}
+
+/*
+ * Here the w in vector4 is 1!
+ */
+vec3_t Math_Mat4TransformPoint( const mat4_t &m, const vec3_t &v )
+{
+    
+    /*
+     * If the w = 1 we determine this as the point.
+     * According to those rules we decide what to do.
+     * 
+     * So for a point we transform it like a regular point, moving it by some
+     * points,
+     * 
+     * A direction is not being moved, simply because a direction is an arrow
+     * a vector that we only care about where it is pointing to, we dont really care 
+     * about its length or anything, its numerical values, other then where it points 
+     * to.
+     * 
+     */
+    const vec4_t result = Math_Mat4MulVec4( m, vec4_t{ v.x, v.y, v.z, 1.0f } );
+    
+    if ( result.w != 0.0f && result.w != 1.0f ) {
+        return vec3_t{
+            result.x / result.w,
+            result.y / result.w,
+            result.z / result.w
+        };
+    }
+    
+    return vec3_t{ result.x, result.y, result.z };
+}
+/*
+ * Here the w in vector4 is 0!
+ */
+vec3_t Math_Mat4TransformDirection( const mat4_t &m, const vec3_t &v ) 
+{
+    const vec4_t result = Math_Mat4MulVec4( m, vec4_t{ v.x, v.y, v.z, 0.0f } );
+    
+    return vec3_t{ result.x, result.y, result.z };    
+}
+
+/*
+================
+Math_Mat4Perspective
+
+Builds an OpenGL-style right-handed perspective projection matrix.
+Camera looks down -Z.
+================
+*/
+mat4_t Math_Mat4Perspective( rcommon::f32 fov_y_radians, rcommon::f32 aspect_ratio, rcommon::f32 near_z, rcommon::f32 far_z )
+{
+    mat4_t result = Math_Mat4Zero();
+    
+    if ( aspect_ratio <= MATH_EPSILON_F || near_z <= MATH_EPSILON_F || far_z <= MATH_EPSILON_F ) {
+        return result;
+    }
+    
+    /*
+     * OpenGL like formula for the projection matrix perspective.
+     */
+    
+    const rcommon::f32 f = 1.0f / std::tan( fov_y_radians * 0.5f );
+    
+    result.m[Math_Mat4Index( 0u, 0u )] = f / aspect_ratio;
+    result.m[Math_Mat4Index( 1u, 1u )] = f;
+    result.m[Math_Mat4Index( 2u, 2u )] = ( far_z + near_z ) / ( near_z - far_z );
+    result.m[Math_Mat4Index( 2u, 3u )] = -1.0f; 
+    result.m[Math_Mat4Index( 3u, 2u )] = ( 2.0f * far_z * near_z ) / ( near_z - far_z ); 
+    
+    return result;
+}
+
+mat4_t Math_Mat4Ortho( const rcommon::f32 left, const rcommon::f32 right, const rcommon::f32 bottom, const rcommon::f32 top, const rcommon::f32 near_z, const rcommon::f32 far_z )
+{
+    mat4_t result = Math_Mat4Zero();
+    
+    
+    
+    
+    
+}
+
+
 
 
     
-}       // namespace reap::rengine::math
+}       // namespace reap::rengine::mathreturn result;
+
+
 
 
