@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-23 11:16:37
    Last Modified by: ksiric
-   Last Modified: 2026-05-24 14:30:21
+   Last Modified: 2026-05-25 01:51:19
    ---------------------------------------------------------------------
    Description:
        
@@ -268,7 +268,7 @@ mat4_t Math_Mat4Perspective( rcommon::f32 fov_y_radians, rcommon::f32 aspect_rat
 {
     mat4_t result = Math_Mat4Zero();
     
-    if ( aspect_ratio <= MATH_EPSILON_F || near_z <= MATH_EPSILON_F || far_z <= MATH_EPSILON_F ) {
+    if ( aspect_ratio <= MATH_EPSILON_F || near_z <= MATH_EPSILON_F || far_z <= near_z ) {
         return result;
     }
     
