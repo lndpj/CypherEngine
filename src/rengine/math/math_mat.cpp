@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-23 11:16:37
    Last Modified by: ksiric
-   Last Modified: 2026-05-24 14:29:25
+   Last Modified: 2026-05-24 14:30:21
    ---------------------------------------------------------------------
    Description:
        
@@ -354,7 +354,7 @@ mat4_t Math_Mat4LookAt( const vec3_t &eye, const vec3_t &target, const vec3_t &u
     return result;
 }
     
-}       // namespace reap::rengine::mathreturn result;
+}       // namespace reap::rengine::math
 
 
 
