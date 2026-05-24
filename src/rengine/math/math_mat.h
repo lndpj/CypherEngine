@@ -66,6 +66,7 @@ mat4_t Math_Mat4Perspective( rcommon::f32 fov_y_radians, rcommon::f32 aspect_rat
 
 mat4_t Math_Mat4Ortho( const rcommon::f32 left, const rcommon::f32 right, const rcommon::f32 bottom, const rcommon::f32 top, const rcommon::f32 near_z, const rcommon::f32 far_z );
 
+mat4_t Math_Mat4LookAt( const vec3_t &eye, const vec3_t &target, const vec3_t &up );
 
 
 }       // namespace reap::rengine::math

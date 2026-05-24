@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-23 11:16:37
    Last Modified by: ksiric
-   Last Modified: 2026-05-24 13:20:20
+   Last Modified: 2026-05-24 14:29:25
    ---------------------------------------------------------------------
    Description:
        
@@ -291,15 +291,68 @@ mat4_t Math_Mat4Ortho( const rcommon::f32 left, const rcommon::f32 right, const 
 {
     mat4_t result = Math_Mat4Zero();
     
+    const rcommon::f32 width = right - left;
+    const rcommon::f32 height = top - bottom;
+    const rcommon::f32 depth = far_z - near_z;
     
+    if ( std::fabs( width ) <= MATH_EPSILON_F ||
+         std::fabs( height ) <= MATH_EPSILON_F ||
+         std::fabs( depth ) <= MATH_EPSILON_F ) {
+        return result;
+    } 
     
+    result.m[Math_Mat4Index( 0u, 0u )] = 2.0f / width;
+    result.m[Math_Mat4Index( 1u, 1u )] = 2.0f / height;
+    result.m[Math_Mat4Index( 2u, 2u )] = -2.0f / depth;
+    result.m[Math_Mat4Index( 3u, 0u )] = -( right + left ) / width;
+    result.m[Math_Mat4Index( 3u, 1u )] = -( top + bottom ) / height;
+    result.m[Math_Mat4Index( 3u, 2u )] = -( far_z + near_z ) / depth;
+    result.m[Math_Mat4Index( 3u, 3u )] = 1.0f;
     
-    
+    return result;
 }
+/*
+================
+Math_Mat4LookAt
 
+Builds a right-handed OpenGL-style view matrix.
+eye is the camera position, target is what it looks at, up keeps the camera upright.
+================
+*/
+mat4_t Math_Mat4LookAt( const vec3_t &eye, const vec3_t &target, const vec3_t &up ) 
+{
+    mat4_t result = Math_Mat4Identity();
+    const vec3_t forward = Math_Vec3Normalize( Math_Vec3Sub( target, eye ) );
+    if ( Math_Vec3LengthSquared( forward ) <= MATH_EPSILON_F ) {
+        return Math_Mat4Identity();
+    }
+    
+    const vec3_t right = Math_Vec3Normalize( Math_Vec3Cross( forward, up ) );
+    if ( Math_Vec3LengthSquared( right ) <= MATH_EPSILON_F ) {
+        return Math_Mat4Identity();
+    } 
+    
+    // @NOTE: It is already normalized since these other two are for sure up to this point.
+    const vec3_t camera_up = Math_Vec3Cross( right, forward );
+    
+    result.m[Math_Mat4Index( 0u, 0u )] = right.x;
+    result.m[Math_Mat4Index( 0u, 1u )] = camera_up.x;
+    result.m[Math_Mat4Index( 0u, 2u )] = -forward.x;
 
+    result.m[Math_Mat4Index( 1u, 0u )] = right.y;
+    result.m[Math_Mat4Index( 1u, 1u )] = camera_up.y;
+    result.m[Math_Mat4Index( 1u, 2u )] = -forward.y;
 
+    result.m[Math_Mat4Index( 2u, 0u )] = right.z;
+    result.m[Math_Mat4Index( 2u, 1u )] = camera_up.z;
+    result.m[Math_Mat4Index( 2u, 2u )] = -forward.z;
 
+    result.m[Math_Mat4Index( 3u, 0u )] = -Math_Vec3Dot( right, eye );
+    result.m[Math_Mat4Index( 3u, 1u )] = -Math_Vec3Dot( camera_up, eye );
+    result.m[Math_Mat4Index( 3u, 2u )] = Math_Vec3Dot( forward, eye );
+    
+    return result;
+}
     
 }       // namespace reap::rengine::mathreturn result;
 
