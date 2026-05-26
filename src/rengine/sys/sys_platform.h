@@ -134,4 +134,4 @@ Cross Platform And Compiler Detection
 #       define REAP_COMPILER_GCC        0
 #   endif
 
-}
+}       // namespace reap::rengine::sys

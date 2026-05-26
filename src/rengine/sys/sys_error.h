@@ -106,4 +106,4 @@ constexpr inline rcommon::com_error_t Sys_ErrorCode( sys_error_code_t error ) {
 	return rcommon::Com_ErrorMake( rcommon::com_domain_t::COM_DOMAIN_SYS, static_cast<rcommon::com_u16>( error ) );
 }
 
-}
+}       // namespace reap::rengine::sys

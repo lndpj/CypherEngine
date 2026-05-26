@@ -100,6 +100,18 @@ struct bounds_t {
     vec3_t maxs{};
 };
 
+/*
+===============
+ray_t
+
+Raycasting geometrical shape of a line vector, used for various sorts in the engine.
+===============
+ */
+struct ray_t {
+    vec3_t origin{};
+    vec3_t direction{};
+};
+
 static_assert( sizeof( vec3_t ) == sizeof( rcommon::f32 ) * 3u, "vec3_t must stay tightly packed" );
 static_assert( sizeof( vec3_s_t ) == sizeof( rcommon::i16 ) * 3u, "vec3_s_t must stay tightly packed" );
 static_assert( sizeof( mat4_t ) == sizeof( rcommon::f32 ) * 16u, "mat4_t must stay tightly packed" );

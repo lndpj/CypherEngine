@@ -68,5 +68,4 @@ mat4_t Math_Mat4Ortho( const rcommon::f32 left, const rcommon::f32 right, const 
 
 mat4_t Math_Mat4LookAt( const vec3_t &eye, const vec3_t &target, const vec3_t &up );
 
-
 }       // namespace reap::rengine::math
