@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-26 19:06:04
    Last Modified by: ksiric
-   Last Modified: 2026-05-26 20:08:11
+   Last Modified: 2026-05-27 22:01:25
    ---------------------------------------------------------------------
    Description:
        
@@ -92,11 +92,8 @@ bool Math_RayIntersectsBounds( const ray_t &ray, const bounds_t &bounds, rcommon
          * And the ray needs to be inside all three of those at the same time 
          * to be intersecting.
          * 
-         * [2, 5] -> X SLAB -> t1 = 2, t2 = 5, tmin = 2, tmax = 5
-         * [3, 4] -> Y SLAB -> t1 = 3, t2 = 4, tmin = 2, tmax = 5
-         * [5, 9] -> Z SLAB
-         * 
-         * Here not intersecting, it is -> t
+         * So we are checking the largest entry value and the smallest exit value and 
+         * we are comparing them to see. 
          */
         if ( t_units_min > t_units_max ) {
             return false;
@@ -108,5 +105,9 @@ bool Math_RayIntersectsBounds( const ray_t &ray, const bounds_t &bounds, rcommon
     
     return true;
 }
+
+
+
+
 
 }       // namespace reap::rengine::math

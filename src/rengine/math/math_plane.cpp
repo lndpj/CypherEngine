@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-25 02:41:48
    Last Modified by: ksiric
-   Last Modified: 2026-05-25 03:01:37
+   Last Modified: 2026-05-29 20:38:29
    ---------------------------------------------------------------------
    Description:
        
@@ -14,7 +14,6 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-
 #include "rengine/math/math_plane.h"
 #include "rengine/math/math_vec.h"
 

@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-26 19:51:53
    Last Modified by: ksiric
-   Last Modified: 2026-05-26 19:52:58
+   Last Modified: 2026-05-29 19:53:27
    ---------------------------------------------------------------------
    Description:
        
@@ -19,9 +19,6 @@
 
 namespace reap::rengine::math
 {
-
-
-
 
 
     
