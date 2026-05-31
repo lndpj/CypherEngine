@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-24 14:46:51
    Last Modified by: ksiric
-   Last Modified: 2026-05-29 20:44:07
+   Last Modified: 2026-05-29 20:48:48
    ---------------------------------------------------------------------
    Description:
 
@@ -129,7 +129,7 @@ mat4_t Math_QuatToMat4( const quat_t &q ) {
     const rcommon::f32 y = quat_normalize.y;
     const rcommon::f32 z = quat_normalize.z;
     const rcommon::f32 w = quat_normalize.w;
-
+    
     result.m[Math_Mat4Index( 0u, 0u )] = 1.0f - 2.0f * y * y - 2.0f * z * z;
     result.m[Math_Mat4Index( 0u, 1u )] = 2.0f * x * y + 2.0f * w * z;
     result.m[Math_Mat4Index( 0u, 2u )] = 2.0f * x * z - 2.0f * w * y;

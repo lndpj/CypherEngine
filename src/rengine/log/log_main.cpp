@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-19 22:31:16
    Last Modified by: ksiric
-   Last Modified: 2026-05-11 23:21:12
+   Last Modified: 2026-05-29 20:47:46
    ---------------------------------------------------------------------
    Description:
 
@@ -249,7 +249,7 @@ void Log_Emit( const log_record_t &record ) {
     }
 
     char line_buffer[REAP_LOG_MESSAGE_MAX + 256]{};
-
+    
     if ( timestamp_buffer[0] != '\0' ) {
         std::snprintf(
                       line_buffer,
