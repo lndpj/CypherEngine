@@ -111,6 +111,26 @@ struct ray_t {
     vec3_t origin{};
     vec3_t direction{};
 };
+/*
+===============
+frustum_t
+
+Used for rendering API of the engine in order to render only what is necessary part of the map
+===============
+ */
+enum frustum_plane_t {
+    FRUSTUM_PLANE_LEFT = 0,
+    FRUSTUM_PLANE_RIGHT,
+    FRUSTUM_PLANE_BOTTOM,
+    FRUSTUM_PLANE_TOP,
+    FRUSTUM_PLANE_NEAR,
+    FRUSTUM_PLANE_FAR,
+    FRUSTUM_PLANE_COUNT
+};
+
+struct frustum_t {
+    plane_t planes[FRUSTUM_PLANE_COUNT];
+};
 
 static_assert( sizeof( vec3_t ) == sizeof( rcommon::f32 ) * 3u, "vec3_t must stay tightly packed" );
 static_assert( sizeof( vec3_s_t ) == sizeof( rcommon::i16 ) * 3u, "vec3_s_t must stay tightly packed" );

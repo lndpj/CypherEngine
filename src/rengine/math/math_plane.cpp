@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-25 02:41:48
    Last Modified by: ksiric
-   Last Modified: 2026-05-29 20:38:29
+   Last Modified: 2026-06-02 20:51:35
    ---------------------------------------------------------------------
    Description:
        
@@ -19,6 +19,47 @@
 
 namespace reap::rengine::math
 {
+    
+plane_t Math_PlaneFromPointNormal( const vec3_t &point, const vec3_t &normal )
+{
+    /*
+     * Forming a plane out of normal vector and a point vector somewhere in space.
+     */
+    
+    plane_t result{};
+    
+    const vec3_t normalized_normal = Math_Vec3Normalize( normal );
+    
+    if ( Math_Vec3LengthSquared( normalized_normal ) <= MATH_EPSILON_F ) {
+        return result;
+    }   
+    
+    result = { normalized_normal, Math_Vec3Dot( normalized_normal, point ) };
+    return result;
+}
+
+plane_t Math_PlaneFromPoints( const vec3_t &p0, const vec3_t &p1, const vec3_t &p2 )
+{
+    /*
+     * Forming a plane out of triangles essentially, so three vectors( vertices ).
+     * Might be useful later for creating brushes, brush cpollisions, BSP faces, traingle planes etc.
+     */
+    
+    plane_t result{};
+    
+    const vec3_t edge1 = Math_Vec3Sub( p1, p0 );
+    const vec3_t edge2 = Math_Vec3Sub( p2, p0 );
+    const vec3_t normal = Math_Vec3Normalize( Math_Vec3Cross( edge1, edge2 ) );
+    
+    if ( Math_Vec3LengthSquared( normal ) <= MATH_EPSILON_F ) {
+        return plane_t{};
+    }
+    
+    result = { normal, Math_Vec3Dot( normal, p0 ) };
+    
+    return result;
+}
+
 
 rcommon::f32 Math_PlaneDistance( const plane_t &plane, const vec3_t &v )
 {
