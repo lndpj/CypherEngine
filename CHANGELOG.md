@@ -2,16 +2,68 @@
 
 All notable changes to REAP and the Fuse Engine runtime are tracked here.
 
+## [0.1.0] - 2026-06-02
+
+### Added
+- Added the first frustum math implementation for renderer visibility work:
+  - Gribb-Hartmann projection-view plane extraction
+  - frustum point containment
+  - frustum-vs-bounds intersection testing
+- Added plane construction helpers for building planes from point/normal pairs and triangle points.
+
+### Fixed
+- Fixed frustum bounds testing to use real AABB half-extents when projecting bounds onto frustum plane normals.
+
+## [0.1.0] - 2026-05-31
+
+### Added
+- Designed the camera frustum path around six world-space planes extracted from `projection * view`.
+- Documented the renderer culling direction: object/world bounds are tested against camera frustum planes before draw submission.
+
+## [0.1.0] - 2026-05-26
+
+### Added
+- Added `math_bounds` for AABB creation, expansion, center/size queries, point containment, and bounds overlap.
+- Added `math_ray` for ray point evaluation, ray-plane intersection, and ray-bounds slab intersection.
+- Added `ray_t` to the math type layer for future traces, picking, collision, and weapon-fire tests.
+
+## [0.1.0] - 2026-05-25
+
+### Added
+- Added `math_plane` for signed plane distance and front/back/on-plane point classification.
+- Added `plane_t`, `bounds_t`, and frustum-oriented math type definitions as the geometry foundation for BSP, collision, and renderer culling.
+
+## [0.1.0] - 2026-05-24
+
+### Added
+- Added the first custom engine math library pass:
+  - vector helpers
+  - matrix helpers
+  - quaternion helpers
+  - projection/view/model transform support
+- Added quaternion rotation support including construction, normalization, inverse/conjugate, multiplication, vector rotation, matrix conversion, NLerp, and Slerp.
+
+### Changed
+- Chose an OpenGL-style math convention for the renderer path:
+  - column-major storage
+  - column-vector transforms
+  - right-handed world convention
+  - `projection * view * model` transform order
+
+## [0.1.0] - 2026-05-06
+
+### Added
+- Added SDL3 window creation and runtime event plumbing through the `sys` and `host` layers.
+- Added the first OpenGL renderer backend path with SDL GL context creation, GLAD function loading, frame begin/end, and buffer clearing.
+- Added shader, mesh, and renderer scaffolding for moving from test drawing toward real engine assets.
+
+### Changed
+- Moved host startup toward a cleaner orchestration path where `main` stays minimal and host owns subsystem initialization.
+
 ## [0.1.0] - 2026-05-02
 
 ### Added
 - Added cleanup of the host initializaion
-
-
-
-
-
-
 
 ## [0.1.0] - 2026-04-27
 
@@ -145,4 +197,3 @@ All notable changes to REAP and the Fuse Engine runtime are tracked here.
 - Added initial CMake-based project scaffold.
 - Added `src` and `thirdparty` layout.
 - Added initial engine foundation header and baseline docs/process files.
-

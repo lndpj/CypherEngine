@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-26 19:51:53
    Last Modified by: ksiric
-   Last Modified: 2026-06-02 21:49:29
+   Last Modified: 2026-06-02 21:53:33
    ---------------------------------------------------------------------
    Description:
        
@@ -46,7 +46,7 @@ static plane_t Math_FrustumMakePlane( const rcommon::f32 a, const rcommon::f32 b
 frustum_t Math_FrustumFromProjectionView( const mat4_t &projection_view )
 {
     frustum_t result{};
-    // GRIBB-HARTMAN METHOD for extrating all the planes effectively out of the P-V matrix.   
+    // GRIBB-HARTMANM METHOD for extrating all the planes effectively out of the P-V matrix.   
     
     result.planes[FRUSTUM_PLANE_LEFT] = Math_FrustumMakePlane(
         Math_Mat4Get( projection_view, 0u, 3u ) + Math_Mat4Get( projection_view, 0u, 0u ),
@@ -113,7 +113,7 @@ bool Math_FrustumIntersectsBounds( const frustum_t &frustum, const bounds_t &bou
     // finding the center of the boundings
     const vec3_t center = Math_BoundsCenter( bounds );
     const vec3_t size = Math_BoundsSize( bounds );
-    const vec3_t halfs = Math_Vec3Scale( size, 0.0f );
+    const vec3_t halfs = Math_Vec3Scale( size, 0.5f );
     
     for( rcommon::u32 i = 0; i < FRUSTUM_PLANE_COUNT; ++i ) {
         const plane_t &plane = frustum.planes[i];
