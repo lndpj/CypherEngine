@@ -1,8 +1,8 @@
 #pragma once
 
+#include "rengine/math/math_types.h"
 #include "rengine/rcommon/com_main.h"
 #include "rengine/render/r_error.h"
-
 
 namespace reap::rengine::render
 {
@@ -53,5 +53,15 @@ r_shader_t *R_ShaderFind( r_shader_registry_t &registry, const char *name );
 r_error_code_t R_ShaderBind( const r_shader_t &shader );
 
 void R_ShaderUnload( r_shader_t &shader );
+
+r_error_code_t R_ShaderSetMat4( const r_shader_t &shader, const char *uniform_name, const math::mat4_t &matrix );
+
+
+
+
+
+
+
+
 
 }       // namespace reap::rengine::render

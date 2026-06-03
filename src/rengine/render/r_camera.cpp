@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-06-02 22:45:37
    Last Modified by: ksiric
-   Last Modified: 2026-06-03 10:38:15
+   Last Modified: 2026-06-03 13:16:08
    ---------------------------------------------------------------------
    Description:
        
@@ -53,9 +53,44 @@ void R_CameraUpdateMatrices( r_camera_t &camera )
     camera.projection_view = math::Math_Mat4Multiply( camera.projection, camera.view );
     camera.frustum = math::Math_FrustumFromProjectionView( camera.projection_view );
 }
- 
- 
- 
- 
+
+void R_CameraSetPerspective( r_camera_t &camera, rcommon::f32 fov_y_radians, rcommon::f32 aspect_ratio, rcommon::f32 near_z, rcommon::f32 far_z )
+{
+    camera.camera_desc.fov_y_radians = fov_y_radians;
+    camera.camera_desc.aspect_ratio = aspect_ratio;
+    camera.camera_desc.near_z = near_z;
+    camera.camera_desc.far_z = far_z;
     
+    R_CameraUpdateMatrices( camera );
+}
+
+void R_CameraSetTransform( r_camera_t &camera, const math::vec3_t &position, const math::quat_t &orientation )
+{
+    camera.position = position;
+    camera.orientation = math::Math_QuatNormalize( orientation );
+    
+    R_CameraUpdateMatrices( camera );
+}
+
+void R_CameraSetPosition( r_camera_t &camera, const math::vec3_t &position )
+{
+    camera.position = position;
+    
+    R_CameraUpdateMatrices( camera );
+}
+
+void R_CameraSetOrientation( r_camera_t &camera, const math::quat_t &orientation )
+{   
+    camera.orientation = math::Math_QuatNormalize( orientation );
+          
+    R_CameraUpdateMatrices( camera );
+}
+
+void R_CameraSetPerspectiveMode( r_camera_t &camera, r_camera_projection_mode_t &mode )
+{
+    camera.camera_desc.camera_projection_mode = mode;
+    
+    R_CameraUpdateMatrices( camera );
+}
+
 }       // namespace reap::rengine::render

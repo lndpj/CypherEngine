@@ -34,6 +34,15 @@ struct r_camera_t {
 void R_CameraInit( r_camera_t &camera, const r_camera_desc_t &camera_desc );
     
 void R_CameraUpdateMatrices( r_camera_t &camera );    
-    
+
+void R_CameraSetPerspective( r_camera_t &camera, rcommon::f32 fov_y_radians, rcommon::f32 aspect_ration, rcommon::f32 near_z, rcommon::f32 far_z );
+
+void R_CameraSetTransform( r_camera_t &camera, const math::vec3_t &position, const math::quat_t &orientation );
+
+void R_CameraSetPosition( r_camera_t &camera, const math::vec3_t &position );
+
+void R_CameraSetOrientation( r_camera_t &camera, const math::quat_t &orientation );
+
+void R_CameraSetPerspectiveMode( r_camera_t &camera, r_camera_projection_mode_t &mode );
     
 }       // namespace reap::rengine::render
