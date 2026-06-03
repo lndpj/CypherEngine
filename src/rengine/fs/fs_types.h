@@ -27,7 +27,6 @@ enum fs_mount_flags_t : rcommon::u32 {
     FS_MOUNT_NONE       = 0u,
     FS_MOUNT_READ_ONLY  = 1u << 0u,
     FS_MOUNT_WRITABLE   = 1u << 1u
-
 };
 
 enum class fs_open_mode_t : rcommon::u8 {

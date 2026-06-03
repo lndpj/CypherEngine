@@ -23,6 +23,12 @@ quat_t Math_QuatFromAxis( const vec3_t &axis, const rcommon::f32 radians );
 
 quat_t Math_QuatFromEuler( const rcommon::f32 pitch, const rcommon::f32 yaw, const rcommon::f32 roll );
 
+vec3_t Math_QuatForwardVec3( const quat_t &q );
+
+vec3_t Math_QuatRightVec3( const quat_t &q );
+
+vec3_t Math_QuatUpVec3( const quat_t &q );
+
 mat4_t Math_QuatToMat4( const quat_t &q );
 
 vec3_t Math_QuatRotateVec3( const quat_t &q, const vec3_t &v );

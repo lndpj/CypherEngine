@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-24 14:46:51
    Last Modified by: ksiric
-   Last Modified: 2026-05-29 20:48:48
+   Last Modified: 2026-06-03 10:06:54
    ---------------------------------------------------------------------
    Description:
 
@@ -119,6 +119,27 @@ quat_t Math_QuatFromEuler( const rcommon::f32 pitch, const rcommon::f32 yaw, con
      * of things.
      */
 	return Math_QuatNormalize( Math_QuatMultiply( Math_QuatMultiply( quat_yaw, quat_pitch ), quat_roll ) );
+}
+
+vec3_t Math_QuatForwardVec3( const quat_t &q )
+{
+    vec3_t result = {};
+    result = Math_QuatRotateVec3( q, vec3_t{ 0.0f, 0.0f, -1.0f } );
+    return result;
+}
+
+vec3_t Math_QuatRightVec3( const quat_t &q )
+{
+    vec3_t result = {};
+    result = Math_QuatRotateVec3( q, vec3_t{ 1.0f, 0.0f, 0.0f } );
+    return result;
+}
+
+vec3_t Math_QuatUpVec3( const quat_t &q )
+{
+    vec3_t result = {};
+    result = Math_QuatRotateVec3( q, vec3_t{ 0.0f, 1.0f, 0.0f } );
+    return result;
 }
 
 mat4_t Math_QuatToMat4( const quat_t &q ) {

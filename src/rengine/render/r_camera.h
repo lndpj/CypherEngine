@@ -33,7 +33,7 @@ struct r_camera_t {
  
 void R_CameraInit( r_camera_t &camera, const r_camera_desc_t &camera_desc );
     
-    
+void R_CameraUpdateMatrices( r_camera_t &camera );    
     
     
 }       // namespace reap::rengine::render
