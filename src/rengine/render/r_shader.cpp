@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-06 15:03:52
    Last Modified by: ksiric
-   Last Modified: 2026-05-11 00:52:10
+   Last Modified: 2026-06-03 14:01:51
    ---------------------------------------------------------------------
    Description:
 
@@ -191,6 +191,19 @@ void R_ShaderUnload( r_shader_t &shader )
 
     shader = {};
     return ;
+}
+
+r_error_code_t R_ShaderSetMat4( const r_shader_t &shader, const char *uniform_name, const math::mat4_t &matrix )
+{
+    if ( !shader.loaded || shader.gl_shader_program_id == 0u ) {
+        return r_error_code_t::ERR_SHADER_BIND;
+    }
+    
+    if ( uniform_name == nullptr || uniform_name[0] == '\0' ) {
+        return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+    }
+    
+    return R_GLSetUniformMat4( shader.gl_shader_program_id, uniform_name, matrix );
 }
 
 }       // namespace reap::rengine::render

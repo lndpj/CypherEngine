@@ -3,6 +3,7 @@
 #include "rengine/render/r_error.h"
 #include "rengine/render/r_mesh.h"
 #include "rengine/sys/sys_window.h"
+#include "rengine/math/math_types.h"
 
 namespace reap::rengine::render
 {
@@ -56,5 +57,7 @@ r_error_code_t R_GLMeshCreate( const r_vertex_t *vertices,
 void R_GLMeshDestroy( r_mesh_t &mesh );
 
 r_error_code_t R_GLMeshDraw( const r_mesh_t &mesh );
+
+r_error_code_t R_GLSetUniformMat4( rcommon::u32 shader_program_id, const char *uniform_name, const math::mat4_t &matrix );
 
 }       // namespace reap::rengine::render

@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-05 22:02:15
    Last Modified by: ksiric
-   Last Modified: 2026-05-10 23:49:46
+   Last Modified: 2026-06-03 17:49:15
    ---------------------------------------------------------------------
    Description:
 
@@ -428,6 +428,29 @@ r_error_code_t R_GLMeshDraw( const r_mesh_t &mesh )
     glDrawElements( GL_TRIANGLES, static_cast<GLsizei>( mesh.index_count ), GL_UNSIGNED_INT, nullptr );
     glBindVertexArray( 0 );
 
+    return r_error_code_t::OK;
+}
+
+r_error_code_t R_GLSetUniformMat4( rcommon::u32 shader_program_id, const char *uniform_name, const math::mat4_t &matrix )
+{
+    if ( shader_program_id == 0u ) {
+        return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+    }
+    
+    if ( uniform_name == nullptr || uniform_name[0] == '\0' ) {
+        return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+    }
+    
+    const GLint uniform_location = glad_glGetUniformLocation( static_cast<GLuint>( shader_program_id ), uniform_name );
+    
+    if ( uniform_location < 0 ) {
+        return r_error_code_t::ERR_SHADER_UNIFORM;
+    } 
+    
+    glUseProgram( static_cast<GLuint>( shader_program_id ) );
+    
+    glad_glUniformMatrix4fv( uniform_location, 1, GL_FALSE, matrix.m );
+    
     return r_error_code_t::OK;
 }
 

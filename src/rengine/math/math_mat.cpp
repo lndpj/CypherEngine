@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-23 11:16:37
    Last Modified by: ksiric
-   Last Modified: 2026-05-25 01:51:19
+   Last Modified: 2026-06-03 18:01:45
    ---------------------------------------------------------------------
    Description:
        
@@ -16,6 +16,7 @@
                                                                        */
 
 #include "rengine/math/math_mat.h"
+#include "rengine/math/math_quat.h"
 #include "rengine/math/math_vec.h"
 
 #include <cmath>            // std::cos / std::sin etc / std::tan
@@ -353,9 +354,24 @@ mat4_t Math_Mat4LookAt( const vec3_t &eye, const vec3_t &target, const vec3_t &u
     
     return result;
 }
+
+/*
+================
+Math_Mat4TranslationRotationScale
+
+Builds a model matrix for each and every single object that will be created in the game.
+Each model matrix is unique to each and every single object.
+================
+*/
+mat4_t Math_Mat4TranslationRotationScale( const vec3_t &position, const quat_t &orientation, const vec3_t &scale )
+{
+    mat4_t result = Math_Mat4Identity();
+    const mat4_t translation_matrix = Math_Mat4Translation( position );
+    const mat4_t rotation_matrix    = Math_QuatToMat4( orientation );
+    const mat4_t scale_matrix       = Math_Mat4Scale( scale );
     
-}       // namespace reap::rengine::math
+    result = Math_Mat4Multiply( translation_matrix, Math_Mat4Multiply( rotation_matrix, scale_matrix ) );
+    return result;
+}
 
-
-
-
+}          // namespace reap::rengine::math

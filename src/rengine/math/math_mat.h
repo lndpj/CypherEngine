@@ -68,4 +68,6 @@ mat4_t Math_Mat4Ortho( const rcommon::f32 left, const rcommon::f32 right, const 
 
 mat4_t Math_Mat4LookAt( const vec3_t &eye, const vec3_t &target, const vec3_t &up );
 
+mat4_t Math_Mat4TranslationRotationScale( const vec3_t &position, const quat_t &orientation, const vec3_t &scale );
+
 }       // namespace reap::rengine::math

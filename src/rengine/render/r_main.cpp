@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-20 21:01:21
    Last Modified by: ksiric
-   Last Modified: 2026-05-11 00:49:44
+   Last Modified: 2026-06-03 18:18:32
    ---------------------------------------------------------------------
    Description:
 
@@ -16,6 +16,7 @@
 																	   */
 #include "rengine/render/r_main.h"
 #include "rengine/log/log_main.h"
+#include "rengine/render/r_camera.h"
 #include "rengine/render/r_gl.h"
 
 #include <SDL3/SDL.h>      // Temporary renderer-side SDL visibility while backend matures.
@@ -114,7 +115,20 @@ r_error_code_t R_Init( const sys::sys_window_t &window, const host::window_confi
         return mesh_result;
     }
     */
-
+    
+    /*
+     * Camera initialization
+     */
+    
+    r_camera_desc_t camera_desc{};
+    camera_desc.camera_projection_mode = r_camera_projection_mode_t::PERSPECTIVE;
+    camera_desc.aspect_ratio    = static_cast<rcommon::f32>( window_config.viewport.width ) / 
+                                  static_cast<rcommon::f32>( window_config.viewport.height );
+    camera_desc.fov_y_radians   = R_DEFAULT_FOV_Y_RADIANS;
+    camera_desc.far_z           = R_DEFAULT_FAR_Z;
+    camera_desc.near_z          = R_DEFAULT_NEAR_Z;
+    R_CameraInit( g_render_runtime_state.active_camera, camera_desc );
+    
     g_render_runtime_state.initialized = true;
 
 	return r_error_code_t::OK;

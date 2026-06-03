@@ -56,12 +56,4 @@ void R_ShaderUnload( r_shader_t &shader );
 
 r_error_code_t R_ShaderSetMat4( const r_shader_t &shader, const char *uniform_name, const math::mat4_t &matrix );
 
-
-
-
-
-
-
-
-
 }       // namespace reap::rengine::render
