@@ -52,6 +52,8 @@ r_error_code_t R_RenderFrame();
 
 r_error_code_t R_EndFrame();
 
+r_error_code_t R_SubmitDrawItem( const r_draw_item_t &draw_item );
+
 bool R_IsInitialized();
 
 }

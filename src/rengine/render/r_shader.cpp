@@ -25,6 +25,12 @@
 namespace reap::rengine::render
 {
 
+namespace
+{
+char g_vertex_shader_source[R_MAX_SHADER_SOURCE_SIZE + 1u]{};
+char g_fragment_shader_source[R_MAX_SHADER_SOURCE_SIZE + 1u]{};
+}
+
 /*
 ================
 R_ShaderRegistryInit
@@ -103,8 +109,8 @@ r_error_code_t R_ShaderLoad( r_shader_registry_t &shader_registry, const char *n
     std::strncpy( shader->vertex_path, vertex_path, R_MAX_SHADER_PATH - 1u );
     std::strncpy( shader->fragment_path, fragment_path, R_MAX_SHADER_PATH - 1u );
 
-    char vertex_source[R_MAX_SHADER_SOURCE_SIZE + 1u]{};
-    char fragment_source[R_MAX_SHADER_SOURCE_SIZE + 1u]{};
+    char *vertex_source = g_vertex_shader_source;
+    char *fragment_source = g_fragment_shader_source;
 
     rcommon::u64 vertex_bytes_read{ 0u };
     rcommon::u64 fragment_bytes_read{ 0u };

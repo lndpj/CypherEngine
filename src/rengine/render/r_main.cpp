@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-20 21:01:21
    Last Modified by: ksiric
-   Last Modified: 2026-06-05 09:00:33
+   Last Modified: 2026-06-05 09:33:48
    ---------------------------------------------------------------------
    Description:
 
@@ -220,9 +220,7 @@ r_error_code_t R_RenderFrame() {
     test_draw_item.mesh = &g_render_runtime_state.test_mesh;
     test_draw_item.shader = g_render_runtime_state.basic_shader;
 
-    const r_error_code_t submit_result = R_DrawListSubmit(
-        g_render_runtime_state.main_draw_list,
-        test_draw_item );
+    const r_error_code_t submit_result = R_SubmitDrawItem( test_draw_item );
     
     if ( submit_result != r_error_code_t::OK ) {
         return submit_result;
@@ -257,6 +255,27 @@ r_error_code_t R_EndFrame() {
 	g_render_runtime_state.in_frame = false;
 
 	return r_error_code_t::OK;
+}
+
+/*
+================
+R_SubmitDrawItem
+
+Submits one draw item for the current frame. Game, editor and ECS layers use
+this as the public doorway into the renderer draw list.
+================
+*/
+r_error_code_t R_SubmitDrawItem( const r_draw_item_t &draw_item )
+{
+    if ( !R_IsInitialized() ) {
+        return r_error_code_t::ERR_NOT_INIT;
+    }
+    
+    if ( !g_render_runtime_state.in_frame ) {
+        return r_error_code_t::ERR_FRAME_NOT_ACTIVE;
+    }
+    
+    return R_DrawListSubmit( g_render_runtime_state.main_draw_list, draw_item );
 }
 
 /*
