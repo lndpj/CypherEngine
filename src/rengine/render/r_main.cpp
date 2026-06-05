@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-20 21:01:21
    Last Modified by: ksiric
-   Last Modified: 2026-06-05 08:55:24
+   Last Modified: 2026-06-05 09:00:33
    ---------------------------------------------------------------------
    Description:
 
@@ -89,10 +89,10 @@ r_error_code_t R_Init( const sys::sys_window_t &window, const host::window_confi
     }
 
     g_render_runtime_state.basic_shader = basic_shader;
-    
     /*
     Temporary pipeline test mesh. Kept here as reference while real 3D
     transform/camera rendering is built.
+    */
 
     const r_vertex_t vertices[] = {
         { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
@@ -117,8 +117,6 @@ r_error_code_t R_Init( const sys::sys_window_t &window, const host::window_confi
         g_render_runtime_state = {};
         return mesh_result;
     }
-    */
-    
     /*
      * Camera initialization
      */
@@ -178,6 +176,8 @@ r_error_code_t R_BeginFrame( const rcommon::com_f32 delta_time_seconds ) {
 		return r_error_code_t::ERR_BEGIN_DRAW;
 	}
 
+    R_DrawListClear( g_render_runtime_state.main_draw_list );
+
 	(void)delta_time_seconds;
 	g_render_runtime_state.in_frame = true;
 
@@ -211,17 +211,26 @@ r_error_code_t R_RenderFrame() {
     
     // @NOTE(Karlo); Doign some testing to see if the camera and drawing all works just fine..
     
-    // creating a model matrix
-    
     r_draw_item_t test_draw_item{};
-    
-    test_draw_item.position = math::vec3_t{ 0.0f, 0.0f, -2.0f };
-    test_draw_item.orientation = math::Math_QuatIdentity();
-    test_draw_item.scale = math::vec3_t{ 1.0f, 1.0f, 1.0f };
+
+    test_draw_item.model_matrix = math::Math_Mat4TranslationRotationScale(
+        math::vec3_t{ 0.0f, 0.0f, -2.0f },
+        math::Math_QuatIdentity(),
+        math::vec3_t{ 1.0f, 1.0f, 1.0f } );
     test_draw_item.mesh = &g_render_runtime_state.test_mesh;
     test_draw_item.shader = g_render_runtime_state.basic_shader;
+
+    const r_error_code_t submit_result = R_DrawListSubmit(
+        g_render_runtime_state.main_draw_list,
+        test_draw_item );
     
-    return R_DrawObject( test_draw_item, g_render_runtime_state.active_camera );
+    if ( submit_result != r_error_code_t::OK ) {
+        return submit_result;
+    }
+
+    return R_DrawListDraw(
+        g_render_runtime_state.main_draw_list,
+        g_render_runtime_state.active_camera );
 }
 
 /*

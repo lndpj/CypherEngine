@@ -2,6 +2,7 @@
 
 #include "rengine/host/host_types.h"
 #include "rengine/render/r_camera.h"
+#include "rengine/render/r_draw.h"
 #include "rengine/render/r_error.h"
 #include "rengine/render/r_gl.h"
 #include "rengine/render/r_mesh.h"
@@ -24,6 +25,8 @@ struct render_runtime_state_t {
     const sys::sys_window_t *window{ nullptr };
     
     r_camera_t active_camera{};
+    
+    r_draw_list_t main_draw_list{};
     
     rcommon::u32 viewport_width{ 0u };    
     rcommon::u32 viewport_height{ 0u };    
