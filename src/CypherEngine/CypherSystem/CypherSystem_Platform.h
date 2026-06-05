@@ -35,7 +35,7 @@ enum class compiler_t : common::com_u8 {
 System Startup Data
 ================
 */
-struct cypher_system_init_info_t {
+struct init_info_t {
     int argc{ 0 };
     const char *const *argv{ nullptr };
 
@@ -43,7 +43,7 @@ struct cypher_system_init_info_t {
     const char *organization_name{ nullptr };
 };
 
-struct cypher_system_paths_t {
+struct paths_t {
     char executable_path[SYS_MAX_PATH_LENGTH]{};
     char executable_dir[SYS_MAX_PATH_LENGTH]{};
     char working_dir[SYS_MAX_PATH_LENGTH]{};
@@ -52,7 +52,7 @@ struct cypher_system_paths_t {
     char user_path[SYS_MAX_PATH_LENGTH]{};
 };
 
-struct cypher_system_runtime_state_t {
+struct runtime_state_t {
     bool initialized{ false };
     
     char app_name[SYS_MAX_NAME_LENGTH]{};
@@ -60,19 +60,19 @@ struct cypher_system_runtime_state_t {
     
     int argc{ 0u };
     const char *const *argv{ nullptr };
-    cypher_system_paths_t sys_paths{};
+    paths_t sys_paths{};
     
 };
 
-extern cypher_system_runtime_state_t g_sys_runtime_state;
+extern runtime_state_t g_sys_runtime_state;
 
 /*
 ================
 System API
 ================
 */
-cypher_system_error_code_t CypherSystem_Init( const cypher_system_init_info_t &init_info );
-cypher_system_error_code_t CypherSystem_Shutdown();
+error_code_t CypherSystem_Init( const init_info_t &init_info );
+error_code_t CypherSystem_Shutdown();
 
 bool CypherSystem_IsInitialized();
 
@@ -82,8 +82,8 @@ compiler_t CypherSystem_CompilerType();
 const char *CypherSystem_PlatformName( platform_t type );
 const char *CypherSystem_CompilerName( compiler_t type );
 
-const cypher_system_paths_t &CypherSystem_Paths();
-cypher_system_error_code_t CypherSystem_GetPaths( cypher_system_paths_t &out_paths );
+const paths_t &CypherSystem_Paths();
+error_code_t CypherSystem_GetPaths( paths_t &out_paths );
 
 const char *CypherSystem_PathBasename( const char *path );
 

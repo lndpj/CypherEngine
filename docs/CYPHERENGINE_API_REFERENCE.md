@@ -97,9 +97,9 @@ Packed surfaced-error API used when subsystem-local typed errors need to cross s
 
 | Type | Description |
 |------|-------------|
-| `cypher_common_error_t` | Packed 32-bit surfaced error |
-| `cypher_common_domain_t` | Subsystem/domain identifier |
-| `cypher_common_error_code_t` | Canonical common error enum |
+| `error_t` | Packed 32-bit surfaced error |
+| `domain_t` | Subsystem/domain identifier |
+| `error_code_t` | Canonical common error enum |
 
 #### Important Functions
 
@@ -134,8 +134,8 @@ Formatted output helpers shared by subsystems.
 | `CypherCommon_Printf( const char *message, ... )` | General formatted output |
 | `CypherCommon_DPrintf( const char *message, ... )` | Debug-oriented formatted output |
 | `CypherCommon_VPrintf( const char *message, va_list args )` | `va_list` print variant |
-| `CypherCommon_Errorf( cypher_common_error_t error, const char *message, ... )` | Formatted surfaced error output |
-| `CypherCommon_VErrorf( cypher_common_error_t error, const char *message, va_list args )` | `va_list` error variant |
+| `CypherCommon_Errorf( error_t error, const char *message, ... )` | Formatted surfaced error output |
+| `CypherCommon_VErrorf( error_t error, const char *message, va_list args )` | `va_list` error variant |
 
 ---
 
@@ -151,13 +151,13 @@ Defines log severities, channels, records, and runtime configuration.
 
 | Type | Description |
 |------|-------------|
-| `cypher_log_level_t` | Trace-to-fatal severity enum |
-| `cypher_log_file_mode_t` | File open mode policy |
-| `cypher_log_flush_policy_t` | Flush behavior policy |
-| `cypher_log_source_path_mode_t` | Basename vs full source path mode |
-| `cypher_log_channel_t` | Subsystem channel enum |
-| `cypher_log_record_t` | Built log event payload |
-| `cypher_log_config_t` | Runtime logger configuration |
+| `level_t` | Trace-to-fatal severity enum |
+| `file_mode_t` | File open mode policy |
+| `flush_policy_t` | Flush behavior policy |
+| `source_path_mode_t` | Basename vs full source path mode |
+| `channel_t` | Subsystem channel enum |
+| `record_t` | Built log event payload |
+| `config_t` | Runtime logger configuration |
 
 #### Important Helpers
 
@@ -179,13 +179,13 @@ Public logger lifecycle, configuration, and emission API.
 
 | Function | Description |
 |----------|-------------|
-| `CypherLog_Init( const cypher_log_config_t &config = {} )` | Initialize logging subsystem |
+| `CypherLog_Init( const config_t &config = {} )` | Initialize logging subsystem |
 | `CypherLog_Shutdown()` | Shutdown logger |
 | `CypherLog_GetConfig()` | Get active config |
-| `CypherLog_SetConfig( const cypher_log_config_t &config )` | Replace runtime config |
+| `CypherLog_SetConfig( const config_t &config )` | Replace runtime config |
 | `CypherLog_LevelEnabled( level, channel )` | Check if event would be accepted |
 | `CypherLog_ChannelEnabled( channel_mask, channel )` | Check a channel bit in a mask |
-| `CypherLog_Emit( const cypher_log_record_t &record )` | Emit fully-built record |
+| `CypherLog_Emit( const record_t &record )` | Emit fully-built record |
 | `CypherLog_Emitf( ... )` | Build and emit formatted record |
 | `CypherLog_Emitfv( ... )` | `va_list` formatted emit |
 
@@ -244,13 +244,13 @@ Defines top-level runtime state and startup configuration types.
 
 | Type | Description |
 |------|-------------|
-| `cypher_host_stage_t` | High-level runtime lifecycle stage |
+| `stage_t` | High-level runtime lifecycle stage |
 | `build_config_t` | Debug/release/distribution build mode |
 | `viewport_t` | Width/height pair |
 | `window_config_t` | Window startup configuration |
 | `frame_t` | Per-frame timing state |
-| `cypher_host_config_t` | Top-level host startup config |
-| `cypher_host_state_t` | Mutable runtime host state |
+| `config_t` | Top-level host startup config |
+| `state_t` | Mutable runtime host state |
 
 ---
 
@@ -264,13 +264,13 @@ Top-level runtime lifecycle API used by the executable entry point.
 
 | Function | Description |
 |----------|-------------|
-| `CypherHost_Init( cypher_host_state_t &host_state, const cypher_host_config_t &host_config )` | Initialize host runtime |
-| `CypherHost_Shutdown( cypher_host_state_t &host_state )` | Shutdown host runtime |
-| `CypherHost_BeginFrame( cypher_host_state_t &host_state, f32 delta_time_seconds )` | Begin current frame |
-| `CypherHost_Update( cypher_host_state_t &host_state )` | Update host simulation |
-| `CypherHost_Render( cypher_host_state_t &host_state )` | Render current frame |
-| `CypherHost_EndFrame( cypher_host_state_t &host_state )` | Finalize current frame |
-| `CypherHost_IsRunning( cypher_host_state_t &host_state )` | Main-loop continuation query |
+| `CypherHost_Init( state_t &host_state, const config_t &host_config )` | Initialize host runtime |
+| `CypherHost_Shutdown( state_t &host_state )` | Shutdown host runtime |
+| `CypherHost_BeginFrame( state_t &host_state, f32 delta_time_seconds )` | Begin current frame |
+| `CypherHost_Update( state_t &host_state )` | Update host simulation |
+| `CypherHost_Render( state_t &host_state )` | Render current frame |
+| `CypherHost_EndFrame( state_t &host_state )` | Finalize current frame |
+| `CypherHost_IsRunning( state_t &host_state )` | Main-loop continuation query |
 
 ---
 
@@ -314,9 +314,9 @@ Fixed-registry command backend for textual command dispatch.
 
 | Type | Description |
 |------|-------------|
-| `cypher_command_fn_t` | Command callback signature |
+| `command_fn_t` | Command callback signature |
 | `cmd_t` | Registered command entry |
-| `cypher_command_registry_t` | Command registry state |
+| `registry_t` | Command registry state |
 
 #### Functions
 
@@ -324,7 +324,7 @@ Fixed-registry command backend for textual command dispatch.
 |----------|-------------|
 | `CypherCommand_Init()` | Initialize command system |
 | `CypherCommand_Shutdown()` | Shutdown command system |
-| `CypherCommand_Register( const char *cmd_name, cypher_command_fn_t callback_fn, const char *cmd_description )` | Register command |
+| `CypherCommand_Register( const char *cmd_name, command_fn_t callback_fn, const char *cmd_description )` | Register command |
 | `CypherCommand_Find( const char *cmd_name )` | Find command by name |
 | `CypherCommand_Parse( char *command_line, u32 &argc, char **argv )` | Tokenize command line |
 | `CypherCommand_Execute( const char *command_line )` | Parse and dispatch command |
@@ -350,9 +350,9 @@ Fixed-registry console variable system with cached typed views.
 
 | Type | Description |
 |------|-------------|
-| `cypher_cvar_flags_t` | Cvar policy/state flags |
+| `flags_t` | Cvar policy/state flags |
 | `cvar_t` | Cvar entry |
-| `cypher_cvar_registry_t` | Cvar registry state |
+| `registry_t` | Cvar registry state |
 
 #### Flags
 
@@ -370,7 +370,7 @@ Fixed-registry console variable system with cached typed views.
 | Function | Description |
 |----------|-------------|
 | `CypherCVar_Init()` | Initialize cvar system |
-| `CypherCVar_Register( const char *name, const char *default_value, cypher_cvar_flags_t flags )` | Register cvar |
+| `CypherCVar_Register( const char *name, const char *default_value, flags_t flags )` | Register cvar |
 | `CypherCVar_Set( const char *name, const char *value )` | Change cvar value |
 | `CypherCVar_Shutdown()` | Shutdown cvar system |
 | `CypherCVar_Find( const char *name )` | Find cvar by name |
@@ -433,7 +433,7 @@ Each major subsystem currently exposes a typed local error enum in its own heade
 Current design rule:
 
 - use typed local error enums inside a subsystem
-- convert to `common::cypher_common_error_t` when surfacing failures across subsystem boundaries
+- convert to `common::error_t` when surfacing failures across subsystem boundaries
 
 ---
 

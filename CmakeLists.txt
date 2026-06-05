@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(CypherEngine
     VERSION 0.1.0
-    DESCRIPTION "CypherEngine custom engine and gameplay sandbox"
+    DESCRIPTION "CypherEngine from-scratch C++20 3D engine inspired by idTech, GoldSrc, and early CryEngine"
     LANGUAGES C CXX
 )
 
@@ -38,7 +38,7 @@ if (EXISTS "${CYPHERENGINE_THIRDPARTY_DIR}/raylib/CMakeLists.txt")
 elseif (EXISTS "${CYPHERENGINE_THIRDPARTY_DIR}/raylib/src")
     message(STATUS "Found raylib tree but no CMakeLists.txt; skipping raylib add_subdirectory")
 else()
-    message(STATUS "No vendored raylib yet. Add thirdparty/raylib before enabling rendering.")
+    message(STATUS "No vendored raylib. CypherEngine currently uses SDL3/OpenGL directly.")
 endif()
 
 if (EXISTS "${CYPHERENGINE_THIRDPARTY_DIR}/flecs/include/flecs.h")

@@ -22,8 +22,8 @@ void CypherCommon_DPrintf( const char *message, ... );
 
 void CypherCommon_VPrintf( const char *message, va_list args );
 
-void CypherCommon_Errorf( const cypher_common_error_t error, const char *message, ... );
+void CypherCommon_Errorf( const error_t error, const char *message, ... );
 
-void CypherCommon_VErrorf( const cypher_common_error_t error, const char *message, va_list args );
+void CypherCommon_VErrorf( const error_t error, const char *message, va_list args );
 
 }

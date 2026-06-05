@@ -4,7 +4,7 @@
 
 namespace cypher::engine::common {
 
-using cypher_common_error_t = com_u32;
+using error_t = com_u32;
 
 /*
 ================
@@ -13,7 +13,7 @@ Common Error Encoding
 Errors are packed as high 16 bits domain, low 16 bits subsystem-local code.
 ================
 */
-enum class cypher_common_domain_t : u16 {
+enum class domain_t : u16 {
 	COM_DOMAIN_COMMON = 0,
 	COM_DOMAIN_RENDER,
 	COM_DOMAIN_LOG,
@@ -28,7 +28,7 @@ enum class cypher_common_domain_t : u16 {
 	COM_DOMAIN_CFG
 };
 
-enum class cypher_common_error_code_t : com_u8 {
+enum class error_code_t : com_u8 {
 	OK = 0,
     
 	ERR_FAILED,
@@ -49,83 +49,83 @@ enum class cypher_common_error_code_t : com_u8 {
 Common Error Helpers
 ================
 */
-constexpr bool CypherCommon_ErrorOk( const cypher_common_error_code_t code ) {
-	return code == cypher_common_error_code_t::OK;
+constexpr bool CypherCommon_ErrorOk( const error_code_t code ) {
+	return code == error_code_t::OK;
 }
 
-constexpr bool CypherCommon_ErrorFailed( const cypher_common_error_code_t code ) {
-	return code != cypher_common_error_code_t::OK;
+constexpr bool CypherCommon_ErrorFailed( const error_code_t code ) {
+	return code != error_code_t::OK;
 }
 
-constexpr inline const char *CypherCommon_ErrorName( const cypher_common_error_code_t code ) {
+constexpr inline const char *CypherCommon_ErrorName( const error_code_t code ) {
 	switch ( code ) {
-	case cypher_common_error_code_t::OK:
+	case error_code_t::OK:
 		return "OK";
-	case cypher_common_error_code_t::ERR_FAILED:
+	case error_code_t::ERR_FAILED:
 		return "COM_FAILED";
-	case cypher_common_error_code_t::ERR_INVALID_ARGUMENT:
+	case error_code_t::ERR_INVALID_ARGUMENT:
 		return "COM_INVALID_ARGUMENT";
-	case cypher_common_error_code_t::ERR_INVALID_STATE:
+	case error_code_t::ERR_INVALID_STATE:
 		return "COM_INVALID_STATE";
-	case cypher_common_error_code_t::ERR_INVALID_OPERATION:
+	case error_code_t::ERR_INVALID_OPERATION:
 		return "COM_INVALID_OPERATION";
-	case cypher_common_error_code_t::ERR_NOT_INIT:
+	case error_code_t::ERR_NOT_INIT:
 		return "COM_NOT_INITIALIZED";
-	case cypher_common_error_code_t::ERR_IS_INIT:
+	case error_code_t::ERR_IS_INIT:
 		return "COM_ALREADY_INITIALIZED";
-	case cypher_common_error_code_t::ERR_OUT_OF_MEMORY:
+	case error_code_t::ERR_OUT_OF_MEMORY:
 		return "COM_OUT_OF_MEMORY";
-	case cypher_common_error_code_t::ERR_NOT_FOUND:
+	case error_code_t::ERR_NOT_FOUND:
 		return "NOT_FOUND";
-	case cypher_common_error_code_t::ERR_UNSUPPORTED:
+	case error_code_t::ERR_UNSUPPORTED:
 		return "COM_UNSUPPORTED";
-	case cypher_common_error_code_t::ERR_IO_ERROR:
+	case error_code_t::ERR_IO_ERROR:
 		return "IO_ERROR";
-	case cypher_common_error_code_t::ERR_INTERNAL_ERROR:
+	case error_code_t::ERR_INTERNAL_ERROR:
 		return "COM_INTERNAL_ERROR";
 	default:
 		return "COM_UNKNOWN_ERROR";
 	}
 }
 
-constexpr inline const char *CypherCommon_DomainName( const cypher_common_domain_t domain ) {
+constexpr inline const char *CypherCommon_DomainName( const domain_t domain ) {
 	switch ( domain ) {
-	case cypher_common_domain_t::COM_DOMAIN_HOST:
+	case domain_t::COM_DOMAIN_HOST:
 		return "HOST";
-	case cypher_common_domain_t::COM_DOMAIN_GAME:
+	case domain_t::COM_DOMAIN_GAME:
 		return "GAME";
-	case cypher_common_domain_t::COM_DOMAIN_SYS:
+	case domain_t::COM_DOMAIN_SYS:
 		return "SYS";
-	case cypher_common_domain_t::COM_DOMAIN_AUDIO:
+	case domain_t::COM_DOMAIN_AUDIO:
 		return "AUDIO";
-	case cypher_common_domain_t::COM_DOMAIN_COMMON:
+	case domain_t::COM_DOMAIN_COMMON:
 		return "COMMON";
-	case cypher_common_domain_t::COM_DOMAIN_LOG:
+	case domain_t::COM_DOMAIN_LOG:
 		return "LOG";
-	case cypher_common_domain_t::COM_DOMAIN_RENDER:
+	case domain_t::COM_DOMAIN_RENDER:
 		return "RENDER";
-	case cypher_common_domain_t::COM_DOMAIN_FS:
+	case domain_t::COM_DOMAIN_FS:
 		return "FS";
-	case cypher_common_domain_t::COM_DOMAIN_NET:
+	case domain_t::COM_DOMAIN_NET:
 		return "NET";
-	case cypher_common_domain_t::COM_DOMAIN_CMD:
+	case domain_t::COM_DOMAIN_CMD:
 		return "CMD";
-	case cypher_common_domain_t::COM_DOMAIN_CVAR:
+	case domain_t::COM_DOMAIN_CVAR:
 		return "CVAR";
 	default:
 		return "UNKNOWN";
 	}
 }
 
-constexpr inline cypher_common_error_t CypherCommon_ErrorMake( const cypher_common_domain_t domain, const com_u16 local_error_code ) {
-	return ( static_cast<cypher_common_error_t>( domain ) << 16u ) | static_cast<cypher_common_error_t>( local_error_code );
+constexpr inline error_t CypherCommon_ErrorMake( const domain_t domain, const com_u16 local_error_code ) {
+	return ( static_cast<error_t>( domain ) << 16u ) | static_cast<error_t>( local_error_code );
 }
 
-constexpr inline cypher_common_domain_t CypherCommon_ErrorDomain( const cypher_common_error_t error ) {
-	return static_cast<cypher_common_domain_t>( ( error >> 16u ) & 0xFFFFu );
+constexpr inline domain_t CypherCommon_ErrorDomain( const error_t error ) {
+	return static_cast<domain_t>( ( error >> 16u ) & 0xFFFFu );
 }
 
-constexpr inline com_u16 CypherCommon_ErrorCode( const cypher_common_error_t error ) {
+constexpr inline com_u16 CypherCommon_ErrorCode( const error_t error ) {
 	return static_cast<com_u16>( error & 0xFFFFu );
 }
 

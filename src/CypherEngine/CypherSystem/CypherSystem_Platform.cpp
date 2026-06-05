@@ -23,7 +23,7 @@
 namespace cypher::engine::sys
 {
 
-cypher_system_runtime_state_t g_sys_runtime_state;
+runtime_state_t g_sys_runtime_state;
 
 /*
 ================
@@ -66,15 +66,15 @@ CypherSystem_Init
 Copies startup info and builds platform paths.
 ================
 */
-cypher_system_error_code_t CypherSystem_Init( const cypher_system_init_info_t &info_init ) {
+error_code_t CypherSystem_Init( const init_info_t &info_init ) {
     if ( g_sys_runtime_state.initialized ) {
-        return cypher_system_error_code_t::ERR_IS_INIT;
+        return error_code_t::ERR_IS_INIT;
     }
     if ( info_init.app_name == nullptr || info_init.app_name[0] == '\0' ) {
-        return cypher_system_error_code_t::ERR_INVALID_ARGUMENT;
+        return error_code_t::ERR_INVALID_ARGUMENT;
     }
     if ( info_init.organization_name == nullptr || info_init.organization_name[0] == '\0' ) {
-        return cypher_system_error_code_t::ERR_INVALID_ARGUMENT;
+        return error_code_t::ERR_INVALID_ARGUMENT;
     }
     g_sys_runtime_state = {};
     
@@ -93,16 +93,16 @@ cypher_system_error_code_t CypherSystem_Init( const cypher_system_init_info_t &i
     g_sys_runtime_state.argc = info_init.argc;
     g_sys_runtime_state.argv = info_init.argv;
     
-    cypher_system_error_code_t paths_result = CypherSystem_PlatformBuildPaths( info_init, g_sys_runtime_state.sys_paths );
+    error_code_t paths_result = CypherSystem_PlatformBuildPaths( info_init, g_sys_runtime_state.sys_paths );
     
-    if ( paths_result != cypher_system_error_code_t::OK ) {
+    if ( paths_result != error_code_t::OK ) {
         g_sys_runtime_state = {};
         return paths_result;
     }
     
     g_sys_runtime_state.initialized = true;
     
-    return cypher_system_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -110,16 +110,16 @@ cypher_system_error_code_t CypherSystem_Init( const cypher_system_init_info_t &i
 CypherSystem_Shutdown
 ================
 */
-cypher_system_error_code_t CypherSystem_Shutdown() {
+error_code_t CypherSystem_Shutdown() {
     if ( !g_sys_runtime_state.initialized ) {
-        return cypher_system_error_code_t::ERR_NOT_INIT;
+        return error_code_t::ERR_NOT_INIT;
     }
     
     g_sys_runtime_state = {};
     
     g_sys_runtime_state.initialized = false;
     
-    return cypher_system_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -211,7 +211,7 @@ bool CypherSystem_LocalTime( std::time_t time_value, std::tm &time_out ) {
 CypherSystem_Paths
 ================
 */
-const cypher_system_paths_t &CypherSystem_Paths() {
+const paths_t &CypherSystem_Paths() {
     return g_sys_runtime_state.sys_paths;
 }
 
@@ -220,14 +220,14 @@ const cypher_system_paths_t &CypherSystem_Paths() {
 CypherSystem_GetPaths
 ================
 */
-cypher_system_error_code_t CypherSystem_GetPaths( cypher_system_paths_t &out_paths ) {
+error_code_t CypherSystem_GetPaths( paths_t &out_paths ) {
     if ( !g_sys_runtime_state.initialized ) {
-        return cypher_system_error_code_t::ERR_NOT_INIT;
+        return error_code_t::ERR_NOT_INIT;
     }   
     
     out_paths = g_sys_runtime_state.sys_paths;
     
-    return cypher_system_error_code_t::OK;
+    return error_code_t::OK;
 }
  
 /*

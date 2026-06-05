@@ -50,14 +50,11 @@ using com_usize = std::size_t;
 
 using usize = com_usize;
 
-using cypher_common_frame_index_t = com_u64;
-using cypher_common_entity_id_t = com_u32;
+using frame_index_t = com_u64;
+using entity_id_t = com_u32;
 
-using frame_index_t = cypher_common_frame_index_t;
-using entity_id_t = cypher_common_entity_id_t;
-
-constexpr cypher_common_frame_index_t COM_INVALID_FRAME_INDEX = std::numeric_limits<cypher_common_frame_index_t>::max();
-constexpr cypher_common_entity_id_t COM_INVALID_ENTITY_ID = std::numeric_limits<cypher_common_entity_id_t>::max();
+constexpr frame_index_t COM_INVALID_FRAME_INDEX = std::numeric_limits<frame_index_t>::max();
+constexpr entity_id_t COM_INVALID_ENTITY_ID = std::numeric_limits<entity_id_t>::max();
 
 constexpr frame_index_t INVALID_FRAME_INDEX = COM_INVALID_FRAME_INDEX;
 constexpr entity_id_t INVALID_ENTITY_ID = COM_INVALID_ENTITY_ID;
@@ -102,19 +99,19 @@ Product Information
 Static identity data printed by the engine and exposed to commands/config.
 ================
 */
-struct cypher_common_version_t {
+struct version_t {
 	common::u32 major{ 0u };
 	common::u32 minor{ 1u };
 	common::u32 patch{ 0u };
 	common::u32 build{ 0u };
 };
 
-struct cypher_common_product_info_t {
+struct product_info_t {
 	const char *name{ nullptr };
 	const char *internal_name{ nullptr };
 	const char *description{ nullptr };
 
-	cypher_common_version_t version{};
+	version_t version{};
 
 	const char *organization_name{ "Cypher Software" };
 	const char *copyright_owner{ "Cypher Software" };
@@ -123,7 +120,7 @@ struct cypher_common_product_info_t {
 	const char *license_spdx{ "GPL-2.0-only" };
 };
 
-constexpr cypher_common_product_info_t COM_GAME_INFO{
+constexpr product_info_t COM_GAME_INFO{
 	.name = "REAP",
 	.internal_name = "reap",
 	.description = "A from scratch 3D arena survival wave first person shooter inspired by Quake, powered by custom internal CypherEngine",
@@ -134,7 +131,7 @@ constexpr cypher_common_product_info_t COM_GAME_INFO{
 	.license_spdx = "GPL-2.0-only"
 };
 
-constexpr cypher_common_product_info_t COM_ENGINE_INFO{
+constexpr product_info_t COM_ENGINE_INFO{
 	.name = "CypherEngine",
 	.internal_name = "CypherEngine",
 	.description = "A custom native 3D engine runtime used for powering REAP.",

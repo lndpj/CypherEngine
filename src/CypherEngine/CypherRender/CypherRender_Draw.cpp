@@ -20,40 +20,40 @@
 namespace cypher::engine::render
 {
 
-cypher_render_error_code_t CypherRender_DrawItem( const cypher_render_draw_item_t &item, const cypher_render_camera_t &camera )
+error_code_t CypherRender_DrawItem( const draw_item_t &item, const camera_t &camera )
 {
     if ( item.mesh == nullptr ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER; 
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER; 
     }
     
     if ( item.shader == nullptr ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    cypher_render_error_code_t result = CypherRender_ShaderBind( *item.shader );
-    if ( result != cypher_render_error_code_t::OK ) {
+    error_code_t result = CypherRender_ShaderBind( *item.shader );
+    if ( result != error_code_t::OK ) {
         return result;
     }
     
     result = CypherRender_ShaderSetMat4( *item.shader, "u_model", item.model_matrix );
-    if ( result != cypher_render_error_code_t::OK ) {
+    if ( result != error_code_t::OK ) {
         return result;
     }         
     
     result = CypherRender_ShaderSetMat4( *item.shader, "u_view", camera.view );
-    if ( result != cypher_render_error_code_t::OK ) {
+    if ( result != error_code_t::OK ) {
         return result;
     }         
     
     result = CypherRender_ShaderSetMat4( *item.shader, "u_projection", camera.projection );
-    if ( result != cypher_render_error_code_t::OK ) {
+    if ( result != error_code_t::OK ) {
         return result;
     }         
     
     return CypherRender_MeshDraw( *item.mesh );   
 }
 
-void CypherRender_DrawListInit( cypher_render_draw_list_t &draw_list, cypher_render_draw_item_t *items, common::u32 item_capacity )
+void CypherRender_DrawListInit( draw_list_t &draw_list, draw_item_t *items, common::u32 item_capacity )
 {
     draw_list.items = items;
     draw_list.item_count = 0u;
@@ -62,52 +62,52 @@ void CypherRender_DrawListInit( cypher_render_draw_list_t &draw_list, cypher_ren
     return ;
 }
 
-void CypherRender_DrawListClear( cypher_render_draw_list_t &draw_list )
+void CypherRender_DrawListClear( draw_list_t &draw_list )
 {
     draw_list.item_count = 0u;
 
     return ;
 }
 
-cypher_render_error_code_t CypherRender_DrawListSubmit( cypher_render_draw_list_t &draw_list, const cypher_render_draw_item_t &item )
+error_code_t CypherRender_DrawListSubmit( draw_list_t &draw_list, const draw_item_t &item )
 {
     if ( draw_list.items == nullptr || draw_list.item_capacity == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( item.mesh == nullptr || item.shader == nullptr ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( draw_list.item_count >= draw_list.item_capacity ) {
-        return cypher_render_error_code_t::ERR_DRAW_LIST_FULL;
+        return error_code_t::ERR_DRAW_LIST_FULL;
     }
 
     draw_list.items[draw_list.item_count] = item;
     ++draw_list.item_count;
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
-cypher_render_error_code_t CypherRender_DrawListDraw( const cypher_render_draw_list_t &draw_list, const cypher_render_camera_t &camera )
+error_code_t CypherRender_DrawListDraw( const draw_list_t &draw_list, const camera_t &camera )
 {
     if ( draw_list.item_count == 0u ) {
-        return cypher_render_error_code_t::OK;
+        return error_code_t::OK;
     }
 
     if ( draw_list.items == nullptr ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     for ( common::u32 i = 0u; i < draw_list.item_count; ++i ) {
-        const cypher_render_error_code_t result = CypherRender_DrawItem( draw_list.items[i], camera );
+        const error_code_t result = CypherRender_DrawItem( draw_list.items[i], camera );
 
-        if ( result != cypher_render_error_code_t::OK ) {
+        if ( result != error_code_t::OK ) {
             return result;
         }
     }
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
     
 }       // namespace cypher::engine::render

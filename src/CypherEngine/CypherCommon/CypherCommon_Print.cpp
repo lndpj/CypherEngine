@@ -73,7 +73,7 @@ void CypherCommon_DPrintf( const char *message, ... ) {
 CypherCommon_Errorf
 ================
 */
-void CypherCommon_Errorf( const cypher_common_error_t error, const char *message, ... ) {
+void CypherCommon_Errorf( const error_t error, const char *message, ... ) {
     va_list args;
     va_start( args, message );
     CypherCommon_VErrorf( error, message, args );
@@ -87,12 +87,12 @@ CypherCommon_VErrorf
 Formats a domain-coded engine error and writes it to stderr.
 ================
 */
-void CypherCommon_VErrorf( const cypher_common_error_t error, const char *message, va_list args ) {
+void CypherCommon_VErrorf( const error_t error, const char *message, va_list args ) {
     char msg_buf[COM_MSG_MAX]{};
     char msg_final[COM_MSG_MAX + 256]{};
     const char *safe_format = message ? message : "<null error message>";
     std::vsnprintf( msg_buf, sizeof( msg_buf ), safe_format, args );
-    const cypher_common_domain_t domain = CypherCommon_ErrorDomain( error );
+    const domain_t domain = CypherCommon_ErrorDomain( error );
 
     std::snprintf(msg_final,
                   sizeof( msg_final ),

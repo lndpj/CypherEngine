@@ -28,18 +28,18 @@ CypherRender_MeshCreate
 Validates CPU mesh data, calculates simple bounds, then uploads to OpenGL.
 ================
 */
-cypher_render_error_code_t CypherRender_MeshCreate( const cypher_render_vertex_t *vertices,
+error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
                              const common::u32 vertex_count,
                              const common::u32 *indices,
                              const common::u32 index_count,
-                             cypher_render_mesh_t &mesh_out )
+                             mesh_t &mesh_out )
 {
     if ( vertices == nullptr || vertex_count == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( indices == nullptr || index_count == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     mesh_out = {};
@@ -78,14 +78,14 @@ cypher_render_error_code_t CypherRender_MeshCreate( const cypher_render_vertex_t
         index_count,
         mesh_out );
 
-    if ( result != cypher_render_error_code_t::OK ) {
+    if ( result != error_code_t::OK ) {
         mesh_out = {};
     }
 
     return result;
 }
 
-void CypherRender_MeshDestroy( cypher_render_mesh_t &mesh )
+void CypherRender_MeshDestroy( mesh_t &mesh )
 {
     if ( !mesh.loaded ) {
         return ;
@@ -97,10 +97,10 @@ void CypherRender_MeshDestroy( cypher_render_mesh_t &mesh )
     return ;
 }
 
-cypher_render_error_code_t CypherRender_MeshDraw( const cypher_render_mesh_t &mesh )
+error_code_t CypherRender_MeshDraw( const mesh_t &mesh )
 {
     if ( !mesh.loaded ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     return CypherRenderGL_MeshDraw( mesh );

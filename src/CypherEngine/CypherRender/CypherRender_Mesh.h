@@ -13,12 +13,12 @@ Renderer Mesh Types
 CPU-facing mesh description plus backend handles owned by the renderer.
 ================
 */
-struct cypher_render_vertex_t {
+struct vertex_t {
     math::vec3_t position{};
     math::vec3_t color{};
 };
 
-struct cypher_render_mesh_t {
+struct mesh_t {
     common::u32 vertex_count{ 0u };
     common::u32 index_count{ 0u };
 
@@ -38,14 +38,14 @@ CypherRender_MeshCreate
 Uploads vertex/index data into the active renderer backend.
 ================
 */
-cypher_render_error_code_t CypherRender_MeshCreate( const cypher_render_vertex_t *vertices,
+error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
                              const common::u32 vertex_count,
                              const common::u32 *indices,
                              const common::u32 index_count,
-                             cypher_render_mesh_t &mesh_out );
+                             mesh_t &mesh_out );
 
-void CypherRender_MeshDestroy( cypher_render_mesh_t &mesh );
+void CypherRender_MeshDestroy( mesh_t &mesh );
 
-cypher_render_error_code_t CypherRender_MeshDraw( const cypher_render_mesh_t &mesh );
+error_code_t CypherRender_MeshDraw( const mesh_t &mesh );
 
 }       // namespace cypher::engine::render

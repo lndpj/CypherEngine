@@ -31,14 +31,14 @@ Log Runtime State
 Owns the active configuration and optional file sink.
 ================
 */
-struct cypher_log_runtime_state_t {
-    cypher_log_config_t config{};
+struct runtime_state_t {
+    config_t config{};
     bool initialized{ false };
     std::FILE *file_handle{ nullptr };
     bool file_error_reported{ false };
 };
 
-cypher_log_runtime_state_t g_log_runtime_state_t;
+runtime_state_t g_log_runtime_state_t;
 
 }
 
@@ -51,7 +51,7 @@ CypherLog_Init
 Installs the active logging configuration and opens the file sink if requested.
 ================
 */
-cypher_log_error_code_t CypherLog_Init( const cypher_log_config_t &config ){
+error_code_t CypherLog_Init( const config_t &config ){
     if ( g_log_runtime_state_t.file_handle != nullptr ) {
         std::fclose( g_log_runtime_state_t.file_handle );
         g_log_runtime_state_t.file_handle = nullptr;
@@ -63,18 +63,18 @@ cypher_log_error_code_t CypherLog_Init( const cypher_log_config_t &config ){
     g_log_runtime_state_t.file_error_reported = false;
 
     if ( g_log_runtime_state_t.config.file_enabled ) {
-        const char *open_mode = ( g_log_runtime_state_t.config.file_mode == cypher_log_file_mode_t::APPEND ? "a" : "w" );
+        const char *open_mode = ( g_log_runtime_state_t.config.file_mode == file_mode_t::APPEND ? "a" : "w" );
         g_log_runtime_state_t.file_handle = std::fopen( g_log_runtime_state_t.config.file_path, open_mode );
 
         if ( g_log_runtime_state_t.file_handle == nullptr ) {
             g_log_runtime_state_t.initialized = false;
-            return cypher_log_error_code_t::ERR_FILE_OPEN_FAILED;
+            return error_code_t::ERR_FILE_OPEN_FAILED;
         }
     }
 
     g_log_runtime_state_t.initialized = true;
 
-    return cypher_log_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -96,7 +96,7 @@ void CypherLog_Shutdown( ) {
 CypherLog_GetConfig
 ================
 */
-const cypher_log_config_t &CypherLog_GetConfig( ) {
+const config_t &CypherLog_GetConfig( ) {
     return g_log_runtime_state_t.config;
 }
 
@@ -107,9 +107,9 @@ CypherLog_SetConfig
 Replaces the active logging configuration and rotates file output if needed.
 ================
 */
-cypher_log_error_code_t CypherLog_SetConfig( const cypher_log_config_t &config ) {
+error_code_t CypherLog_SetConfig( const config_t &config ) {
     if ( !g_log_runtime_state_t.initialized ) {
-        return cypher_log_error_code_t::ERR_NOT_INIT;
+        return error_code_t::ERR_NOT_INIT;
     }
 
     std::FILE *new_file_handle = g_log_runtime_state_t.file_handle;
@@ -121,12 +121,12 @@ cypher_log_error_code_t CypherLog_SetConfig( const cypher_log_config_t &config )
         new_file_handle = nullptr;
 
         if ( config.file_enabled ) {
-            const char *open_mode = ( config.file_mode == cypher_log_file_mode_t::APPEND ) ? "a" : "w";
+            const char *open_mode = ( config.file_mode == file_mode_t::APPEND ) ? "a" : "w";
 
             new_file_handle = std::fopen( config.file_path, open_mode );
 
             if ( new_file_handle == nullptr ) {
-                return cypher_log_error_code_t::ERR_FILE_OPEN_FAILED;
+                return error_code_t::ERR_FILE_OPEN_FAILED;
             }
         }
     }
@@ -140,7 +140,7 @@ cypher_log_error_code_t CypherLog_SetConfig( const cypher_log_config_t &config )
     g_log_runtime_state_t.file_handle = new_file_handle;
     g_log_runtime_state_t.file_error_reported = false;
 
-    return cypher_log_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -150,12 +150,12 @@ CypherLog_LevelEnabled
 Checks severity and channel filters before building a log record.
 ================
 */
-bool CypherLog_LevelEnabled( const cypher_log_level_t level, const cypher_log_channel_t channel ) {
+bool CypherLog_LevelEnabled( const level_t level, const channel_t channel ) {
     if ( !g_log_runtime_state_t.initialized ) {
         return false;
     }
 
-    if ( channel == cypher_log_channel_t::NONE || channel == cypher_log_channel_t::COUNT ) {
+    if ( channel == channel_t::NONE || channel == channel_t::COUNT ) {
         return false;
     }
 
@@ -176,8 +176,8 @@ CypherLog_ChannelEnabled
 Checks a channel bit against the active channel mask.
 ================
 */
-bool CypherLog_ChannelEnabled( const common::com_u32 channel_mask, const cypher_log_channel_t channel ) {
-    if ( channel == cypher_log_channel_t::NONE || channel == cypher_log_channel_t::COUNT ) {
+bool CypherLog_ChannelEnabled( const common::com_u32 channel_mask, const channel_t channel ) {
+    if ( channel == channel_t::NONE || channel == channel_t::COUNT ) {
         return false;
     }
     
@@ -195,14 +195,14 @@ bool CypherLog_ChannelEnabled( const common::com_u32 channel_mask, const cypher_
 CypherLog_ShouldFlush
 ================
 */
-bool CypherLog_ShouldFlush( const cypher_log_flush_policy_t flush_policy, const cypher_log_level_t level ) {
+bool CypherLog_ShouldFlush( const flush_policy_t flush_policy, const level_t level ) {
 
     switch ( flush_policy ) {
-        case cypher_log_flush_policy_t::NEVER:
+        case flush_policy_t::NEVER:
             return false;
-        case cypher_log_flush_policy_t::ERRORS_AND_ABOVE:
-            return static_cast<common::u32>( level ) >= static_cast<common::u32>( cypher_log_level_t::ERROR );
-        case cypher_log_flush_policy_t::EVERY_MESSAGE:
+        case flush_policy_t::ERRORS_AND_ABOVE:
+            return static_cast<common::u32>( level ) >= static_cast<common::u32>( level_t::ERROR );
+        case flush_policy_t::EVERY_MESSAGE:
             return true;
         default:
             return false;
@@ -216,7 +216,7 @@ CypherLog_Emit
 Writes a fully built log record to console and/or file sinks.
 ================
 */
-void CypherLog_Emit( const cypher_log_record_t &record ) {
+void CypherLog_Emit( const record_t &record ) {
     if ( record.message[0] == '\0' ) {
         return;
     }
@@ -234,7 +234,7 @@ void CypherLog_Emit( const cypher_log_record_t &record ) {
 
     const char *source_file = record.file ? record.file : "<unknown_file>";
 
-    if ( cfg.source_path_mode == cypher_log_source_path_mode_t::BASENAME ) {
+    if ( cfg.source_path_mode == source_path_mode_t::BASENAME ) {
         source_file = sys::CypherSystem_PathBasename( source_file );
     }
 
@@ -304,7 +304,7 @@ CypherLog_Emitf
 Formats and emits a log event from variadic arguments.
 ================
 */
-void CypherLog_Emitf( const cypher_log_level_t level, const cypher_log_channel_t channel,
+void CypherLog_Emitf( const level_t level, const channel_t channel,
                 const char *file, const char *function, const common::com_i32 line,
                 const char *format, ... ) {
     if ( !CypherLog_LevelEnabled( level, channel ) ) {
@@ -323,7 +323,7 @@ CypherLog_Emitfv
 Builds a log record from an existing va_list.
 ================
 */
-void CypherLog_Emitfv( const cypher_log_level_t level, const cypher_log_channel_t channel,
+void CypherLog_Emitfv( const level_t level, const channel_t channel,
                  const char *file, const char *function, const common::com_i32 line,
                  const char *format, va_list args ) {
 
@@ -331,7 +331,7 @@ void CypherLog_Emitfv( const cypher_log_level_t level, const cypher_log_channel_
         return ;
     }
 
-    cypher_log_record_t record{};
+    record_t record{};
     record.level = level;
     record.channel = channel;
     record.file = file ? file : "<unknown_file>";

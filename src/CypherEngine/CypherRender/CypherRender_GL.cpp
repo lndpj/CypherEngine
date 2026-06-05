@@ -32,12 +32,12 @@ CypherRenderGL_Init
 Creates the SDL OpenGL context and loads GL entry points through GLAD.
 ================
 */
-cypher_render_error_code_t CypherRenderGL_Init( const sys::cypher_system_window_t &window, bool vsync, cypher_render_gl_state_t &gl_state )
+error_code_t CypherRenderGL_Init( const sys::window_t &window, bool vsync, gl_state_t &gl_state )
 {
     SDL_Window *sdl_window{ nullptr};
 
     if ( window.native_window == nullptr || !window.valid ) {
-        return cypher_render_error_code_t::ERR_INVALID_WINDOW_CFG;
+        return error_code_t::ERR_INVALID_WINDOW_CFG;
     }
 
     sdl_window = static_cast<SDL_Window *>( window.native_window );
@@ -53,9 +53,9 @@ cypher_render_error_code_t CypherRenderGL_Init( const sys::cypher_system_window_
             !SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 )  ||
             !SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 ) )
         {
-            CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "SDL_GL_SetAttribute failed: %s", SDL_GetError() );
+            CYPHER_LOG_ERROR( log::channel_t::RENDER, "SDL_GL_SetAttribute failed: %s", SDL_GetError() );
 
-            return cypher_render_error_code_t::ERR_OPENGL_INIT;
+            return error_code_t::ERR_OPENGL_INIT;
         }
     // Windows and Linux can request the newer OpenGL profile.
     #elif CYPHER_PLATFORM_WINDOWS || CYPHER_PLATFORM_LINUX
@@ -68,9 +68,9 @@ cypher_render_error_code_t CypherRenderGL_Init( const sys::cypher_system_window_
             !SDL_GL_SetAttribute( SDL_GL_DEPTH_SIZE, 24 )  ||
             !SDL_GL_SetAttribute( SDL_GL_STENCIL_SIZE, 8 ) )
         {
-            CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "SDL_GL_SetAttribute failed: %s", SDL_GetError() );
+            CYPHER_LOG_ERROR( log::channel_t::RENDER, "SDL_GL_SetAttribute failed: %s", SDL_GetError() );
 
-            return cypher_render_error_code_t::ERR_OPENGL_INIT;
+            return error_code_t::ERR_OPENGL_INIT;
         }
     #else
         #error "Unsupported platform for OpenGL context creation."
@@ -80,18 +80,18 @@ cypher_render_error_code_t CypherRenderGL_Init( const sys::cypher_system_window_
     gl_context = SDL_GL_CreateContext( sdl_window );
 
     if ( gl_context == nullptr ) {
-        CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "SDL_GL_CreateContext failed: %s", SDL_GetError() );
-        return cypher_render_error_code_t::ERR_OPENGL_INIT;
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "SDL_GL_CreateContext failed: %s", SDL_GetError() );
+        return error_code_t::ERR_OPENGL_INIT;
     }
 
     if ( !SDL_GL_SetSwapInterval( vsync ? 1 : 0 ) ) {
-        CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "SDL_GL_SetSwapInterval failed: %s", SDL_GetError() );
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "SDL_GL_SetSwapInterval failed: %s", SDL_GetError() );
     }
 
     if ( !SDL_GL_MakeCurrent( sdl_window, gl_context ) ) {
         SDL_GL_DestroyContext( gl_context );
-        CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "SDL_GL_MakeCurrent failed: %s", SDL_GetError() );
-        return cypher_render_error_code_t::ERR_OPENGL_INIT;
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "SDL_GL_MakeCurrent failed: %s", SDL_GetError() );
+        return error_code_t::ERR_OPENGL_INIT;
     }
 
     // GLAD must load function pointers after the context is current.
@@ -99,19 +99,19 @@ cypher_render_error_code_t CypherRenderGL_Init( const sys::cypher_system_window_
 
     if ( gl_version == 0 ) {
         SDL_GL_DestroyContext( gl_context );
-        CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "Error loading GLAD library, cannot locate OpenGL functions." );
-        return cypher_render_error_code_t::ERR_OPENGL_INIT;
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "Error loading GLAD library, cannot locate OpenGL functions." );
+        return error_code_t::ERR_OPENGL_INIT;
     }
 
     if ( !GLAD_GL_VERSION_4_1 ) {
         SDL_GL_DestroyContext( gl_context );
-        CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "OpenGL 4.1 core profile is required." );
-        return cypher_render_error_code_t::ERR_OPENGL_INIT;
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "OpenGL 4.1 core profile is required." );
+        return error_code_t::ERR_OPENGL_INIT;
     }
 
     gl_state.context = gl_context;
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -119,7 +119,7 @@ cypher_render_error_code_t CypherRenderGL_Init( const sys::cypher_system_window_
 CypherRenderGL_Shutdown
 ================
 */
-void CypherRenderGL_Shutdown( cypher_render_gl_state_t &gl_state )
+void CypherRenderGL_Shutdown( gl_state_t &gl_state )
 {
     if ( gl_state.context == nullptr ) {
         return ;
@@ -128,7 +128,7 @@ void CypherRenderGL_Shutdown( cypher_render_gl_state_t &gl_state )
     SDL_GL_DestroyContext( static_cast<SDL_GLContext>( gl_state.context ) );
     gl_state.context = nullptr;
 
-    CYPHER_LOG_INFO( log::cypher_log_channel_t::RENDER, "OpenGL Context shutdown completed." );
+    CYPHER_LOG_INFO( log::channel_t::RENDER, "OpenGL Context shutdown completed." );
 
     return ;
 }
@@ -140,14 +140,14 @@ CypherRenderGL_BeginFrame
 Sets per-frame GL state and clears the back buffer.
 ================
 */
-cypher_render_error_code_t CypherRenderGL_BeginFrame( const sys::cypher_system_window_t &window )
+error_code_t CypherRenderGL_BeginFrame( const sys::window_t &window )
 {
     if ( window.native_window == nullptr || !window.valid ) {
-        return cypher_render_error_code_t::ERR_INVALID_WINDOW_CFG;
+        return error_code_t::ERR_INVALID_WINDOW_CFG;
     }
 
     if ( window.width == 0u || window.height == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_VIEWPORT;
+        return error_code_t::ERR_INVALID_VIEWPORT;
     }
 
     glViewport( 0, 0, static_cast<GLsizei>( window.width ), static_cast<GLsizei>( window.height ) );
@@ -158,7 +158,7 @@ cypher_render_error_code_t CypherRenderGL_BeginFrame( const sys::cypher_system_w
     glClearColor( 0.04f, 0.045f, 0.05f, 1.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -166,18 +166,18 @@ cypher_render_error_code_t CypherRenderGL_BeginFrame( const sys::cypher_system_w
 CypherRenderGL_EndFrame
 ================
 */
-cypher_render_error_code_t CypherRenderGL_EndFrame( const sys::cypher_system_window_t &window )
+error_code_t CypherRenderGL_EndFrame( const sys::window_t &window )
 {
     SDL_Window *sdl_window{ nullptr };
     if ( !window.valid || window.native_window == nullptr ) {
-        return cypher_render_error_code_t::ERR_INVALID_WINDOW_CFG;
+        return error_code_t::ERR_INVALID_WINDOW_CFG;
     }
 
     sdl_window = static_cast<SDL_Window *>( window.native_window );
 
     SDL_GL_SwapWindow( sdl_window );
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -204,7 +204,7 @@ GLuint CypherRenderGL_CompileShader( const GLenum shader_type, const char *shade
         char info_log[2024]{};
         glGetShaderInfoLog( shader_id, sizeof( info_log ), nullptr, info_log );
 
-        CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "CypherRenderGL_CompileShader: OpenGL shader compile failed: %s\n", info_log );
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "CypherRenderGL_CompileShader: OpenGL shader compile failed: %s\n", info_log );
         glDeleteShader( shader_id );
         return 0;
     }
@@ -219,27 +219,27 @@ CypherRenderGL_CreateShaderProgram
 Compiles vertex/fragment shader stages and links them into one GL program.
 ================
 */
-cypher_render_error_code_t CypherRenderGL_CreateShaderProgram( const char *vertex_source, const char *fragment_source, common::u32 &out_shader_program_id )
+error_code_t CypherRenderGL_CreateShaderProgram( const char *vertex_source, const char *fragment_source, common::u32 &out_shader_program_id )
 {
     out_shader_program_id = 0;
 
     if ( vertex_source == nullptr || vertex_source[0] == '\0' ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( fragment_source == nullptr || fragment_source[0] == '\0') {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     GLuint vertex_shader_id = CypherRenderGL_CompileShader( GL_VERTEX_SHADER, vertex_source );
     if ( vertex_shader_id == 0 ) {
-        return cypher_render_error_code_t::ERR_SHADER_COMPILE;
+        return error_code_t::ERR_SHADER_COMPILE;
     }
 
     GLuint fragment_shader_id = CypherRenderGL_CompileShader( GL_FRAGMENT_SHADER, fragment_source );
     if ( fragment_shader_id == 0 ) {
         glDeleteShader( vertex_shader_id );
-        return cypher_render_error_code_t::ERR_SHADER_COMPILE;
+        return error_code_t::ERR_SHADER_COMPILE;
     }
 
     GLuint shader_program_id = glCreateProgram();
@@ -256,14 +256,14 @@ cypher_render_error_code_t CypherRenderGL_CreateShaderProgram( const char *verte
     if ( link_status != GL_TRUE ) {
         char info_log[2024]{};
         glGetProgramInfoLog( shader_program_id, sizeof( info_log ), nullptr, info_log );
-        CYPHER_LOG_ERROR( log::cypher_log_channel_t::RENDER, "OpenGL shader program link failed: %s", info_log );
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "OpenGL shader program link failed: %s", info_log );
         glDeleteProgram( shader_program_id );
-        return cypher_render_error_code_t::ERR_SHADER_LINK;
+        return error_code_t::ERR_SHADER_LINK;
     }
 
     out_shader_program_id = static_cast<common::u32>( shader_program_id );
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -271,15 +271,15 @@ cypher_render_error_code_t CypherRenderGL_CreateShaderProgram( const char *verte
 CypherRenderGL_BindShaderProgram
 ================
 */
-cypher_render_error_code_t CypherRenderGL_BindShaderProgram( const common::u32 shader_program_id )
+error_code_t CypherRenderGL_BindShaderProgram( const common::u32 shader_program_id )
 {
     if ( shader_program_id == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     glUseProgram( shader_program_id );
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -305,18 +305,18 @@ CypherRenderGL_MeshCreate
 Uploads mesh vertex/index data and records VAO/VBO/EBO handles.
 ================
 */
-cypher_render_error_code_t CypherRenderGL_MeshCreate( const cypher_render_vertex_t *vertices,
+error_code_t CypherRenderGL_MeshCreate( const vertex_t *vertices,
                                const common::u32 vertex_count,
                                const common::u32 *indices,
                                const common::u32 index_count,
-                               cypher_render_mesh_t &mesh_out )
+                               mesh_t &mesh_out )
 {
     if ( vertices == nullptr || vertex_count == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( indices == nullptr || index_count == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     GLuint vertex_array_id{ 0u };
@@ -338,14 +338,14 @@ cypher_render_error_code_t CypherRenderGL_MeshCreate( const cypher_render_vertex
             glDeleteVertexArrays( 1, &vertex_array_id );
         }
 
-        return cypher_render_error_code_t::ERR_OPENGL_INIT;
+        return error_code_t::ERR_OPENGL_INIT;
     }
 
     glBindVertexArray( vertex_array_id );
 
     glBindBuffer( GL_ARRAY_BUFFER, vertex_buffer_id );
     glBufferData( GL_ARRAY_BUFFER,
-                  static_cast<GLsizeiptr>( vertex_count * sizeof( cypher_render_vertex_t ) ),
+                  static_cast<GLsizeiptr>( vertex_count * sizeof( vertex_t ) ),
                   vertices,
                   GL_STATIC_DRAW );
 
@@ -359,16 +359,16 @@ cypher_render_error_code_t CypherRenderGL_MeshCreate( const cypher_render_vertex
                            3,
                            GL_FLOAT,
                            GL_FALSE,
-                           sizeof( cypher_render_vertex_t ),
-                           reinterpret_cast<const void *>( offsetof( cypher_render_vertex_t, position ) ) );
+                           sizeof( vertex_t ),
+                           reinterpret_cast<const void *>( offsetof( vertex_t, position ) ) );
     glEnableVertexAttribArray( 0 );
 
     glVertexAttribPointer( 1,
                            3,
                            GL_FLOAT,
                            GL_FALSE,
-                           sizeof( cypher_render_vertex_t ),
-                           reinterpret_cast<const void *>( offsetof( cypher_render_vertex_t, color ) ) );
+                           sizeof( vertex_t ),
+                           reinterpret_cast<const void *>( offsetof( vertex_t, color ) ) );
     glEnableVertexAttribArray( 1 );
 
     glBindVertexArray( 0 );
@@ -380,7 +380,7 @@ cypher_render_error_code_t CypherRenderGL_MeshCreate( const cypher_render_vertex
     mesh_out.gl_ebo = static_cast<common::u32>( element_buffer_id );
     mesh_out.loaded = true;
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -388,7 +388,7 @@ cypher_render_error_code_t CypherRenderGL_MeshCreate( const cypher_render_vertex
 CypherRenderGL_MeshDestroy
 ================
 */
-void CypherRenderGL_MeshDestroy( cypher_render_mesh_t &mesh )
+void CypherRenderGL_MeshDestroy( mesh_t &mesh )
 {
     if ( mesh.gl_ebo != 0u ) {
         GLuint element_buffer_id = static_cast<GLuint>( mesh.gl_ebo );
@@ -418,40 +418,40 @@ void CypherRenderGL_MeshDestroy( cypher_render_mesh_t &mesh )
 CypherRenderGL_MeshDraw
 ================
 */
-cypher_render_error_code_t CypherRenderGL_MeshDraw( const cypher_render_mesh_t &mesh )
+error_code_t CypherRenderGL_MeshDraw( const mesh_t &mesh )
 {
     if ( !mesh.loaded || mesh.gl_vao == 0u || mesh.index_count == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     glBindVertexArray( static_cast<GLuint>( mesh.gl_vao ) );
     glDrawElements( GL_TRIANGLES, static_cast<GLsizei>( mesh.index_count ), GL_UNSIGNED_INT, nullptr );
     glBindVertexArray( 0 );
 
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
-cypher_render_error_code_t CypherRenderGL_SetUniformMat4( common::u32 shader_program_id, const char *uniform_name, const math::mat4_t &matrix )
+error_code_t CypherRenderGL_SetUniformMat4( common::u32 shader_program_id, const char *uniform_name, const math::mat4_t &matrix )
 {
     if ( shader_program_id == 0u ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
     
     if ( uniform_name == nullptr || uniform_name[0] == '\0' ) {
-        return cypher_render_error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
     
     const GLint uniform_location = glad_glGetUniformLocation( static_cast<GLuint>( shader_program_id ), uniform_name );
     
     if ( uniform_location < 0 ) {
-        return cypher_render_error_code_t::ERR_SHADER_UNIFORM;
+        return error_code_t::ERR_SHADER_UNIFORM;
     } 
     
     glUseProgram( static_cast<GLuint>( shader_program_id ) );
     
     glad_glUniformMatrix4fv( uniform_location, 1, GL_FALSE, matrix.m );
     
-    return cypher_render_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 }       // namespace cypher::engine::render

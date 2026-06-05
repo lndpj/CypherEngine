@@ -22,19 +22,19 @@ struct render_runtime_state_t {
     bool initialized{ false };
     bool in_frame{ false };
     
-    const sys::cypher_system_window_t *window{ nullptr };
+    const sys::window_t *window{ nullptr };
     
-    cypher_render_camera_t active_camera{};
+    camera_t active_camera{};
     
-    cypher_render_draw_list_t main_draw_list{};
+    draw_list_t main_draw_list{};
     
     common::u32 viewport_width{ 0u };    
     common::u32 viewport_height{ 0u };    
     
-    cypher_render_gl_state_t gl_state{};
-    cypher_render_shader_registry_t shader_registry{};
-    cypher_render_shader_t *basic_shader{ nullptr };
-    cypher_render_mesh_t test_mesh{};
+    gl_state_t gl_state{};
+    shader_registry_t shader_registry{};
+    shader_t *basic_shader{ nullptr };
+    mesh_t test_mesh{};
 };
 
 /*
@@ -42,17 +42,17 @@ struct render_runtime_state_t {
 Renderer API
 ================
 */
-cypher_render_error_code_t CypherRender_Init( const sys::cypher_system_window_t &window, const host::window_config_t &window_config );
+error_code_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &window_config );
 
 void CypherRender_Shutdown();
 
-cypher_render_error_code_t CypherRender_BeginFrame( const common::f32 delta_time_seconds );
+error_code_t CypherRender_BeginFrame( const common::f32 delta_time_seconds );
 
-cypher_render_error_code_t CypherRender_RenderFrame();
+error_code_t CypherRender_RenderFrame();
 
-cypher_render_error_code_t CypherRender_EndFrame();
+error_code_t CypherRender_EndFrame();
 
-cypher_render_error_code_t CypherRender_SubmitDrawItem( const cypher_render_draw_item_t &draw_item );
+error_code_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item );
 
 bool CypherRender_IsInitialized();
 

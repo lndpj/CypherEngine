@@ -21,13 +21,13 @@ Config API
 Loads cfg files and routes each line into cvars or command execution.
 ================
 */
-cypher_config_error_code_t CypherConfig_Init();
-cypher_config_error_code_t CypherConfig_Shutdown();
+error_code_t CypherConfig_Init();
+error_code_t CypherConfig_Shutdown();
 
-cypher_config_error_code_t CypherConfig_LoadFile( const char *path, bool required = false );
-cypher_config_error_code_t CypherConfig_LoadDefault();
-cypher_config_error_code_t CypherConfig_LoadAutoexec();
+error_code_t CypherConfig_LoadFile( const char *path, bool required = false );
+error_code_t CypherConfig_LoadDefault();
+error_code_t CypherConfig_LoadAutoexec();
 
-cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line );
+error_code_t CypherConfig_ExecuteLine( const char *command_line );
 
 }

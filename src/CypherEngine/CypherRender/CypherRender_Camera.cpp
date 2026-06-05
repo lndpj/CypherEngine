@@ -23,9 +23,9 @@
 namespace cypher::engine::render
 {
 
-void CypherRender_CameraInit( cypher_render_camera_t &camera, const cypher_render_camera_desc_t &camera_desc )
+void CypherRender_CameraInit( camera_t &camera, const camera_desc_t &camera_desc )
 {
-    camera = cypher_render_camera_t{};
+    camera = camera_t{};
     
     camera.camera_desc = camera_desc;
     camera.position = math::vec3_t{};
@@ -34,7 +34,7 @@ void CypherRender_CameraInit( cypher_render_camera_t &camera, const cypher_rende
     CypherRender_CameraUpdateMatrices( camera );
 }
 
-void CypherRender_CameraUpdateMatrices( cypher_render_camera_t &camera )
+void CypherRender_CameraUpdateMatrices( camera_t &camera )
 {
     camera.orientation = math::CypherMath_QuatNormalize( camera.orientation );
     
@@ -54,7 +54,7 @@ void CypherRender_CameraUpdateMatrices( cypher_render_camera_t &camera )
     camera.frustum = math::CypherMath_FrustumFromProjectionView( camera.projection_view );
 }
 
-void CypherRender_CameraSetPerspective( cypher_render_camera_t &camera, common::f32 fov_y_radians, common::f32 aspect_ratio, common::f32 near_z, common::f32 far_z )
+void CypherRender_CameraSetPerspective( camera_t &camera, common::f32 fov_y_radians, common::f32 aspect_ratio, common::f32 near_z, common::f32 far_z )
 {
     camera.camera_desc.fov_y_radians = fov_y_radians;
     camera.camera_desc.aspect_ratio = aspect_ratio;
@@ -64,7 +64,7 @@ void CypherRender_CameraSetPerspective( cypher_render_camera_t &camera, common::
     CypherRender_CameraUpdateMatrices( camera );
 }
 
-void CypherRender_CameraSetTransform( cypher_render_camera_t &camera, const math::vec3_t &position, const math::quat_t &orientation )
+void CypherRender_CameraSetTransform( camera_t &camera, const math::vec3_t &position, const math::quat_t &orientation )
 {
     camera.position = position;
     camera.orientation = math::CypherMath_QuatNormalize( orientation );
@@ -72,21 +72,21 @@ void CypherRender_CameraSetTransform( cypher_render_camera_t &camera, const math
     CypherRender_CameraUpdateMatrices( camera );
 }
 
-void CypherRender_CameraSetPosition( cypher_render_camera_t &camera, const math::vec3_t &position )
+void CypherRender_CameraSetPosition( camera_t &camera, const math::vec3_t &position )
 {
     camera.position = position;
     
     CypherRender_CameraUpdateMatrices( camera );
 }
 
-void CypherRender_CameraSetOrientation( cypher_render_camera_t &camera, const math::quat_t &orientation )
+void CypherRender_CameraSetOrientation( camera_t &camera, const math::quat_t &orientation )
 {   
     camera.orientation = math::CypherMath_QuatNormalize( orientation );
           
     CypherRender_CameraUpdateMatrices( camera );
 }
 
-void CypherRender_CameraSetPerspectiveMode( cypher_render_camera_t &camera, cypher_render_camera_projection_mode_t &mode )
+void CypherRender_CameraSetPerspectiveMode( camera_t &camera, camera_projection_mode_t &mode )
 {
     camera.camera_desc.camera_projection_mode = mode;
     

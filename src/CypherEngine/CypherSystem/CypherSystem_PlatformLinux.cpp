@@ -61,7 +61,7 @@ bool CypherSystem_CopyPath( char *out_path, const common::u32 out_path_size, con
 CypherSystem_FindArgvValue
 ================
 */
-const char *CypherSystem_FindArgvValue( const cypher_system_init_info_t &info, const char *argv_name ) {
+const char *CypherSystem_FindArgvValue( const init_info_t &info, const char *argv_name ) {
     if ( info.argv == nullptr || argv_name == nullptr ) {
         return nullptr;
     }
@@ -84,13 +84,13 @@ CypherSystem_PlatformBuildPaths
 Builds Linux executable, base and user paths.
 ================
 */
-cypher_system_error_code_t CypherSystem_PlatformBuildPaths(const cypher_system_init_info_t &info_init, cypher_system_paths_t &out_paths ) {
+error_code_t CypherSystem_PlatformBuildPaths(const init_info_t &info_init, paths_t &out_paths ) {
     std::error_code ec{}; 
     out_paths = {};
     
     const std::filesystem::path working_dir = std::filesystem::current_path( ec );
     if ( ec ) {
-        return cypher_system_error_code_t::ERR_PATH_QUERY_FAILED;
+        return error_code_t::ERR_PATH_QUERY_FAILED;
     }
     
     char executable_buffer[SYS_MAX_PATH_LENGTH]{};
@@ -102,7 +102,7 @@ cypher_system_error_code_t CypherSystem_PlatformBuildPaths(const cypher_system_i
     );
     
     if ( executable_length < 0 ) {
-        return cypher_system_error_code_t::ERR_PATH_QUERY_FAILED;
+        return error_code_t::ERR_PATH_QUERY_FAILED;
     }
     
     executable_buffer[executable_length] = '\0';
@@ -131,7 +131,7 @@ cypher_system_error_code_t CypherSystem_PlatformBuildPaths(const cypher_system_i
         const char *home = std::getenv( "HOME" );
         
         if ( home == nullptr || home[0] == '\0' ) {
-            return cypher_system_error_code_t::ERR_PATH_QUERY_FAILED;
+            return error_code_t::ERR_PATH_QUERY_FAILED;
         }
         
         user_path = std::filesystem::path( home ) /
@@ -143,30 +143,30 @@ cypher_system_error_code_t CypherSystem_PlatformBuildPaths(const cypher_system_i
     std::filesystem::create_directories( user_path, ec ); 
     
     if ( ec ) {
-        return cypher_system_error_code_t::ERR_DIRECTORY_CREATE_FAILED;
+        return error_code_t::ERR_DIRECTORY_CREATE_FAILED;
     }
 
     if ( !CypherSystem_CopyPath( out_paths.executable_path, sizeof( out_paths.executable_path ), executable_path ) ) {
-        return cypher_system_error_code_t::ERR_PATH_TOO_LONG;
+        return error_code_t::ERR_PATH_TOO_LONG;
     }
 
     if ( !CypherSystem_CopyPath( out_paths.executable_dir, sizeof( out_paths.executable_dir ), executable_dir ) ) {
-        return cypher_system_error_code_t::ERR_PATH_TOO_LONG;
+        return error_code_t::ERR_PATH_TOO_LONG;
     }
 
     if ( !CypherSystem_CopyPath( out_paths.working_dir, sizeof( out_paths.working_dir ), working_dir ) ) {
-        return cypher_system_error_code_t::ERR_PATH_TOO_LONG;
+        return error_code_t::ERR_PATH_TOO_LONG;
     }
     
     if ( !CypherSystem_CopyPath( out_paths.base_path, sizeof( out_paths.base_path ), base_path ) ) {
-        return cypher_system_error_code_t::ERR_PATH_TOO_LONG;
+        return error_code_t::ERR_PATH_TOO_LONG;
     }
 
     if ( !CypherSystem_CopyPath( out_paths.user_path, sizeof( out_paths.user_path ), user_path ) ) {
-        return cypher_system_error_code_t::ERR_PATH_TOO_LONG;
+        return error_code_t::ERR_PATH_TOO_LONG;
     }
     
-    return cypher_system_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*

@@ -13,7 +13,7 @@ Cvar Types
 Cvars are named runtime variables used by configs, console and engine systems.
 ================
 */
-enum cypher_cvar_flags_t : common::u32 {
+enum flags_t : common::u32 {
 	CYPHER_CVAR_NONE = 0,
 	CYPHER_CVAR_ARCHIVE = 1 << 0,
 	CYPHER_CVAR_READONLY = 1 << 1,
@@ -29,10 +29,10 @@ struct cvar_t {
 	common::u32 value_int;
 	common::f32 value_float;
 	bool value_bool;
-	cypher_cvar_flags_t flags;
+	flags_t flags;
 };
 
-struct cypher_cvar_registry_t {
+struct registry_t {
 	cvar_t cvars[CYPHER_CVAR_MAX_CVARS];
 	common::u32 cvar_count;
 	bool initialized;
@@ -46,13 +46,13 @@ constexpr common::u32 CYPHER_CVAR_REGISTER_ALLOWED_FLAGS =
 Cvar API
 ================
 */
-cypher_cvar_error_code_t CypherCVar_Init();
+error_code_t CypherCVar_Init();
 
-cypher_cvar_error_code_t CypherCVar_Register( const char *name, const char *default_value, cypher_cvar_flags_t flags );
+error_code_t CypherCVar_Register( const char *name, const char *default_value, flags_t flags );
 
-cypher_cvar_error_code_t CypherCVar_Set( const char *name, const char *value );
+error_code_t CypherCVar_Set( const char *name, const char *value );
 
-cypher_cvar_error_code_t CypherCVar_Shutdown();
+error_code_t CypherCVar_Shutdown();
 
 const cvar_t *CypherCVar_Find( const char *name );
 

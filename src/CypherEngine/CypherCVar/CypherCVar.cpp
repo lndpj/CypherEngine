@@ -24,23 +24,23 @@
 
 namespace cypher::engine::cvar {
 
-cypher_cvar_registry_t g_cvar_registry;
+registry_t g_cvar_registry;
 
 /*
 ================
 CypherCVar_Init
 ================
 */
-cypher_cvar_error_code_t CypherCVar_Init() {
+error_code_t CypherCVar_Init() {
 	if ( g_cvar_registry.initialized ) {
-		common::CypherCommon_Printf( "CypherCVar_Init: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_IS_INIT ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_IS_INIT ) );
-		return cypher_cvar_error_code_t::ERR_IS_INIT;
+		common::CypherCommon_Printf( "CypherCVar_Init: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_IS_INIT ), CypherCVar_ErrorDesc( error_code_t::ERR_IS_INIT ) );
+		return error_code_t::ERR_IS_INIT;
 	}
 
 	g_cvar_registry = {};
 	g_cvar_registry.initialized = true;
 
-	return cypher_cvar_error_code_t::OK;
+	return error_code_t::OK;
 }
 
 /*
@@ -81,45 +81,45 @@ CypherCVar_Register
 Adds a cvar with default string and cached numeric views.
 ================
 */
-cypher_cvar_error_code_t CypherCVar_Register( const char *name, const char *default_value, cypher_cvar_flags_t flags ) {
+error_code_t CypherCVar_Register( const char *name, const char *default_value, flags_t flags ) {
 	if ( !g_cvar_registry.initialized ) {
-		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_NOT_INIT ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_NOT_INIT ) );
-		return cypher_cvar_error_code_t::ERR_NOT_INIT;
+		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_NOT_INIT ), CypherCVar_ErrorDesc( error_code_t::ERR_NOT_INIT ) );
+		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( name == nullptr || name[0] == '\0' ) {
-		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_INVALID_CVAR ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_INVALID_CVAR ) );
-		return cypher_cvar_error_code_t::ERR_INVALID_CVAR;
+		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_INVALID_CVAR ), CypherCVar_ErrorDesc( error_code_t::ERR_INVALID_CVAR ) );
+		return error_code_t::ERR_INVALID_CVAR;
 	}
 
 	if ( default_value == nullptr || default_value[0] == '\0' ) {
-		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_INVALID_DEFAULT_VALUE ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_INVALID_DEFAULT_VALUE ) );
-		return cypher_cvar_error_code_t::ERR_INVALID_DEFAULT_VALUE;
+		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_INVALID_DEFAULT_VALUE ), CypherCVar_ErrorDesc( error_code_t::ERR_INVALID_DEFAULT_VALUE ) );
+		return error_code_t::ERR_INVALID_DEFAULT_VALUE;
 	}
 
 	common::u32 flags_bits = static_cast<common::u32>( flags );
 
 	if ( ( flags_bits & CYPHER_CVAR_MODIFIED ) != 0u ) {
-		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_INVALID_FLAG ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_INVALID_FLAG ) );
-		return cypher_cvar_error_code_t::ERR_INVALID_FLAG;
+		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_INVALID_FLAG ), CypherCVar_ErrorDesc( error_code_t::ERR_INVALID_FLAG ) );
+		return error_code_t::ERR_INVALID_FLAG;
 	}
 
 	// CYPHER_CVAR_MODIFIED is runtime-owned; registration only accepts authoring flags.
 	if ( ( flags_bits & ~CYPHER_CVAR_REGISTER_ALLOWED_FLAGS ) != 0 ) {
-		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_INVALID_FLAG ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_INVALID_FLAG ) );
-		return cypher_cvar_error_code_t::ERR_INVALID_FLAG;
+		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_INVALID_FLAG ), CypherCVar_ErrorDesc( error_code_t::ERR_INVALID_FLAG ) );
+		return error_code_t::ERR_INVALID_FLAG;
 	}
 
 	const cvar_t *cvar = CypherCVar_Find( name );
 
 	if ( cvar != nullptr ) {
-		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_CVAR_ALREADY_EXISTS ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_CVAR_ALREADY_EXISTS ) );
-		return cypher_cvar_error_code_t::ERR_CVAR_ALREADY_EXISTS;
+		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_CVAR_ALREADY_EXISTS ), CypherCVar_ErrorDesc( error_code_t::ERR_CVAR_ALREADY_EXISTS ) );
+		return error_code_t::ERR_CVAR_ALREADY_EXISTS;
 	}
 
 	if ( g_cvar_registry.cvar_count >= CYPHER_CVAR_MAX_CVARS ) {
-		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_REGISTRY_FULL ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_REGISTRY_FULL ) );
-		return cypher_cvar_error_code_t::ERR_REGISTRY_FULL;
+		common::CypherCommon_Printf( "CypherCVar_Register: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_REGISTRY_FULL ), CypherCVar_ErrorDesc( error_code_t::ERR_REGISTRY_FULL ) );
+		return error_code_t::ERR_REGISTRY_FULL;
 	}
 
 	cvar_t &entry = g_cvar_registry.cvars[g_cvar_registry.cvar_count];
@@ -135,7 +135,7 @@ cypher_cvar_error_code_t CypherCVar_Register( const char *name, const char *defa
 	entry.value_bool = CypherCVar_ParseBool( entry.value_string );
 	g_cvar_registry.cvar_count++;
 
-	return cypher_cvar_error_code_t::OK;
+	return error_code_t::OK;
 }
 
 /*
@@ -145,24 +145,24 @@ CypherCVar_Set
 Changes a cvar string and updates its cached int/float/bool values.
 ================
 */
-cypher_cvar_error_code_t CypherCVar_Set( const char *name, const char *value ) {
+error_code_t CypherCVar_Set( const char *name, const char *value ) {
 	if ( !g_cvar_registry.initialized ) {
-		common::CypherCommon_Printf( "CypherCVar_Set: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_NOT_INIT ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_NOT_INIT ) );
-		return cypher_cvar_error_code_t::ERR_NOT_INIT;
+		common::CypherCommon_Printf( "CypherCVar_Set: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_NOT_INIT ), CypherCVar_ErrorDesc( error_code_t::ERR_NOT_INIT ) );
+		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( name == nullptr || name[0] == '\0' ) {
         common::CypherCommon_Printf( "CypherCVar_Set: %s: %s\n",
-                             CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_INVALID_CVAR ),
-                             CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_INVALID_CVAR ) );
-        return cypher_cvar_error_code_t::ERR_INVALID_CVAR;
+                             CypherCVar_ErrorName( error_code_t::ERR_INVALID_CVAR ),
+                             CypherCVar_ErrorDesc( error_code_t::ERR_INVALID_CVAR ) );
+        return error_code_t::ERR_INVALID_CVAR;
 	}
     
     if ( value == nullptr ) {
         common::CypherCommon_Printf( "CypherCVar_Set: %s: %s\n",
-                             CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_INVALID_CVAR ),
-                             CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_INVALID_CVAR ) );
-        return cypher_cvar_error_code_t::ERR_INVALID_CVAR;
+                             CypherCVar_ErrorName( error_code_t::ERR_INVALID_CVAR ),
+                             CypherCVar_ErrorDesc( error_code_t::ERR_INVALID_CVAR ) );
+        return error_code_t::ERR_INVALID_CVAR;
         
     }
     
@@ -177,22 +177,22 @@ cypher_cvar_error_code_t CypherCVar_Set( const char *name, const char *value ) {
     }
     if ( target == nullptr ) {
         common::CypherCommon_Printf( "CypherCVar_Set: %s: %s\n",
-                             CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_CVAR_NOT_FOUND ),
-                             CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_CVAR_NOT_FOUND ) );
-        return cypher_cvar_error_code_t::ERR_CVAR_NOT_FOUND;
+                             CypherCVar_ErrorName( error_code_t::ERR_CVAR_NOT_FOUND ),
+                             CypherCVar_ErrorDesc( error_code_t::ERR_CVAR_NOT_FOUND ) );
+        return error_code_t::ERR_CVAR_NOT_FOUND;
     } 
     if ( ( static_cast<common::u32>( target->flags ) & CYPHER_CVAR_READONLY ) != 0 ) {
-        common::CypherCommon_Printf( "CypherCVar_Set: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_READONLY ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_READONLY ) );
-        return cypher_cvar_error_code_t::ERR_READONLY;
+        common::CypherCommon_Printf( "CypherCVar_Set: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_READONLY ), CypherCVar_ErrorDesc( error_code_t::ERR_READONLY ) );
+        return error_code_t::ERR_READONLY;
     }
     
     // Cheat protection will later be controlled by server/game authority.
     const bool cheats_enabled = false;
     if ( ( static_cast<common::u32>( target->flags ) & CYPHER_CVAR_CHEAT ) != 0 && !cheats_enabled ) {
         common::CypherCommon_Printf( "CypherCVar_Set: %s: %s\n",
-                             CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_CHEAT_PROTECTED ),
-                             CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_CHEAT_PROTECTED ) );
-        return cypher_cvar_error_code_t::ERR_CHEAT_PROTECTED;
+                             CypherCVar_ErrorName( error_code_t::ERR_CHEAT_PROTECTED ),
+                             CypherCVar_ErrorDesc( error_code_t::ERR_CHEAT_PROTECTED ) );
+        return error_code_t::ERR_CHEAT_PROTECTED;
     }
     
     std::strncpy( target->value_string, value, sizeof( target->value_string ) - 1 );
@@ -202,9 +202,9 @@ cypher_cvar_error_code_t CypherCVar_Set( const char *name, const char *value ) {
     target->value_float = static_cast<common::f32>( std::atof( target->value_string ) );
     target->value_bool = CypherCVar_ParseBool( target->value_string );
     
-    target->flags = static_cast<cypher_cvar_flags_t>( static_cast<common::u32>( target->flags ) | CYPHER_CVAR_MODIFIED );
+    target->flags = static_cast<flags_t>( static_cast<common::u32>( target->flags ) | CYPHER_CVAR_MODIFIED );
     
-    return cypher_cvar_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*
@@ -212,14 +212,14 @@ cypher_cvar_error_code_t CypherCVar_Set( const char *name, const char *value ) {
 CypherCVar_Shutdown
 ================
 */
-cypher_cvar_error_code_t CypherCVar_Shutdown() {
+error_code_t CypherCVar_Shutdown() {
     if ( !g_cvar_registry.initialized ) {
-        common::CypherCommon_Printf( "CypherCVar_Shutdown: %s: %s\n", CypherCVar_ErrorName( cypher_cvar_error_code_t::ERR_NOT_INIT ), CypherCVar_ErrorDesc( cypher_cvar_error_code_t::ERR_NOT_INIT ) );
-        return cypher_cvar_error_code_t::ERR_NOT_INIT;
+        common::CypherCommon_Printf( "CypherCVar_Shutdown: %s: %s\n", CypherCVar_ErrorName( error_code_t::ERR_NOT_INIT ), CypherCVar_ErrorDesc( error_code_t::ERR_NOT_INIT ) );
+        return error_code_t::ERR_NOT_INIT;
     }
     g_cvar_registry = {};
     
-    return cypher_cvar_error_code_t::OK;
+    return error_code_t::OK;
 }
 
 /*

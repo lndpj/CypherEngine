@@ -29,26 +29,26 @@ CypherSystem_CreateWindow
 Creates the SDL window used later by the renderer backend.
 ================
 */
-cypher_system_error_code_t CypherSystem_CreateWindow( const cypher_system_window_desc_t &window_description, cypher_system_window_t &out_window )
+error_code_t CypherSystem_CreateWindow( const window_desc_t &window_description, window_t &out_window )
 {
     SDL_WindowFlags flags{};
     SDL_Window *sdl_window{ nullptr };
     
     if ( window_description.title == nullptr || window_description.title[0] == '\0' ) {
-        return cypher_system_error_code_t::ERR_INVALID_ARGUMENT;
+        return error_code_t::ERR_INVALID_ARGUMENT;
     } 
     
     if ( window_description.width == 0u || window_description.height == 0u ) {
-        return cypher_system_error_code_t::ERR_INVALID_ARGUMENT;
+        return error_code_t::ERR_INVALID_ARGUMENT;
     }
     
     if ( out_window.native_window != nullptr ) {
-        return cypher_system_error_code_t::ERR_IS_INIT;
+        return error_code_t::ERR_IS_INIT;
     }
     
     if ( !SDL_InitSubSystem( SDL_INIT_VIDEO ) ) {
         common::CypherCommon_Printf( "CypherSystem_CreateWindow: SDL_InitSubSystem failed: %s\n", SDL_GetError() );
-        return cypher_system_error_code_t::ERR_INTERNAL_ERROR;
+        return error_code_t::ERR_INTERNAL_ERROR;
     }
     
     flags = SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_HIGH_PIXEL_DENSITY;
@@ -62,7 +62,7 @@ cypher_system_error_code_t CypherSystem_CreateWindow( const cypher_system_window
     if ( sdl_window == nullptr ) {
         common::CypherCommon_Printf( "CypherSystem_CreateWindow: SDL_CreateWindow failed: %s\n", SDL_GetError() );
         SDL_QuitSubSystem( SDL_INIT_VIDEO );
-        return cypher_system_error_code_t::ERR_INTERNAL_ERROR;
+        return error_code_t::ERR_INTERNAL_ERROR;
     } 
     
     out_window.native_window = sdl_window;
@@ -73,7 +73,7 @@ cypher_system_error_code_t CypherSystem_CreateWindow( const cypher_system_window
     out_window.should_close = false;
     out_window.valid = true;
     
-    return cypher_system_error_code_t::OK;   
+    return error_code_t::OK;   
 }
 
 /*
@@ -81,7 +81,7 @@ cypher_system_error_code_t CypherSystem_CreateWindow( const cypher_system_window
 CypherSystem_DestroyWindow
 ================
 */
-void CypherSystem_DestroyWindow( cypher_system_window_t &window ) {
+void CypherSystem_DestroyWindow( window_t &window ) {
     SDL_Window *sdl_window{ nullptr };
     
     if ( window.native_window == nullptr ) {
@@ -105,7 +105,7 @@ CypherSystem_PollWindowEvents
 Updates window state from SDL events.
 ================
 */
-void CypherSystem_PollWindowEvents( cypher_system_window_t &window ) {
+void CypherSystem_PollWindowEvents( window_t &window ) {
     SDL_Event event{};
     
     if ( window.native_window == nullptr ) {
@@ -137,7 +137,7 @@ void CypherSystem_PollWindowEvents( cypher_system_window_t &window ) {
 CypherSystem_WindowShouldClose
 ================
 */
-bool CypherSystem_WindowShouldClose( const cypher_system_window_t &window ) {
+bool CypherSystem_WindowShouldClose( const window_t &window ) {
     return window.should_close;   
 }
     

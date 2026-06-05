@@ -2,6 +2,16 @@
 
 All notable changes to REAP and the CypherEngine runtime are tracked here.
 
+## [0.1.0] - 2026-06-05
+
+### Changed
+- Kept public subsystem functions on the branded `CypherRender_*`, `CypherSystem_*`, `CypherCommon_*` style.
+- Cleaned subsystem types back to namespace-local names such as `render::shader_t`, `render::mesh_t`, `sys::window_t`, `host::state_t`, and `common::error_t`.
+- Updated CypherEngine build metadata to describe the custom idTech/GoldSrc/early CryEngine-inspired runtime direction.
+
+### Verified
+- Confirmed the cleaned naming pass builds successfully with CMake using a fresh verification build directory.
+
 ## [0.1.0] - 2026-06-02
 
 ### Added

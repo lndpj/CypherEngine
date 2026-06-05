@@ -29,11 +29,11 @@ namespace cypher::engine::cfg {
 Config Runtime State
 ================
 */
-struct cypher_config_runtime_state_t {
+struct runtime_state_t {
 	bool initialized{ false };
 };
 
-cypher_config_runtime_state_t g_cfg_runtime_state;
+runtime_state_t g_cfg_runtime_state;
 
 constexpr const char *CYPHER_CONFIG_DEFAULT_PATH  = "config/default.cfg";
 constexpr const char *CYPHER_CONFIG_AUTOEXEC_PATH = "config/autoexec.cfg";
@@ -43,13 +43,13 @@ constexpr const char *CYPHER_CONFIG_AUTOEXEC_PATH = "config/autoexec.cfg";
 CypherConfig_Init
 ================
 */
-cypher_config_error_code_t CypherConfig_Init() {
+error_code_t CypherConfig_Init() {
 	if ( g_cfg_runtime_state.initialized ) {
-		return cypher_config_error_code_t::ERR_IS_INIT;
+		return error_code_t::ERR_IS_INIT;
 	}
 	g_cfg_runtime_state = {};
 	g_cfg_runtime_state.initialized = true;
-	return cypher_config_error_code_t::OK;
+	return error_code_t::OK;
 }
 
 /*
@@ -57,12 +57,12 @@ cypher_config_error_code_t CypherConfig_Init() {
 CypherConfig_Shutdown
 ================
 */
-cypher_config_error_code_t CypherConfig_Shutdown() {
+error_code_t CypherConfig_Shutdown() {
 	if ( !g_cfg_runtime_state.initialized ) {
-		return cypher_config_error_code_t::ERR_NOT_INIT;
+		return error_code_t::ERR_NOT_INIT;
 	}
 	g_cfg_runtime_state = {};
-	return cypher_config_error_code_t::OK;
+	return error_code_t::OK;
 }
 
 /*
@@ -72,47 +72,47 @@ CypherConfig_LoadFile
 Loads a cfg file through FS and executes it one line at a time.
 ================
 */
-cypher_config_error_code_t CypherConfig_LoadFile( const char *path, const bool required ) {
+error_code_t CypherConfig_LoadFile( const char *path, const bool required ) {
 	if ( path == nullptr || path[0] == '\0' ) {
-		return cypher_config_error_code_t::ERR_INVALID_PATH;
+		return error_code_t::ERR_INVALID_PATH;
 	}
 	if ( !g_cfg_runtime_state.initialized ) {
-		return cypher_config_error_code_t::ERR_NOT_INIT;
+		return error_code_t::ERR_NOT_INIT;
 	}
     
-    fs::cypher_filesystem_file_t file{};
+    fs::file_t file{};
     
-    const fs::cypher_filesystem_error_code_t open_result = fs::CypherFileSystem_Open( path, fs::cypher_filesystem_open_mode_t::READ_TEXT, file );
-    if ( open_result != fs::cypher_filesystem_error_code_t::OK ) {
-        return required ? cypher_config_error_code_t::ERR_FILE_OPEN_FAILED : cypher_config_error_code_t::OK;
+    const fs::error_code_t open_result = fs::CypherFileSystem_Open( path, fs::open_mode_t::READ_TEXT, file );
+    if ( open_result != fs::error_code_t::OK ) {
+        return required ? error_code_t::ERR_FILE_OPEN_FAILED : error_code_t::OK;
     }
     
     if ( file.size == 0u ) {
         fs::CypherFileSystem_Close( file );
-        return cypher_config_error_code_t::OK;
+        return error_code_t::OK;
     }
     
     if ( file.size >= CYPHER_CONFIG_MAX_FILE_SIZE ) {
         fs::CypherFileSystem_Close( file );
-        return cypher_config_error_code_t::ERR_IO_ERROR;
+        return error_code_t::ERR_IO_ERROR;
     }   
     
     char buffer[CYPHER_CONFIG_MAX_FILE_SIZE]{};
     common::u64 bytes_read{};
     
-    const fs::cypher_filesystem_error_code_t read_result = fs::CypherFileSystem_Read( file, buffer, file.size, bytes_read );
-    const fs::cypher_filesystem_error_code_t close_result = fs::CypherFileSystem_Close( file );
+    const fs::error_code_t read_result = fs::CypherFileSystem_Read( file, buffer, file.size, bytes_read );
+    const fs::error_code_t close_result = fs::CypherFileSystem_Close( file );
     
-    if ( read_result != fs::cypher_filesystem_error_code_t::OK ) {
-        return cypher_config_error_code_t::ERR_IO_ERROR;          
+    if ( read_result != fs::error_code_t::OK ) {
+        return error_code_t::ERR_IO_ERROR;          
     }
     
-    if ( close_result != fs::cypher_filesystem_error_code_t::OK ) {
-        return cypher_config_error_code_t::ERR_IO_ERROR;          
+    if ( close_result != fs::error_code_t::OK ) {
+        return error_code_t::ERR_IO_ERROR;          
     }
     
     buffer[bytes_read] = '\0';
-    cypher_config_error_code_t result = cypher_config_error_code_t::OK;
+    error_code_t result = error_code_t::OK;
     
     char *line_start = buffer;
     
@@ -126,9 +126,9 @@ cypher_config_error_code_t CypherConfig_LoadFile( const char *path, const bool r
         char save_line_end = *line_end;
         *line_end = '\0';
         
-        const cypher_config_error_code_t line_result = CypherConfig_ExecuteLine( line_start );
+        const error_code_t line_result = CypherConfig_ExecuteLine( line_start );
         
-        if ( line_result != cypher_config_error_code_t::OK && result == cypher_config_error_code_t::OK ) {
+        if ( line_result != error_code_t::OK && result == error_code_t::OK ) {
             result = line_result;
         }   
         
@@ -152,9 +152,9 @@ cypher_config_error_code_t CypherConfig_LoadFile( const char *path, const bool r
 CypherConfig_LoadDefault
 ================
 */
-cypher_config_error_code_t CypherConfig_LoadDefault() {
+error_code_t CypherConfig_LoadDefault() {
 	if ( !g_cfg_runtime_state.initialized ) {
-		return cypher_config_error_code_t::ERR_NOT_INIT;
+		return error_code_t::ERR_NOT_INIT;
 	}
 	return CypherConfig_LoadFile( CYPHER_CONFIG_DEFAULT_PATH, true );
 }
@@ -164,9 +164,9 @@ cypher_config_error_code_t CypherConfig_LoadDefault() {
 CypherConfig_LoadAutoexec
 ================
 */
-cypher_config_error_code_t CypherConfig_LoadAutoexec() {
+error_code_t CypherConfig_LoadAutoexec() {
 	if ( !g_cfg_runtime_state.initialized ) {
-		return cypher_config_error_code_t::ERR_NOT_INIT;
+		return error_code_t::ERR_NOT_INIT;
 	}
 	return CypherConfig_LoadFile( CYPHER_CONFIG_AUTOEXEC_PATH, false );
 }
@@ -178,13 +178,13 @@ CypherConfig_ExecuteLine
 Executes one trimmed cfg line: exec, set/seta, or regular command.
 ================
 */
-cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) {
+error_code_t CypherConfig_ExecuteLine( const char *command_line ) {
 	if ( !g_cfg_runtime_state.initialized ) {
-		return cypher_config_error_code_t::ERR_INVALID_LINE;
+		return error_code_t::ERR_INVALID_LINE;
 	}
     
     if ( command_line == nullptr ) {
-        return cypher_config_error_code_t::ERR_INVALID_LINE;
+        return error_code_t::ERR_INVALID_LINE;
     }
 	char line[CYPHER_CONFIG_MAX_LINE_LENGTH] {};
 	std::strncpy( line, command_line, sizeof( line ) - 1 );
@@ -194,7 +194,7 @@ cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) 
 		++cursor;
 	}
 	if ( *cursor == '\0' || *cursor == '\n' || *cursor == '\r' ) {
-		return cypher_config_error_code_t::OK;
+		return error_code_t::OK;
 	}
 	bool in_quotes = false;
 	for ( char *it = cursor; *it != '\0'; ++it ) {
@@ -217,7 +217,7 @@ cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) 
 	}
 	*end = '\0';
 	if ( *cursor == '\0' ) {
-		return cypher_config_error_code_t::OK;
+		return error_code_t::OK;
 	}
 	char command[32]{};
 	common::u32 i = 0;
@@ -230,7 +230,7 @@ cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) 
 			++cursor;
 		}
 		if ( *cursor == '\0' ) {
-			return cypher_config_error_code_t::ERR_PARSE_FAILED;
+			return error_code_t::ERR_PARSE_FAILED;
 		}
 		char exec_path[CYPHER_CONFIG_MAX_PATH_LENGTH]{};
 		i = 0;
@@ -241,7 +241,7 @@ cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) 
 				++i;
 			}
 			if ( cursor[i] != '"' ) {
-				return cypher_config_error_code_t::ERR_PARSE_FAILED;
+				return error_code_t::ERR_PARSE_FAILED;
 			}
 		} else {
 			while ( cursor[i] != '\0' && !std::isspace( static_cast<unsigned char>( cursor[i] ) ) && ( i + 1u ) < sizeof( exec_path ) ) {
@@ -257,7 +257,7 @@ cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) 
 			++cursor;
 		}
 		if ( *cursor == '\0' ) {
-			return cypher_config_error_code_t::ERR_PARSE_FAILED;
+			return error_code_t::ERR_PARSE_FAILED;
 		}
 		char cvar_name[256]{};
 		i = 0;
@@ -267,13 +267,13 @@ cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) 
 		cvar_name[i] = '\0';
 
 		if ( cvar_name[0] == '\0' ) {
-			return cypher_config_error_code_t::ERR_PARSE_FAILED;
+			return error_code_t::ERR_PARSE_FAILED;
 		}
 		while ( std::isspace( static_cast<unsigned char>( *cursor ) ) ) {
 			++cursor;
 		}
 		if ( *cursor == '\0' ) {
-			return cypher_config_error_code_t::ERR_PARSE_FAILED;
+			return error_code_t::ERR_PARSE_FAILED;
 		}
 		char cvar_value[CYPHER_CONFIG_MAX_LINE_LENGTH]{};
 		i = 0;
@@ -284,7 +284,7 @@ cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) 
 				++i;
 			}
 			if ( cursor[i] != '"' ) {
-				return cypher_config_error_code_t::ERR_PARSE_FAILED;
+				return error_code_t::ERR_PARSE_FAILED;
 			}
 		} else {
 			while ( cursor[i] != '\0' && !std::isspace( static_cast<unsigned char>( cursor[i] ) ) && ( i + 1u ) < sizeof( cvar_value ) ) {
@@ -294,17 +294,17 @@ cypher_config_error_code_t CypherConfig_ExecuteLine( const char *command_line ) 
 		}
 		cvar_value[i] = '\0';
 		if ( cvar_value[0] == '\0' ) {
-			return cypher_config_error_code_t::ERR_PARSE_FAILED;
+			return error_code_t::ERR_PARSE_FAILED;
 		}
-		if ( cvar::CypherCVar_Set( cvar_name, cvar_value ) != cvar::cypher_cvar_error_code_t::OK ) {
-			return cypher_config_error_code_t::ERR_PARSE_FAILED;
+		if ( cvar::CypherCVar_Set( cvar_name, cvar_value ) != cvar::error_code_t::OK ) {
+			return error_code_t::ERR_PARSE_FAILED;
 		}
-		return cypher_config_error_code_t::OK;
+		return error_code_t::OK;
 	}
-	if ( cmd::CypherCommand_Execute( line ) != cmd::cypher_command_error_code_t::OK ) {
-		return cypher_config_error_code_t::ERR_COMMAND_FAILED;
+	if ( cmd::CypherCommand_Execute( line ) != cmd::error_code_t::OK ) {
+		return error_code_t::ERR_COMMAND_FAILED;
 	}
-	return cypher_config_error_code_t::OK;
+	return error_code_t::OK;
 }
 
 } // namespace cypher::engine::cfg

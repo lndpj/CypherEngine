@@ -23,7 +23,7 @@ Host State Types
 The host owns high-level engine lifecycle and keeps subsystem-facing config.
 ================
 */
-enum class cypher_host_stage_t : common::u8 {
+enum class stage_t : common::u8 {
     UNINITIALIZED,
     INITIALIZING,
     RUNNING,
@@ -58,7 +58,7 @@ struct window_config_t {
 };
 
 struct frame_t {
-    common::cypher_common_frame_index_t index{};
+    common::frame_index_t index{};
     
     common::f64 previous_time_seconds{};
     common::f64 current_time_seconds{};
@@ -68,7 +68,7 @@ struct frame_t {
     common::com_f32 simulation_time_seconds{};
 };
 
-struct cypher_host_config_t {
+struct config_t {
     int argc{ 0 };
     const char *const *argv{ nullptr };
     
@@ -76,10 +76,10 @@ struct cypher_host_config_t {
     window_config_t window_config{};
 };
 
-struct cypher_host_state_t {
-    cypher_host_stage_t stage{ cypher_host_stage_t::UNINITIALIZED };
-    cypher_host_config_t config{};
-    sys::cypher_system_window_t window{};
+struct state_t {
+    stage_t stage{ stage_t::UNINITIALIZED };
+    config_t config{};
+    sys::window_t window{};
     bool running{ false };
     bool has_focus{ false };
     frame_t frame{};

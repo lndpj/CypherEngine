@@ -22,7 +22,7 @@ constexpr common::u64 CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE     = 1024u * 1024u; 
 Shader Types
 ================
 */
-struct cypher_render_shader_t {
+struct shader_t {
     common::com_u32 shader_id{ 0 };
     char name[CYPHER_RENDER_MAX_SHADER_NAME]{};
     char vertex_path[CYPHER_RENDER_MAX_SHADER_PATH]{};
@@ -32,8 +32,8 @@ struct cypher_render_shader_t {
     bool loaded{ false };
 };
 
-struct cypher_render_shader_registry_t {
-    cypher_render_shader_t shaders[CYPHER_RENDER_MAX_SHADERS]{};
+struct shader_registry_t {
+    shader_t shaders[CYPHER_RENDER_MAX_SHADERS]{};
     common::u32 shader_count{ 0 };
 };
 
@@ -42,18 +42,18 @@ struct cypher_render_shader_registry_t {
 Shader Registry API
 ================
 */
-void CypherRender_ShaderRegistryInit( cypher_render_shader_registry_t &shader_registry );
+void CypherRender_ShaderRegistryInit( shader_registry_t &shader_registry );
 
-void CypherRender_ShaderRegistryShutdown( cypher_render_shader_registry_t &shader_registry );
+void CypherRender_ShaderRegistryShutdown( shader_registry_t &shader_registry );
 
-cypher_render_error_code_t CypherRender_ShaderLoad( cypher_render_shader_registry_t &shader_registry, const char *name, const char *vertex_path, const char *fragment_path, cypher_render_shader_t **out_shader );
+error_code_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const char *name, const char *vertex_path, const char *fragment_path, shader_t **out_shader );
 
-cypher_render_shader_t *CypherRender_ShaderFind( cypher_render_shader_registry_t &registry, const char *name );
+shader_t *CypherRender_ShaderFind( shader_registry_t &registry, const char *name );
 
-cypher_render_error_code_t CypherRender_ShaderBind( const cypher_render_shader_t &shader );
+error_code_t CypherRender_ShaderBind( const shader_t &shader );
 
-void CypherRender_ShaderUnload( cypher_render_shader_t &shader );
+void CypherRender_ShaderUnload( shader_t &shader );
 
-cypher_render_error_code_t CypherRender_ShaderSetMat4( const cypher_render_shader_t &shader, const char *uniform_name, const math::mat4_t &matrix );
+error_code_t CypherRender_ShaderSetMat4( const shader_t &shader, const char *uniform_name, const math::mat4_t &matrix );
 
 }       // namespace cypher::engine::render
