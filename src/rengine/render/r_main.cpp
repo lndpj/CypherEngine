@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-20 21:01:21
    Last Modified by: ksiric
-   Last Modified: 2026-06-03 18:18:32
+   Last Modified: 2026-06-05 08:55:24
    ---------------------------------------------------------------------
    Description:
 
@@ -16,7 +16,10 @@
 																	   */
 #include "rengine/render/r_main.h"
 #include "rengine/log/log_main.h"
+#include "rengine/math/math_mat.h"
+#include "rengine/math/math_quat.h"
 #include "rengine/render/r_camera.h"
+#include "rengine/render/r_draw.h"
 #include "rengine/render/r_gl.h"
 
 #include <SDL3/SDL.h>      // Temporary renderer-side SDL visibility while backend matures.
@@ -200,19 +203,25 @@ r_error_code_t R_RenderFrame() {
     /*
     Temporary pipeline test draw. Disabled now that the RGB triangle path is
     proven and we are moving toward real 3D transforms.
+    */
 
     if ( g_render_runtime_state.basic_shader == nullptr ) {
         return r_error_code_t::ERR_SHADER_BIND;
     }
-
-    const auto shader_result = R_ShaderBind( *g_render_runtime_state.basic_shader );
-    if ( shader_result != r_error_code_t::OK ) {
-        return shader_result;
-    }
-	// return R_MeshDraw( g_render_runtime_state.test_mesh );
-    */
-
-    return r_error_code_t::OK;
+    
+    // @NOTE(Karlo); Doign some testing to see if the camera and drawing all works just fine..
+    
+    // creating a model matrix
+    
+    r_draw_item_t test_draw_item{};
+    
+    test_draw_item.position = math::vec3_t{ 0.0f, 0.0f, -2.0f };
+    test_draw_item.orientation = math::Math_QuatIdentity();
+    test_draw_item.scale = math::vec3_t{ 1.0f, 1.0f, 1.0f };
+    test_draw_item.mesh = &g_render_runtime_state.test_mesh;
+    test_draw_item.shader = g_render_runtime_state.basic_shader;
+    
+    return R_DrawObject( test_draw_item, g_render_runtime_state.active_camera );
 }
 
 /*

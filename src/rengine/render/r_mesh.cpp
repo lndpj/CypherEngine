@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-05-10 21:22:24
    Last Modified by: ksiric
-   Last Modified: 2026-05-11 23:05:56
+   Last Modified: 2026-06-04 19:39:39
    ---------------------------------------------------------------------
    Description:
 
@@ -69,7 +69,8 @@ r_error_code_t R_MeshCreate( const r_vertex_t *vertices,
             mesh_out.bounds.maxs.z = position.z;
         }
     }
-
+    
+    // Calling OpenGL API for creating a mesh, creating a distinction between different API's.
     const auto result = R_GLMeshCreate(
         vertices,
         vertex_count,
