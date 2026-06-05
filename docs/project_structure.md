@@ -1,27 +1,35 @@
-# REAP Project Structure
+# CypherEngine Project Structure
 
-This is the intended long-term REAP repository structure.
+This is the intended long-term CypherEngine repository structure.
 
-`REAP` is the project/game. `Fuse` is the engine runtime inside it.
+`CypherEngine` is the engine runtime. The game name can stay separate once the actual game identity is locked.
 
 ## Target layout
 
 ```text
-reap/
+CypherEngine/
 ├── README.md
 ├── Makefile or build wrapper
 ├── src/
-│   ├── common/
-│   ├── renderer/
-│   ├── server/
-│   ├── client/
-│   ├── network/
-│   ├── bsp/
-│   ├── physics/
-│   ├── audio/
-│   ├── ecs/
-│   ├── vm/
-│   └── platform/
+│   ├── CypherEngine/
+│   │   ├── CypherCommon/
+│   │   ├── CypherSystem/
+│   │   ├── CypherFileSystem/
+│   │   ├── CypherLog/
+│   │   ├── CypherCommand/
+│   │   ├── CypherCVar/
+│   │   ├── CypherConfig/
+│   │   ├── CypherHost/
+│   │   ├── CypherMath/
+│   │   └── CypherRender/
+│   ├── CypherGame/
+│   ├── CypherClient/
+│   ├── CypherServer/
+│   ├── CypherNetwork/
+│   ├── CypherPhysics/
+│   ├── CypherAudio/
+│   ├── CypherECS/
+│   └── CypherScript/
 ├── rvm/
 ├── game/
 ├── tools/
@@ -33,10 +41,26 @@ reap/
 
 ## Meaning of each top-level directory
 
-- `src`
-  - native Fuse engine runtime
+- `src/CypherEngine`
+  - native CypherEngine runtime
+- `src/CypherGame`
+  - native game/runtime bridge code when needed
+- `src/CypherClient`
+  - local player, prediction, presentation, HUD, input bridge
+- `src/CypherServer`
+  - authoritative simulation and multiplayer/session ownership
+- `src/CypherNetwork`
+  - packet, channel, socket, serialization, and transport code
+- `src/CypherPhysics`
+  - movement, traces, collision, and simulation helpers
+- `src/CypherAudio`
+  - sound runtime and audio resource playback
+- `src/CypherECS`
+  - entity/component storage and query layer
+- `src/CypherScript`
+  - VM/script bridge inside the native runtime
 - `rvm`
-  - standalone REAP Virtual Machine project
+  - standalone Cypher VM project
 - `game`
   - gameplay scripts intended to run on the VM
 - `tools`
@@ -52,9 +76,9 @@ reap/
 
 ## Important note about the current repo
 
-The current source still lives under `src/rengine/` because the project is still in early foundation stage.
+The current source already lives under `src/CypherEngine/`, with CryEngine-style subsystem folders such as `CypherRender`, `CypherSystem`, and `CypherFileSystem`.
 
-From this point forward, the docs and long-term structure should assume the target shape above, and future migrations should move code toward it instead of inventing a different architecture each time.
+Future migrations should add new `Cypher*` modules beside the existing runtime modules instead of inventing a different architecture each time.
 
 ## Key architectural message
 

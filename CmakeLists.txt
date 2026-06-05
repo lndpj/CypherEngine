@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(REAP
+project(CypherEngine
     VERSION 0.1.0
-    DESCRIPTION "REAP game engine and gameplay sandbox"
+    DESCRIPTION "CypherEngine custom engine and gameplay sandbox"
     LANGUAGES C CXX
 )
 
@@ -15,85 +15,85 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
-set(REAP_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
-set(REAP_SRC_DIR "${REAP_ROOT_DIR}/src")
-set(REAP_THIRDPARTY_DIR "${REAP_ROOT_DIR}/thirdparty")
+set(CYPHERENGINE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
+set(CYPHERENGINE_SRC_DIR "${CYPHERENGINE_ROOT_DIR}/src")
+set(CYPHERENGINE_THIRDPARTY_DIR "${CYPHERENGINE_ROOT_DIR}/thirdparty")
 
 # Optional dependencies: only enabled when the corresponding files exist.
-set(REAP_LINK_LIBS "")
+set(CYPHERENGINE_LINK_LIBS "")
 
-if (EXISTS "${REAP_THIRDPARTY_DIR}/glad/src/gl.c")
+if (EXISTS "${CYPHERENGINE_THIRDPARTY_DIR}/glad/src/gl.c")
     message(STATUS "Found vendored glad")
-    add_library(glad STATIC "${REAP_THIRDPARTY_DIR}/glad/src/gl.c")
-    target_include_directories(glad PUBLIC "${REAP_THIRDPARTY_DIR}/glad/include")
-    list(APPEND REAP_LINK_LIBS glad)
+    add_library(glad STATIC "${CYPHERENGINE_THIRDPARTY_DIR}/glad/src/gl.c")
+    target_include_directories(glad PUBLIC "${CYPHERENGINE_THIRDPARTY_DIR}/glad/include")
+    list(APPEND CYPHERENGINE_LINK_LIBS glad)
 else()
     message(STATUS "No vendored glad yet. Add thirdparty/glad before enabling modern OpenGL loading.")
 endif()
 
-if (EXISTS "${REAP_THIRDPARTY_DIR}/raylib/CMakeLists.txt")
+if (EXISTS "${CYPHERENGINE_THIRDPARTY_DIR}/raylib/CMakeLists.txt")
     message(STATUS "Found vendored raylib")
-    add_subdirectory(${REAP_THIRDPARTY_DIR}/raylib raylib_build)
-    list(APPEND REAP_LINK_LIBS raylib)
-elseif (EXISTS "${REAP_THIRDPARTY_DIR}/raylib/src")
+    add_subdirectory(${CYPHERENGINE_THIRDPARTY_DIR}/raylib raylib_build)
+    list(APPEND CYPHERENGINE_LINK_LIBS raylib)
+elseif (EXISTS "${CYPHERENGINE_THIRDPARTY_DIR}/raylib/src")
     message(STATUS "Found raylib tree but no CMakeLists.txt; skipping raylib add_subdirectory")
 else()
     message(STATUS "No vendored raylib yet. Add thirdparty/raylib before enabling rendering.")
 endif()
 
-if (EXISTS "${REAP_THIRDPARTY_DIR}/flecs/include/flecs.h")
+if (EXISTS "${CYPHERENGINE_THIRDPARTY_DIR}/flecs/include/flecs.h")
     add_library(flecs INTERFACE)
-    target_include_directories(flecs INTERFACE "${REAP_THIRDPARTY_DIR}/flecs/include")
-    list(APPEND REAP_LINK_LIBS flecs)
+    target_include_directories(flecs INTERFACE "${CYPHERENGINE_THIRDPARTY_DIR}/flecs/include")
+    list(APPEND CYPHERENGINE_LINK_LIBS flecs)
 else()
     message(STATUS "No vendored Flecs headers yet. Add thirdparty/flecs/include/flecs.h.")
 endif()
 
-if (EXISTS "${REAP_THIRDPARTY_DIR}/glm/glm/glm.hpp")
+if (EXISTS "${CYPHERENGINE_THIRDPARTY_DIR}/glm/glm/glm.hpp")
     add_library(glm INTERFACE)
-    target_include_directories(glm INTERFACE "${REAP_THIRDPARTY_DIR}/glm")
-    list(APPEND REAP_LINK_LIBS glm)
+    target_include_directories(glm INTERFACE "${CYPHERENGINE_THIRDPARTY_DIR}/glm")
+    list(APPEND CYPHERENGINE_LINK_LIBS glm)
 else()
     message(STATUS "No vendored GLM headers yet. Add thirdparty/glm/glm/glm.hpp.")
 endif()
 
 find_package(SDL3 REQUIRED CONFIG REQUIRED COMPONENTS SDL3)
-list(APPEND REAP_LINK_LIBS SDL3::SDL3)
+list(APPEND CYPHERENGINE_LINK_LIBS SDL3::SDL3)
 
-file(GLOB_RECURSE REAP_GAME_SOURCES CONFIGURE_DEPENDS
-    "${REAP_SRC_DIR}/*.cpp"
-    "${REAP_SRC_DIR}/*.cxx"
-    "${REAP_SRC_DIR}/*.cc"
+file(GLOB_RECURSE CYPHERENGINE_SOURCES CONFIGURE_DEPENDS
+    "${CYPHERENGINE_SRC_DIR}/*.cpp"
+    "${CYPHERENGINE_SRC_DIR}/*.cxx"
+    "${CYPHERENGINE_SRC_DIR}/*.cc"
 )
 
 # Adding cross platform compatibility for platform independence.
-list(FILTER REAP_GAME_SOURCES EXCLUDE REGEX ".*/rengine/sys/sys_platform_(macos|linux|win32)\\.cpp$")
+list(FILTER CYPHERENGINE_SOURCES EXCLUDE REGEX ".*/CypherEngine/CypherSystem/CypherSystem_Platform(MacOS|Linux|Win32)\\.cpp$")
 
 if(APPLE)
-    list(APPEND REAP_GAME_SOURCES "${REAP_SRC_DIR}/rengine/sys/sys_platform_macos.cpp")
+    list(APPEND CYPHERENGINE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformMacOS.cpp")
 elseif(WIN32)
-    list(APPEND REAP_GAME_SOURCES "${REAP_SRC_DIR}/rengine/sys/sys_platform_win32.cpp")
+    list(APPEND CYPHERENGINE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformWin32.cpp")
 elseif(UNIX)
-    list(APPEND REAP_GAME_SOURCES "${REAP_SRC_DIR}/rengine/sys/sys_platform_linux.cpp")
+    list(APPEND CYPHERENGINE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformLinux.cpp")
 else()
-    message(FATAL_ERROR "Unsupported platform for REAP sys platform backend")
+    message(FATAL_ERROR "Unsupported platform for CypherEngine system platform backend")
 endif()
 
 
-if (REAP_GAME_SOURCES)
-    add_executable(reap ${REAP_GAME_SOURCES})
-    target_include_directories(reap PRIVATE "${REAP_SRC_DIR}")
-    if (REAP_LINK_LIBS)
-        target_link_libraries(reap PRIVATE ${REAP_LINK_LIBS})
+if (CYPHERENGINE_SOURCES)
+    add_executable(cypherengine ${CYPHERENGINE_SOURCES})
+    target_include_directories(cypherengine PRIVATE "${CYPHERENGINE_SRC_DIR}")
+    if (CYPHERENGINE_LINK_LIBS)
+        target_link_libraries(cypherengine PRIVATE ${CYPHERENGINE_LINK_LIBS})
     endif()
 else()
     message(STATUS "src/ has no C++ sources yet. Add your first entry file at src/main.cpp to enable executable target.")
 endif()
 
-if (EXISTS "${REAP_ROOT_DIR}/tools/CMakeLists.txt")
-    option(REAP_BUILD_TOOLS "Build tool targets" OFF)
-    if (REAP_BUILD_TOOLS)
-        add_subdirectory("${REAP_ROOT_DIR}/tools")
+if (EXISTS "${CYPHERENGINE_ROOT_DIR}/tools/CMakeLists.txt")
+    option(CYPHERENGINE_BUILD_TOOLS "Build tool targets" OFF)
+    if (CYPHERENGINE_BUILD_TOOLS)
+        add_subdirectory("${CYPHERENGINE_ROOT_DIR}/tools")
     endif()
 else()
     message(STATUS "No tools/CMakeLists.txt yet. Tool targets will be added in a later phase.")

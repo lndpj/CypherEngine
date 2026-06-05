@@ -1,6 +1,6 @@
 /*======================================================================
    File: main.cpp
-   Project: REAP
+   Project: CypherEngine
    Author: ksiric <email@example.com>
    Created: 2026-04-18 23:12:08
    Last Modified by: ksiric
@@ -14,11 +14,11 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "rengine/host/host_main.h"
+#include "CypherEngine/CypherHost/CypherHost.h"
 
 #include <cstdlib>     // EXIT_SUCCESS / EXIT_FAILURE.
 
-namespace rr = reap::rengine;
+namespace rr = cypher::engine;
 namespace host = rr::host;
 
 /*
@@ -31,22 +31,22 @@ and shutdown ordering.
 */
 int main(int argc, char const *argv[])
 {   
-    host::host_state_t  host_state{};
+    host::cypher_host_state_t  host_state{};
     host_state.config.argc = argc;
     host_state.config.argv = argv;
     
-    if ( host::Host_Init( host_state ) != host::host_error_code_t::OK ) {
+    if ( host::CypherHost_Init( host_state ) != host::cypher_host_error_code_t::OK ) {
         return ( EXIT_FAILURE );
     }
     
-    while( host::Host_IsRunning( host_state ) ) {
-        host::Host_BeginFrame( host_state );
-        host::Host_Update( host_state );
-        host::Host_Render( host_state );
-        host::Host_EndFrame( host_state );
+    while( host::CypherHost_IsRunning( host_state ) ) {
+        host::CypherHost_BeginFrame( host_state );
+        host::CypherHost_Update( host_state );
+        host::CypherHost_Render( host_state );
+        host::CypherHost_EndFrame( host_state );
     }
     
-    host::Host_Shutdown( host_state );
+    host::CypherHost_Shutdown( host_state );
     
     return ( EXIT_SUCCESS );
 }

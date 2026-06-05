@@ -19,8 +19,8 @@ def main() -> int:
     native_entries = json.loads(native_db_path.read_text())
 
     platform_files = {
-        str((src_dir / "rengine/sys/sys_platform_win32.cpp").resolve()),
-        str((src_dir / "rengine/sys/sys_platform_linux.cpp").resolve()),
+        str((src_dir / "CypherEngine/CypherSystem/CypherSystem_PlatformWin32.cpp").resolve()),
+        str((src_dir / "CypherEngine/CypherSystem/CypherSystem_PlatformLinux.cpp").resolve()),
     }
 
     mingw_cxx = (
@@ -53,8 +53,8 @@ def main() -> int:
 
     project_include = f"-I{src_dir}"
 
-    win32_file = str((src_dir / "rengine/sys/sys_platform_win32.cpp").resolve())
-    linux_file = str((src_dir / "rengine/sys/sys_platform_linux.cpp").resolve())
+    win32_file = str((src_dir / "CypherEngine/CypherSystem/CypherSystem_PlatformWin32.cpp").resolve())
+    linux_file = str((src_dir / "CypherEngine/CypherSystem/CypherSystem_PlatformLinux.cpp").resolve())
 
     entries.append({
         "directory": str(root_dir),

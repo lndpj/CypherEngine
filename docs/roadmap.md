@@ -1,8 +1,8 @@
-# REAP Roadmap
+# CypherEngine Roadmap
 
 This roadmap is the high-level summary version of [development_phases.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/development_phases.md).
 
-`Fuse` is the engine runtime inside the REAP project.
+`CypherEngine` is the engine runtime inside the CypherEngine project.
 
 ## The order that matters
 

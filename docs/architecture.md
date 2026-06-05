@@ -1,12 +1,12 @@
-# REAP Architecture
+# CypherEngine Architecture
 
-REAP is a layered project made of three connected bodies of work:
+CypherEngine is a layered project made of three connected bodies of work:
 
-- `Fuse` engine runtime
+- `CypherEngine` engine runtime
 - game logic
 - tools and offline pipeline
 
-The long-term structure follows Quake-style separation, adapted to REAP and modern C++.
+The long-term structure follows Quake/idTech-style separation, with CryEngine-style subsystem naming adapted to modern C++.
 
 ## Top-level architecture
 
@@ -14,23 +14,29 @@ The long-term structure follows Quake-style separation, adapted to REAP and mode
 
 The native engine runtime.
 
-Target modules:
+Current and target modules:
 
-- `common`
-- `renderer`
-- `server`
-- `client`
-- `network`
-- `bsp`
-- `physics`
-- `audio`
-- `ecs`
-- `vm`
-- `platform`
+- `CypherCommon`
+- `CypherSystem`
+- `CypherFileSystem`
+- `CypherLog`
+- `CypherCommand`
+- `CypherCVar`
+- `CypherConfig`
+- `CypherHost`
+- `CypherMath`
+- `CypherRender`
+- `CypherClient`
+- `CypherServer`
+- `CypherNetwork`
+- `CypherPhysics`
+- `CypherAudio`
+- `CypherECS`
+- `CypherScript`
 
 ### `rvm/`
 
-Standalone REAP Virtual Machine project.
+Standalone Cypher VM project.
 
 Owns:
 
@@ -43,7 +49,7 @@ Owns:
 
 Gameplay scripts intended to run on the VM.
 
-This is where high-level REAP gameplay should live once the VM path is real:
+This is where high-level gameplay should live once the VM path is real:
 
 - players
 - waves
@@ -65,17 +71,18 @@ Owns:
 
 ## Boundary rules
 
-- `common` is shared foundation
-- `renderer` owns GPU-facing code
-- `server` owns authoritative simulation
-- `client` owns local input/prediction/presentation bridge
-- `network` owns transport and serialization primitives
-- `bsp` owns map loading and collision/visibility queries
-- `physics` owns movement and shared simulation code
-- `audio` owns sound runtime
-- `ecs` owns entity/component integration layer
-- `vm` is the bridge between engine runtime and `rvm`
-- `platform` owns OS-facing behavior and the SDL seam
+- `CypherCommon` is shared foundation
+- `CypherRender` owns GPU-facing code
+- `CypherSystem` owns OS/window/time/platform-facing behavior and the SDL seam
+- `CypherFileSystem` owns path resolution, mounts, and file I/O
+- `CypherHost` owns top-level engine orchestration
+- `CypherClient` owns local input/prediction/presentation bridge
+- `CypherServer` owns authoritative simulation
+- `CypherNetwork` owns transport and serialization primitives
+- `CypherPhysics` owns movement and shared simulation code
+- `CypherAudio` owns sound runtime
+- `CypherECS` owns entity/component integration layer
+- `CypherScript` is the bridge between engine runtime and `rvm`
 
 ## Current implementation reality
 
@@ -83,10 +90,10 @@ The current repository is much earlier than the target structure.
 
 Today:
 
-- code is still concentrated in `src/rengine/`
-- the project is still in bootstrap/foundation phase
-- command/cvar/cfg subsystems already exist before the visible runtime backend does
-- the next major missing seam is the filesystem layer
+- code is concentrated in `src/CypherEngine/`
+- the project has core runtime, SDL3 windowing, OpenGL bootstrap, math, shader, mesh, and camera foundations
+- command/cvar/cfg/filesystem subsystems already exist as early engine services
+- the next major missing seam is input, material/texture runtime, memory/resource ownership, and real world content
 
 That is acceptable for now, as long as new work follows the documented target structure from this point forward.
 

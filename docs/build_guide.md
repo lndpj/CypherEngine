@@ -4,7 +4,7 @@
 
 The repository currently builds through CMake.
 
-`Fuse` currently builds as part of the `reap` executable target.
+`CypherEngine` currently builds as the `cypherengine` executable target.
 
 ```bash
 cmake -S . -B build
@@ -14,7 +14,7 @@ cmake --build build
 Current executable:
 
 ```bash
-./build/bin/reap
+./build/bin/cypherengine
 ```
 
 ## Planned convenience layer

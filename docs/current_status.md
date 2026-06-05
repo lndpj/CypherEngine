@@ -1,17 +1,18 @@
-# REAP Current Status
+# CypherEngine Current Status
 
 ## Project state
 
-REAP is still in early foundation stage, but the runtime stack is now more real than the old docs implied.
+CypherEngine is still in early foundation stage, but the runtime stack is now more real than the old docs implied.
 
-`Fuse` is the engine runtime inside the REAP project.
+`CypherEngine` is the native engine runtime currently living in this repository.
 
 Current code snapshot:
 
-- roughly `3.2k` lines of source under `src/`
-- early runtime modules live under `src/rengine/`
+- roughly `9.1k` lines of engine source under `src/CypherEngine/`
+- early runtime modules live under `src/CypherEngine/`
 - build succeeds through CMake
-- the executable runs through the host/frame loop scaffold
+- the executable target is `cypherengine`
+- the runtime can create a window, initialize OpenGL, load shaders, and submit a basic mesh path
 
 ## What exists now
 
@@ -20,7 +21,11 @@ Current code snapshot:
 - logging runtime
 - early platform runtime helpers
 - host lifecycle scaffold
-- renderer lifecycle contract
+- SDL3 window creation and event polling
+- filesystem mount/read path
+- OpenGL context bootstrap through GLAD
+- renderer lifecycle, shader, mesh, camera, and draw-list path
+- vector, matrix, quaternion, bounds, ray, plane, and frustum math
 - command system backend
 - cvar system backend
 - cfg loading/execution backend
@@ -28,39 +33,51 @@ Current code snapshot:
 
 ## What is done-for-now
 
-- `rcommon`
+- `CypherCommon`
   - type aliases
   - numeric constants
   - sentinel values
   - packed subsystem error representation
   - formatted print/error helpers
-- `log`
+- `CypherLog`
   - runtime state
   - level/channel filtering
   - console/file output path
-- `platform`
+- `CypherSystem`
   - platform/compiler detection
-  - basename helper
-  - monotonic time helper
-  - local-time helper
-- `host`
+  - path construction
+  - monotonic time/sleep/local-time helper
+  - SDL3 window creation and event polling
+- `CypherHost`
   - startup/shutdown ownership
   - frame begin/update/render/end sequencing
-- `render`
+- `CypherFileSystem`
+  - mount table
+  - loose-file read/write path
+  - read-entire-file helper for shaders/assets
+- `CypherRender`
   - init/shutdown state
   - in-frame state validation
   - error-coded lifecycle contract
-- `cmd`
+  - GL context bootstrap
+  - shader registry/loading
+  - mesh upload/draw path
+  - camera matrices
+  - draw-list submission
+- `CypherMath`
+  - vector/matrix/quaternion foundations
+  - bounds/ray/plane/frustum geometry helpers
+- `CypherCommand`
   - command registry
   - duplicate prevention
   - fixed argument parsing
   - callback execution
-- `cvar`
+- `CypherCVar`
   - fixed registry
   - typed cached values
   - flags
   - set/find/get path
-- `cfg`
+- `CypherConfig`
   - file loading
   - line execution
   - `exec`
@@ -70,31 +87,30 @@ Current code snapshot:
 
 ## Active milestone
 
-`M2 - Filesystem and SDL3/OpenGL Runtime Bootstrap`
+`M4 - Local 3D Runtime Foundation`
 
 This milestone is complete only when:
 
-- the engine has a real virtual filesystem layer
-- cfg loading can go through that filesystem layer
-- the platform layer boots through `SDL3`
-- an `OpenGL` context can be created cleanly
-- the renderer lifecycle is backed by a visible runtime instead of only state checks
+- the draw-list path is clean enough to survive real objects
+- camera movement is driven by a real input subsystem
+- shader uniforms and renderer state are stable enough for textured meshes
+- resource lifetime has a clear memory ownership plan
+- the test triangle path is replaced by reusable renderer-facing objects
 
 ## Immediate next tasks
 
-1. add `fs` / virtual filesystem as the next foundational subsystem
-2. route cfg file loading through the filesystem API
-3. migrate the runtime bootstrap direction to `SDL3`
-4. bring up an `OpenGL` context behind the renderer/platform seam
-5. keep docs and API references aligned as the runtime grows
+1. clean renderer draw submission and remove remaining temporary test assumptions
+2. add the input subsystem and fly-camera controller
+3. add material/texture runtime scaffolding
+4. introduce memory arena/resource lifetime design
+5. keep docs and API references aligned as CypherEngine grows
 
 ## Explicitly not active yet
 
-- real BSP runtime implementation
+- real BSP/custom map runtime implementation
 - client/server networking
 - gameplay loop
-- `rmdl` runtime/tooling
-- `rpk` packaging
+- custom model/material/archive tooling
 - custom editor tooling
 - VM/game-script runtime
 

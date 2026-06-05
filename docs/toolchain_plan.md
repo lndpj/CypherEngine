@@ -1,4 +1,4 @@
-# REAP Toolchain Plan
+# CypherEngine Toolchain Plan
 
 REAP's toolchain should follow the runtime, not lead it.
 
@@ -23,7 +23,7 @@ Recommended order:
 3. use BSP for collision and visibility queries
 4. build debug inspection tools
 5. only then decide what editor-side tooling is truly missing
-6. if needed, build a small purpose-built editor for Fuse instead of chasing a giant all-purpose editor first
+6. if needed, build a small purpose-built editor for CypherEngine instead of chasing a giant all-purpose editor first
 
 Important rule:
 

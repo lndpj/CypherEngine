@@ -1,6 +1,6 @@
-# REAP Changelog
+# CypherEngine Changelog
 
-All notable changes to REAP and the Fuse Engine runtime are tracked here.
+All notable changes to REAP and the CypherEngine runtime are tracked here.
 
 ## [0.1.0] - 2026-06-02
 
@@ -68,7 +68,7 @@ All notable changes to REAP and the Fuse Engine runtime are tracked here.
 ## [0.1.0] - 2026-04-27
 
 ### Added
-- Added game/engine identity direction for `REAP`, `Fuse Engine`, internal `rEngine`, and `Spark Software`.
+- Added game/engine identity direction for `REAP`, `CypherEngine`, internal `CypherEngine`, and `Spark Software`.
 - Started shaping the proper `sys_` platform layer around startup descriptors, platform/compiler identity, paths, time, sleep, and local-time services.
 
 ### Changed
@@ -94,11 +94,11 @@ All notable changes to REAP and the Fuse Engine runtime are tracked here.
 - Added VFS error/type/API headers for the initial OS-file backend.
 - Added docs describing the project direction:
   - `REAP` as the game/project
-  - `Fuse` as the native engine runtime
+  - `CypherEngine` as the native engine runtime
   - `SDL3`, `OpenGL`, `Quake III BSP`, `rmdl`, and `rpk` as the long-term technical path.
 - Added API documentation anchors:
-  - `docs/FUSE_API_REFERENCE.md`
-  - `docs/FUSE_API_IMPLEMENTATION.md`
+  - `docs/CYPHERENGINE_API_REFERENCE.md`
+  - `docs/CYPHERENGINE_API_IMPLEMENTATION.md`
 
 ### Changed
 - Completed the cfg system enough to load files and dispatch parsed lines through `cfg_execute_line`.
@@ -176,13 +176,13 @@ All notable changes to REAP and the Fuse Engine runtime are tracked here.
 - Added the first changelog/documentation pass.
 
 ### Changed
-- Moved foundation code into the `rcommon` / `com_` naming path.
+- Moved foundation code into the `common` / `com_` naming path.
 - Continued aligning the project around a subsystem-first architecture.
 
 ## [0.1.0] - 2026-04-19
 
 ### Added
-- Added early `rEngine` runtime fundamentals.
+- Added early `CypherEngine` runtime fundamentals.
 - Added host/app lifecycle scaffolding.
 - Started the logging subsystem:
   - log types
@@ -193,7 +193,7 @@ All notable changes to REAP and the Fuse Engine runtime are tracked here.
 ## [0.1.0] - 2026-04-18
 
 ### Added
-- Created the REAP repository foundation.
+- Created the CypherEngine repository foundation.
 - Added initial CMake-based project scaffold.
 - Added `src` and `thirdparty` layout.
 - Added initial engine foundation header and baseline docs/process files.

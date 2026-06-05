@@ -1,8 +1,8 @@
-# REAP Documentation Hub
+# CypherEngine Documentation Hub
 
 This is the navigation root for REAP.
 
-`REAP` is the overall project. `Fuse` is the engine runtime being built inside it.
+`REAP` is the overall project. `CypherEngine` is the engine runtime being built inside it.
 
 Read these in order when resuming work:
 
@@ -16,8 +16,8 @@ Read these in order when resuming work:
 
 API docs:
 
-- [FUSE_API_REFERENCE.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/FUSE_API_REFERENCE.md)
-- [FUSE_API_IMPLEMENTATION.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/FUSE_API_IMPLEMENTATION.md)
+- [CYPHERENGINE_API_REFERENCE.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/CYPHERENGINE_API_REFERENCE.md)
+- [CYPHERENGINE_API_IMPLEMENTATION.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/CYPHERENGINE_API_IMPLEMENTATION.md)
 
 Reference docs:
 
@@ -51,7 +51,7 @@ Project memory:
   - what each module is responsible for
 - `toolchain_plan`
   - how maps, models, archives, scripts, and tools should be introduced
-- `FUSE_API_REFERENCE`
+- `CYPHERENGINE_API_REFERENCE`
   - the public engine-facing API surface that currently exists
-- `FUSE_API_IMPLEMENTATION`
+- `CYPHERENGINE_API_IMPLEMENTATION`
   - how the current API is backed internally and where it still needs work

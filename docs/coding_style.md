@@ -1,4 +1,4 @@
-# REAP Coding Style
+# CypherEngine Coding Style
 
 REAP is written in C++20, but the code style should stay close to disciplined C-style engine code.
 

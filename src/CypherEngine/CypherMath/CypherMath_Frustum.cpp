@@ -1,0 +1,132 @@
+/*======================================================================
+   File: math_frustum.cpp
+   Project: rengine
+   Author: ksiric <email@example.com>
+   Created: 2026-05-26 19:51:53
+   Last Modified by: ksiric
+   Last Modified: 2026-06-02 21:53:33
+   ---------------------------------------------------------------------
+   Description:
+       
+   ---------------------------------------------------------------------
+   License: 
+   Company: 
+   Version: 0.1.0
+ ======================================================================
+                                                                       */
+#include "CypherEngine/CypherMath/CypherMath_Bounds.h"
+#include "CypherEngine/CypherMath/CypherMath_Plane.h"
+#include "CypherEngine/CypherMath/CypherMath_Types.h"
+#include "CypherEngine/CypherMath/CypherMath_Frustum.h"
+#include "CypherEngine/CypherMath/CypherMath_Mat.h"
+#include "CypherEngine/CypherMath/CypherMath_Vec.h"
+
+#include <cmath>            // sqrt
+
+namespace cypher::engine::math
+{
+
+static plane_t CypherMath_FrustumMakePlane( const common::f32 a, const common::f32 b, const common::f32 c, const common::f32 d ) 
+{
+    // a, b and c are part of the normal vector, d is just the offset, position of the plane.
+    const common::f32 length = std::sqrt( a * a + b * b + c * c );
+    
+    if ( length <= MATH_EPSILON_F ) {
+        return plane_t{};
+    }
+    
+    // for normalization process
+    const common::f32 inv_length = 1.0f / length;
+    // negative value is used because of the way the engine is written itself.
+    plane_t result = { vec3_t { a * inv_length, b * inv_length, c * inv_length }, -d * inv_length };
+    
+    return result;
+}
+
+frustum_t CypherMath_FrustumFromProjectionView( const mat4_t &projection_view )
+{
+    frustum_t result{};
+    // GRIBB-HARTMANM METHOD for extrating all the planes effectively out of the P-V matrix.   
+    
+    result.planes[FRUSTUM_PLANE_LEFT] = CypherMath_FrustumMakePlane(
+        CypherMath_Mat4Get( projection_view, 0u, 3u ) + CypherMath_Mat4Get( projection_view, 0u, 0u ),
+        CypherMath_Mat4Get( projection_view, 1u, 3u ) + CypherMath_Mat4Get( projection_view, 1u, 0u ),
+        CypherMath_Mat4Get( projection_view, 2u, 3u ) + CypherMath_Mat4Get( projection_view, 2u, 0u ),
+        CypherMath_Mat4Get( projection_view, 3u, 3u ) + CypherMath_Mat4Get( projection_view, 3u, 0u )
+    );
+
+    result.planes[FRUSTUM_PLANE_RIGHT] = CypherMath_FrustumMakePlane(
+        CypherMath_Mat4Get( projection_view, 0u, 3u ) - CypherMath_Mat4Get( projection_view, 0u, 0u ),
+        CypherMath_Mat4Get( projection_view, 1u, 3u ) - CypherMath_Mat4Get( projection_view, 1u, 0u ),
+        CypherMath_Mat4Get( projection_view, 2u, 3u ) - CypherMath_Mat4Get( projection_view, 2u, 0u ),
+        CypherMath_Mat4Get( projection_view, 3u, 3u ) - CypherMath_Mat4Get( projection_view, 3u, 0u )
+    );
+
+    result.planes[FRUSTUM_PLANE_BOTTOM] = CypherMath_FrustumMakePlane(
+        CypherMath_Mat4Get( projection_view, 0u, 3u ) + CypherMath_Mat4Get( projection_view, 0u, 1u ),
+        CypherMath_Mat4Get( projection_view, 1u, 3u ) + CypherMath_Mat4Get( projection_view, 1u, 1u ),
+        CypherMath_Mat4Get( projection_view, 2u, 3u ) + CypherMath_Mat4Get( projection_view, 2u, 1u ),
+        CypherMath_Mat4Get( projection_view, 3u, 3u ) + CypherMath_Mat4Get( projection_view, 3u, 1u )
+    );
+
+    result.planes[FRUSTUM_PLANE_TOP] = CypherMath_FrustumMakePlane(
+        CypherMath_Mat4Get( projection_view, 0u, 3u ) - CypherMath_Mat4Get( projection_view, 0u, 1u ),
+        CypherMath_Mat4Get( projection_view, 1u, 3u ) - CypherMath_Mat4Get( projection_view, 1u, 1u ),
+        CypherMath_Mat4Get( projection_view, 2u, 3u ) - CypherMath_Mat4Get( projection_view, 2u, 1u ),
+        CypherMath_Mat4Get( projection_view, 3u, 3u ) - CypherMath_Mat4Get( projection_view, 3u, 1u )
+    );
+
+    result.planes[FRUSTUM_PLANE_NEAR] = CypherMath_FrustumMakePlane(
+        CypherMath_Mat4Get( projection_view, 0u, 3u ) + CypherMath_Mat4Get( projection_view, 0u, 2u ),
+        CypherMath_Mat4Get( projection_view, 1u, 3u ) + CypherMath_Mat4Get( projection_view, 1u, 2u ),
+        CypherMath_Mat4Get( projection_view, 2u, 3u ) + CypherMath_Mat4Get( projection_view, 2u, 2u ),
+        CypherMath_Mat4Get( projection_view, 3u, 3u ) + CypherMath_Mat4Get( projection_view, 3u, 2u )
+    );
+
+    result.planes[FRUSTUM_PLANE_FAR] = CypherMath_FrustumMakePlane(
+        CypherMath_Mat4Get( projection_view, 0u, 3u ) - CypherMath_Mat4Get( projection_view, 0u, 2u ),
+        CypherMath_Mat4Get( projection_view, 1u, 3u ) - CypherMath_Mat4Get( projection_view, 1u, 2u ),
+        CypherMath_Mat4Get( projection_view, 2u, 3u ) - CypherMath_Mat4Get( projection_view, 2u, 2u ),
+        CypherMath_Mat4Get( projection_view, 3u, 3u ) - CypherMath_Mat4Get( projection_view, 3u, 2u )
+    );    
+    
+    return result;
+}
+
+/*
+ * ===============
+ * HELPER FRUSTUM FUNCS
+ * ================
+ */
+bool CypherMath_FrustumContainsPoint( const frustum_t &frustum, const vec3_t &point )
+{
+    for( common::u32 i = 0u; i < FRUSTUM_PLANE_COUNT; ++i ) {
+        if ( CypherMath_PlaneDistance( frustum.planes[i], point ) < -MATH_EPSILON_F ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool CypherMath_FrustumIntersectsBounds( const frustum_t &frustum, const bounds_t &bounds )
+{
+    // finding the center of the boundings
+    const vec3_t center = CypherMath_BoundsCenter( bounds );
+    const vec3_t size = CypherMath_BoundsSize( bounds );
+    const vec3_t halfs = CypherMath_Vec3Scale( size, 0.5f );
+    
+    for( common::u32 i = 0; i < FRUSTUM_PLANE_COUNT; ++i ) {
+        const plane_t &plane = frustum.planes[i];
+        
+        const common::f32 distance = CypherMath_PlaneDistance( plane, center );
+        
+        const common::f32 radius = halfs.x * std::fabs( plane.normal.x ) + halfs.y * std::fabs( plane.normal.y ) + halfs.z * std::fabs( plane.normal.z );
+        
+        if ( distance < -radius ) {
+            return false;
+        }        
+    } 
+    return true;
+}
+    
+}       // namespace cypher::engine::math

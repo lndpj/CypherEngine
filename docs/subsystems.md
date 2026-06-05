@@ -1,8 +1,8 @@
-# REAP Subsystems
+# CypherEngine Subsystems
 
-This file defines what the major REAP modules are supposed to do.
+This file defines what the major CypherEngine modules are supposed to do.
 
-## `common`
+## `CypherCommon`
 
 Shared engine foundation used by both client and server style code.
 
@@ -22,7 +22,7 @@ Expected contents:
 
 This is the layer everything else stands on.
 
-## `renderer`
+## `CypherRender`
 
 Owns:
 
@@ -42,7 +42,7 @@ Rule:
 - the rest of the engine should not call `OpenGL` directly
 - the renderer should use platform-created contexts, not leak platform APIs outward
 
-## `server`
+## `CypherServer`
 
 Owns:
 
@@ -53,7 +53,7 @@ Owns:
 - sending world state
 - game VM bridge on the authoritative side
 
-## `client`
+## `CypherClient`
 
 Owns:
 
@@ -67,7 +67,7 @@ Owns:
 - console UI
 - menus
 
-## `network`
+## `CypherNetwork`
 
 Owns:
 
@@ -78,18 +78,18 @@ Owns:
 
 Both client and server depend on this layer.
 
-## `bsp`
+## `CypherMap`
 
 Owns:
 
-- `Quake III BSP` loading
-- BSP format definitions
+- BSP/custom map loading
+- map format definitions
 - traceline / tracebox
 - PVS lookup
 - entity lump parsing
 - collision against brush geometry
 
-## `physics`
+## `CypherPhysics`
 
 Owns:
 
@@ -99,7 +99,7 @@ Owns:
 - air movement
 - shared movement code used by both prediction and authoritative simulation
 
-## `audio`
+## `CypherAudio`
 
 Owns:
 
@@ -109,7 +109,7 @@ Owns:
 - spatial sound
 - music playback
 
-## `ecs`
+## `CypherECS`
 
 Owns:
 
@@ -120,7 +120,7 @@ Owns:
 
 This is the replacement for a monolithic entity array.
 
-## `vm`
+## `CypherScript`
 
 Owns:
 
@@ -128,7 +128,7 @@ Owns:
 - trap bridge between VM and native engine code
 - engine-side debugging of VM state
 
-## `platform`
+## `CypherSystem`
 
 Owns:
 
@@ -177,8 +177,8 @@ Owns gameplay logic intended to run on the VM:
 
 Owns offline content pipeline:
 
-- `rmdl` compiler/decompiler
+- custom model compiler/decompiler
 - texture processing
-- `rpk` package creation and extraction
+- package/archive creation and extraction
 - small purpose-built editor tools
 - asset build orchestration
