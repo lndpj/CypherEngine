@@ -18,8 +18,9 @@ struct r_draw_item_t {
 };
 
 struct r_draw_list_t {
-    r_draw_item_t items[R_DRAW_ITEMS_LIST_MAX]{};
+    r_draw_item_t *items;
     rcommon::u32 item_count{ 0u };
+    rcommon::u32 item_capacity{ 0u };
 };
 
 r_error_code_t R_DrawItem( const r_draw_item_t &item, const r_camera_t &camera );

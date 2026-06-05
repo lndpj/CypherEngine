@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-06-04 20:27:26
    Last Modified by: ksiric
-   Last Modified: 2026-06-05 08:57:15
+   Last Modified: 2026-06-05 09:47:43
    ---------------------------------------------------------------------
    Description:
        
@@ -66,7 +66,7 @@ r_error_code_t R_DrawListSubmit( r_draw_list_t &draw_list, const r_draw_item_t &
         return r_error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    if ( draw_list.item_count >= R_DRAW_ITEMS_LIST_MAX ) {
+    if ( draw_list.item_capacity >= R_DRAW_ITEMS_LIST_MAX ) {
         return r_error_code_t::ERR_DRAW_LIST_FULL;
     }
 
