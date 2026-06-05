@@ -25,7 +25,8 @@ enum class domain_t : u16 {
 	COM_DOMAIN_GAME,
 	COM_DOMAIN_CMD,
 	COM_DOMAIN_CVAR,
-	COM_DOMAIN_CFG
+	COM_DOMAIN_CFG,
+    COM_DOMAIN_MEMORY
 };
 
 enum class error_code_t : com_u8 {
@@ -112,6 +113,8 @@ constexpr inline const char *CypherCommon_DomainName( const domain_t domain ) {
 		return "CMD";
 	case domain_t::COM_DOMAIN_CVAR:
 		return "CVAR";
+    case domain_t::COM_DOMAIN_MEMORY:
+        return "MEMORY";
 	default:
 		return "UNKNOWN";
 	}
