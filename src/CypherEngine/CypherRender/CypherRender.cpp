@@ -16,13 +16,9 @@
 																	   */
 #include "CypherEngine/CypherRender/CypherRender.h"
 #include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherMath/CypherMath_Mat.h"
-#include "CypherEngine/CypherMath/CypherMath_Quat.h"
 #include "CypherEngine/CypherRender/CypherRender_Camera.h"
 #include "CypherEngine/CypherRender/CypherRender_Draw.h"
 #include "CypherEngine/CypherRender/CypherRender_GL.h"
-
-#include <SDL3/SDL.h>      // Temporary renderer-side SDL visibility while backend matures.
 
 namespace cypher::engine::render {
 
@@ -38,7 +34,7 @@ render_runtime_state_t g_render_runtime_state{};
 ================
 CypherRender_Init
 
-Validates host/window config, starts the GL backend and loads core shaders.
+Validates host/window config, starts the GL backend and initializes renderer state.
 ================
 */
 error_code_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &window_config ) {
@@ -87,51 +83,6 @@ error_code_t CypherRender_Init( const sys::window_t &window, const host::window_
 
 	CypherRender_ShaderRegistryInit( g_render_runtime_state.shader_registry );
 
-	shader_t *basic_shader{ nullptr };
-
-	const auto shader_result = CypherRender_ShaderLoad( g_render_runtime_state.shader_registry, "basic_color", "data/shaders/gl/basic_color.vert",
-											 "data/shaders/gl/basic_color.frag",
-											 &basic_shader );
-    if ( shader_result != error_code_t::OK ) {
-        CypherRender_ShaderRegistryShutdown( g_render_runtime_state.shader_registry );
-        CypherRenderGL_Shutdown( g_render_runtime_state.gl_state );
-        g_render_runtime_state = {};
-        return shader_result;
-    }
-
-    g_render_runtime_state.basic_shader = basic_shader;
-    /*
-    Temporary pipeline test mesh. Kept here as reference while real 3D
-    transform/camera rendering is built.
-    */
-
-    const vertex_t vertices[] = {
-        { { -0.5f, -0.5f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-        { {  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-        { {  0.0f,  0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f } },
-    };
-
-    const common::u32 indices[] = {
-        0u, 1u, 2u
-    };
-
-    const auto mesh_result = CypherRender_MeshCreate(
-        vertices,
-        3u,
-        indices,
-        3u,
-        g_render_runtime_state.test_mesh );
-
-    if ( mesh_result != error_code_t::OK ) {
-        CypherRender_ShaderRegistryShutdown( g_render_runtime_state.shader_registry );
-        CypherRenderGL_Shutdown( g_render_runtime_state.gl_state );
-        g_render_runtime_state = {};
-        return mesh_result;
-    }
-    /*
-     * Camera initialization
-     */
-    
     camera_desc_t camera_desc{};
     camera_desc.camera_projection_mode = camera_projection_mode_t::PERSPECTIVE;
     camera_desc.aspect_ratio    = static_cast<common::f32>( window_config.viewport.width ) / 
@@ -157,7 +108,6 @@ void CypherRender_Shutdown() {
 		return;
 	}
 
-	CypherRender_MeshDestroy( g_render_runtime_state.test_mesh );
 	CypherRender_ShaderRegistryShutdown( g_render_runtime_state.shader_registry );
 	CypherRenderGL_Shutdown( g_render_runtime_state.gl_state );
 
@@ -199,7 +149,7 @@ error_code_t CypherRender_BeginFrame( const common::com_f32 delta_time_seconds )
 ================
 CypherRender_RenderFrame
 
-Submits scene rendering work for the active frame.
+Draws the items submitted by world/game/editor systems for the active frame.
 ================
 */
 error_code_t CypherRender_RenderFrame() {
@@ -210,32 +160,6 @@ error_code_t CypherRender_RenderFrame() {
 	if ( !g_render_runtime_state.in_frame ) {
 		return error_code_t::ERR_FRAME_NOT_ACTIVE;
 	}
-
-    /*
-    Temporary pipeline test draw. Disabled now that the RGB triangle path is
-    proven and we are moving toward real 3D transforms.
-    */
-
-    if ( g_render_runtime_state.basic_shader == nullptr ) {
-        return error_code_t::ERR_SHADER_BIND;
-    }
-    
-    // @NOTE(Karlo); Doign some testing to see if the camera and drawing all works just fine..
-    
-    draw_item_t test_draw_item{};
-
-    test_draw_item.model_matrix = math::CypherMath_Mat4TranslationRotationScale(
-        math::vec3_t{ 0.0f, 0.0f, -2.0f },
-        math::CypherMath_QuatIdentity(),
-        math::vec3_t{ 1.0f, 1.0f, 1.0f } );
-    test_draw_item.mesh = &g_render_runtime_state.test_mesh;
-    test_draw_item.shader = g_render_runtime_state.basic_shader;
-
-    const error_code_t submit_result = CypherRender_SubmitDrawItem( test_draw_item );
-    
-    if ( submit_result != error_code_t::OK ) {
-        return submit_result;
-    }
 
     return CypherRender_DrawListDraw(
         g_render_runtime_state.main_draw_list,

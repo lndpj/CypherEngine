@@ -33,8 +33,6 @@ struct render_runtime_state_t {
     
     gl_state_t gl_state{};
     shader_registry_t shader_registry{};
-    shader_t *basic_shader{ nullptr };
-    mesh_t test_mesh{};
 };
 
 /*
