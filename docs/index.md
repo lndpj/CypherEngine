@@ -1,35 +1,35 @@
 # CypherEngine Documentation Hub
 
-This is the navigation root for REAP.
+This is the navigation root for CypherEngine.
 
-`REAP` is the overall project. `CypherEngine` is the engine runtime being built inside it.
+`CypherEngine` is the engine runtime and tools foundation. `REAP` is the current game direction being explored on top of it.
 
 Read these in order when resuming work:
 
-1. [current_status.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/current_status.md)
-2. [development_phases.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/development_phases.md)
-3. [roadmap.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/roadmap.md)
-4. [project_structure.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/project_structure.md)
-5. [architecture.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/architecture.md)
-6. [subsystems.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/subsystems.md)
-7. [toolchain_plan.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/toolchain_plan.md)
+1. [current_status.md](current_status.md)
+2. [development_phases.md](development_phases.md)
+3. [roadmap.md](roadmap.md)
+4. [project_structure.md](project_structure.md)
+5. [architecture.md](architecture.md)
+6. [subsystems.md](subsystems.md)
+7. [toolchain_plan.md](toolchain_plan.md)
 
 API docs:
 
-- [CYPHERENGINE_API_REFERENCE.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/CYPHERENGINE_API_REFERENCE.md)
-- [CYPHERENGINE_API_IMPLEMENTATION.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/CYPHERENGINE_API_IMPLEMENTATION.md)
+- [CYPHERENGINE_API_REFERENCE.md](CYPHERENGINE_API_REFERENCE.md)
+- [CYPHERENGINE_API_IMPLEMENTATION.md](CYPHERENGINE_API_IMPLEMENTATION.md)
 
 Reference docs:
 
-- [build_guide.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/build_guide.md)
-- [coding_style.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/coding_style.md)
-- [reference_policy.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/reference_policy.md)
+- [build_guide.md](build_guide.md)
+- [coding_style.md](coding_style.md)
+- [reference_policy.md](reference_policy.md)
 
 Project memory:
 
-- [../CHANGELOG.md](/Users/karlosiric/Documents/MyProjects/REAP/CHANGELOG.md)
-- [devlog/2026-04.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/devlog/2026-04.md)
-- [adr/0001-coop-first-listen-server-architecture.md](/Users/karlosiric/Documents/MyProjects/REAP/docs/adr/0001-coop-first-listen-server-architecture.md)
+- [../CHANGELOG.md](../CHANGELOG.md)
+- [devlog/2026-04.md](devlog/2026-04.md)
+- [adr/0001-coop-first-listen-server-architecture.md](adr/0001-coop-first-listen-server-architecture.md)
 
 ## What each document is for
 

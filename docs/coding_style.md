@@ -1,6 +1,8 @@
 # CypherEngine Coding Style
 
-REAP is written in C++20, but the code style should stay close to disciplined C-style engine code.
+CypherEngine is written in C++20, but the code style should stay close to
+disciplined C-style engine code: explicit data, explicit ownership, and no
+hidden runtime cost.
 
 ## Style principles
 
@@ -13,28 +15,74 @@ REAP is written in C++20, but the code style should stay close to disciplined C-
 
 ## Naming direction
 
-REAP follows Quake-style subsystem prefixes adapted to this project.
+CypherEngine uses CryEngine-inspired module names with low-magic C-style
+runtime APIs.
 
-Examples:
+Module names use `Cypher*`:
 
-- `com_` for common
-- `r_` for renderer
-- `sv_` for server
-- `cl_` for client
-- `net_` for network
-- `bsp_` for BSP
-- `pm_` for physics/movement
-- `snd_` for audio
-- `ecs_` for ECS integration
-- `vm_` for engine/VM bridge
-- `sys_` for platform
-- `g_` for gameplay script modules
+- `CypherCommon` for shared contracts, primitive types, handles, and platform-independent helpers
+- `CypherSystem` for central engine startup, shutdown, frame orchestration, and subsystem ownership
+- `CypherPlatform` for OS, window, filesystem backend, dynamic library, and platform-specific glue
+- `CypherMemory` for arenas, pools, allocation tracking, and memory diagnostics
+- `CypherFileSystem` for mounted paths, virtual paths, file handles, and package/archive access
+- `CypherConsole` for developer console, commands, CVars, and runtime tweaking
+- `CypherResource` for asset handles, loading, unloading, dependencies, and hot reload
+- `CypherRender` for renderer front-end, draw lists, cameras, materials, meshes, and render state
+- `CypherWorld` for maps, level data, world objects, and scene ownership
+- `CypherEntity` for entity identity, components, and high-level object logic
+- `CypherInput` for keyboard, mouse, controller, and editor/game input routing
+- `CypherPhysics` for collision, traces, rigid bodies, movement, and physics scene integration
+- `CypherAudio` for sound devices, playback, mixers, and audio resources
+- `CypherAI` for navigation, perception, behavior, and tactical systems
+- `CypherAnimation` for skeletons, clips, blending, and animation state
+- `CypherNetwork` for sockets, packets, replication, prediction, and sessions
+- `CypherScript` for VM/native bridging and gameplay script integration
+- `CypherProfile` for profiling, counters, scopes, and performance diagnostics
+- `CypherEditor` for the Qt editor application and editor-only tools
+
+Implementation files keep the subsystem visible in the filename:
+
+- `CypherRender_Mesh.h`
+- `CypherRender_Shader.cpp`
+- `CypherMemory_Arena.h`
+- `CypherFileSystem_Types.h`
+
+Function names currently keep explicit subsystem prefixes because the project
+uses free functions rather than large class hierarchies:
+
+- `CypherMemory_ArenaAlloc`
+- `CypherRender_SubmitDrawItem`
+- `CypherFileSystem_ResolvePath`
+- `CypherPlatform_CreateWindow`
+
+Backend-specific functions include the backend name:
+
+- `CypherRenderGL_Init`
+- `CypherRenderGL_MeshCreate`
+- `CypherRenderVK_Init` later if Vulkan is added
 
 ## Type style
 
-- engine-facing types: `snake_case_t`
+- plain engine data: `snake_case_t`
+- creation/config descriptions: `*_desc_t`
+- runtime state structs: `*_state_t`
+- public opaque handles: `*_handle_t`
+- error enums: `error_code_t`
+- flag bitmasks: `*_flags_t` or `CYPHER_*_FLAG_*` constants
+- enum values: `OK`, `ERR_*`, or domain-specific `NAME_*` values
 - constants/macros: `SCREAMING_SNAKE_CASE`
-- file names: subsystem-prefixed and lowercase
+- file names: subsystem-prefixed PascalCase with an underscore for the feature file
+
+Future interface boundaries may use CryEngine-style `I*` names only when they
+represent stable editor/runtime/tool contracts:
+
+- `IRenderer`
+- `IFileSystem`
+- `IConsole`
+- `IResourceSystem`
+
+Do not add an `I*` interface just because a module exists. Add it when multiple
+systems need to depend on a stable contract without knowing the implementation.
 
 ## Documentation rule
 

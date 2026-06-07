@@ -12,27 +12,41 @@ CypherEngine/
 ├── Makefile or build wrapper
 ├── src/
 │   ├── CypherEngine/
+│   │   ├── CypherAI/
+│   │   ├── CypherAnimation/
+│   │   ├── CypherAudio/
 │   │   ├── CypherCommon/
+│   │   ├── CypherConsole/
 │   │   ├── CypherSystem/
+│   │   ├── CypherPlatform/
 │   │   ├── CypherFileSystem/
+│   │   ├── CypherResource/
 │   │   ├── CypherLog/
 │   │   ├── CypherCommand/
 │   │   ├── CypherCVar/
 │   │   ├── CypherConfig/
 │   │   ├── CypherHost/
+│   │   ├── CypherInput/
 │   │   ├── CypherMath/
-│   │   └── CypherRender/
+│   │   ├── CypherMemory/
+│   │   ├── CypherNetwork/
+│   │   ├── CypherPhysics/
+│   │   ├── CypherProfile/
+│   │   ├── CypherRender/
+│   │   ├── CypherScript/
+│   │   ├── CypherEntity/
+│   │   └── CypherWorld/
+│   ├── CypherEditor/
+│   ├── CypherTools/
 │   ├── CypherGame/
 │   ├── CypherClient/
 │   ├── CypherServer/
-│   ├── CypherNetwork/
-│   ├── CypherPhysics/
-│   ├── CypherAudio/
-│   ├── CypherECS/
-│   └── CypherScript/
 ├── rvm/
 ├── game/
 ├── tools/
+│   ├── CypherAssetCompiler/
+│   ├── CypherMapCompiler/
+│   └── CypherResourceCompiler/
 ├── data/
 ├── config/
 ├── thirdparty/
@@ -43,28 +57,64 @@ CypherEngine/
 
 - `src/CypherEngine`
   - native CypherEngine runtime
+- `src/CypherEngine/CypherCommon`
+  - shared engine contracts, primitive types, handles, errors, and public interface definitions
+- `src/CypherEngine/CypherSystem`
+  - central engine lifetime orchestration; long-term replacement for host-style bootstrapping
+- `src/CypherEngine/CypherPlatform`
+  - OS/window/platform backends; current platform code can migrate here later
+- `src/CypherEngine/CypherMemory`
+  - arenas, pools, memory stats, diagnostics, and allocator backends
+- `src/CypherEngine/CypherFileSystem`
+  - mounted paths, virtual paths, file handles, archive/package access
+- `src/CypherEngine/CypherConsole`
+  - developer console front-end over commands and CVars
+- `src/CypherEngine/CypherCommand`
+  - command registration and execution
+- `src/CypherEngine/CypherCVar`
+  - runtime variables, flags, and tweakable settings
+- `src/CypherEngine/CypherConfig`
+  - cfg file loading and command-line config execution
+- `src/CypherEngine/CypherResource`
+  - asset handles, loading, dependencies, reload, and lifecycle tracking
+- `src/CypherEngine/CypherRender`
+  - renderer front-end, cameras, draw lists, shaders, meshes, materials, backend dispatch
+- `src/CypherEngine/CypherWorld`
+  - map/world source data, object placement, scene ownership, level metadata
+- `src/CypherEngine/CypherEntity`
+  - entity identity, component ownership, and game-object runtime bridge
+- `src/CypherEngine/CypherInput`
+  - keyboard, mouse, controller, input contexts, editor/game routing
+- `src/CypherEngine/CypherPhysics`
+  - collision, traces, physics bodies, simulation, and movement helpers
+- `src/CypherEngine/CypherAudio`
+  - audio devices, mixers, sound resources, playback, and spatial audio
+- `src/CypherEngine/CypherAI`
+  - navigation, perception, behavior, and combat decision systems
+- `src/CypherEngine/CypherAnimation`
+  - skeletons, clips, blending, animation graphs, and pose evaluation
+- `src/CypherEngine/CypherNetwork`
+  - sockets, packets, channels, replication, prediction, and sessions
+- `src/CypherEngine/CypherScript`
+  - VM/native bridge and gameplay scripting integration
+- `src/CypherEngine/CypherProfile`
+  - profiling scopes, counters, telemetry, and memory/performance reporting
+- `src/CypherEditor`
+  - Qt editor application, viewports, inspectors, asset browser, world editing tools
+- `src/CypherTools`
+  - shared native code for command-line tools and offline processors
 - `src/CypherGame`
   - native game/runtime bridge code when needed
 - `src/CypherClient`
   - local player, prediction, presentation, HUD, input bridge
 - `src/CypherServer`
   - authoritative simulation and multiplayer/session ownership
-- `src/CypherNetwork`
-  - packet, channel, socket, serialization, and transport code
-- `src/CypherPhysics`
-  - movement, traces, collision, and simulation helpers
-- `src/CypherAudio`
-  - sound runtime and audio resource playback
-- `src/CypherECS`
-  - entity/component storage and query layer
-- `src/CypherScript`
-  - VM/script bridge inside the native runtime
 - `rvm`
   - standalone Cypher VM project
 - `game`
   - gameplay scripts intended to run on the VM
 - `tools`
-  - standalone asset and pipeline tools
+  - standalone asset and pipeline tools, resource compilers, map compilers, importers
 - `data`
   - runtime assets
 - `config`
@@ -79,6 +129,13 @@ CypherEngine/
 The current source already lives under `src/CypherEngine/`, with CryEngine-style subsystem folders such as `CypherRender`, `CypherSystem`, and `CypherFileSystem`.
 
 Future migrations should add new `Cypher*` modules beside the existing runtime modules instead of inventing a different architecture each time.
+
+`CypherSystem` currently contains some platform/window code. Long term,
+platform-specific code should migrate into `CypherPlatform`, leaving
+`CypherSystem` free to become the central engine orchestration layer.
+
+Empty future folders may exist before implementation. They are architectural
+parking spaces, not a promise that those systems are complete.
 
 ## Key architectural message
 

@@ -42,6 +42,8 @@ constexpr inline const char *CypherMemory_ErrorName( const error_code_t error )
         return "ERR_INVALID_CAPACITY";
     case error_code_t::ERR_INVALID_MARKER:
         return "ERR_INVALID_MARKER";
+    case error_code_t::ERR_BUFFER_TOO_SMALL:
+        return "ERR_BUFFER_TOO_SMALL";
     case error_code_t::ERR_EXTERNAL_BUFFER_REQUIRED:
         return "ERR_EXTERNAL_BUFFER_REQUIRED";
     default:

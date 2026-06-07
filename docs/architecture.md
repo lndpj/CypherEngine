@@ -6,7 +6,8 @@ CypherEngine is a layered project made of three connected bodies of work:
 - game logic
 - tools and offline pipeline
 
-The long-term structure follows Quake/idTech-style separation, with CryEngine-style subsystem naming adapted to modern C++.
+The long-term structure follows idTech/GoldSrc-style runtime discipline, with
+CryEngine-style subsystem naming adapted to modern C++.
 
 ## Top-level architecture
 
@@ -14,25 +15,40 @@ The long-term structure follows Quake/idTech-style separation, with CryEngine-st
 
 The native engine runtime.
 
-Current and target modules:
+Current and target runtime modules:
 
+- `CypherAI`
+- `CypherAnimation`
+- `CypherAudio`
 - `CypherCommon`
-- `CypherSystem`
-- `CypherFileSystem`
-- `CypherLog`
+- `CypherConsole`
 - `CypherCommand`
-- `CypherCVar`
 - `CypherConfig`
+- `CypherCVar`
+- `CypherEntity`
+- `CypherFileSystem`
 - `CypherHost`
+- `CypherInput`
+- `CypherLog`
 - `CypherMath`
-- `CypherRender`
-- `CypherClient`
-- `CypherServer`
+- `CypherMemory`
 - `CypherNetwork`
 - `CypherPhysics`
-- `CypherAudio`
-- `CypherECS`
+- `CypherPlatform`
+- `CypherProfile`
+- `CypherRender`
+- `CypherResource`
 - `CypherScript`
+- `CypherSystem`
+- `CypherWorld`
+
+Runtime-adjacent application and product modules:
+
+- `CypherEditor`
+- `CypherTools`
+- `CypherClient`
+- `CypherServer`
+- `CypherGame`
 
 ### `rvm/`
 
@@ -67,22 +83,31 @@ Owns:
 - model compiler/decompiler
 - texture pipeline
 - archive tooling
-- small engine-owned editor tools when justified
+- map/resource compilers
+- shared tool code
+- editor-related offline processing when justified
 
 ## Boundary rules
 
 - `CypherCommon` is shared foundation
+- `CypherMemory` owns allocator and memory lifetime policy
+- `CypherPlatform` owns OS/window/time/platform-facing behavior and the SDL seam
+- `CypherSystem` owns high-level engine orchestration
 - `CypherRender` owns GPU-facing code
-- `CypherSystem` owns OS/window/time/platform-facing behavior and the SDL seam
 - `CypherFileSystem` owns path resolution, mounts, and file I/O
 - `CypherHost` owns top-level engine orchestration
+- `CypherResource` owns asset lifetime and resource handles
+- `CypherWorld` owns level/world data
+- `CypherEntity` owns entity/component identity and lifetime glue
 - `CypherClient` owns local input/prediction/presentation bridge
 - `CypherServer` owns authoritative simulation
 - `CypherNetwork` owns transport and serialization primitives
 - `CypherPhysics` owns movement and shared simulation code
 - `CypherAudio` owns sound runtime
-- `CypherECS` owns entity/component integration layer
+- `CypherAI` owns navigation/perception/behavior support
+- `CypherAnimation` owns skeleton/clip/pose evaluation
 - `CypherScript` is the bridge between engine runtime and `rvm`
+- `CypherEditor` owns the Qt editor application and editor-only workflows
 
 ## Current implementation reality
 
@@ -93,7 +118,7 @@ Today:
 - code is concentrated in `src/CypherEngine/`
 - the project has core runtime, SDL3 windowing, OpenGL bootstrap, math, shader, mesh, and camera foundations
 - command/cvar/cfg/filesystem subsystems already exist as early engine services
-- the next major missing seam is input, material/texture runtime, memory/resource ownership, and real world content
+- the next major missing seam is memory/resource ownership, input, material/texture runtime, and real world content
 
 That is acceptable for now, as long as new work follows the documented target structure from this point forward.
 
@@ -102,5 +127,5 @@ That is acceptable for now, as long as new work follows the documented target st
 - engine-owned interfaces at subsystem boundaries
 - explicit data flow
 - no heavy abstraction without runtime pressure
-- learn from Quake/DOOM lineage without copying blindly
+- learn from idTech, GoldSrc/Source, and CryEngine lineage without copying blindly
 - long-term maintainability for a solo developer

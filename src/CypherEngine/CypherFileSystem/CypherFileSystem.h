@@ -78,4 +78,4 @@ bool CypherFileSystem_Exists( const char *virtual_path );
 
 bool CypherFileSystem_IsInitialized();
 
-}
+}       // namespace cypher::engine::fs

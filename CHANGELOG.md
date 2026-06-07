@@ -1,6 +1,44 @@
 # CypherEngine Changelog
 
-All notable changes to REAP and the CypherEngine runtime are tracked here.
+All notable changes to CypherEngine and the REAP game/runtime direction are tracked here.
+
+## [0.1.0] - 2026-06-07
+
+### Added
+- Added the tracked future subsystem folder skeleton inspired by early CryEngine-style engine/editor/tool separation:
+  - `CypherPlatform`
+  - `CypherInput`
+  - `CypherResource`
+  - `CypherWorld`
+  - `CypherEntity`
+  - `CypherPhysics`
+  - `CypherAudio`
+  - `CypherAI`
+  - `CypherAnimation`
+  - `CypherNetwork`
+  - `CypherScript`
+  - `CypherProfile`
+  - `CypherConsole`
+  - `CypherEditor`
+  - `CypherTools`
+- Added tool placeholder folders for future asset, map, and resource compiler work:
+  - `tools/CypherAssetCompiler`
+  - `tools/CypherMapCompiler`
+  - `tools/CypherResourceCompiler`
+
+### Changed
+- Updated the project structure documentation around the long-term CypherEngine layout.
+- Updated the coding style documentation to define the Cypher module naming law:
+  - `Cypher*` subsystem folders
+  - `snake_case_t` data types
+  - `*_desc_t`, `*_state_t`, and `*_handle_t` type conventions
+  - explicit subsystem-prefixed free functions
+  - future `I*` interfaces only for stable editor/runtime/tool contracts
+- Updated the README to remove stale `REAP` absolute links, describe the new subsystem skeleton, and align the project identity around Cypher Software.
+
+### Notes
+- No C++ implementation files were intentionally changed as part of this architecture pass.
+- Empty future subsystem directories are tracked with placeholder files until real implementation files exist.
 
 ## [0.1.0] - 2026-06-05
 

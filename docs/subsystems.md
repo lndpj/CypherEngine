@@ -8,19 +8,19 @@ Shared engine foundation used by both client and server style code.
 
 Expected contents:
 
-- engine bootstrap helpers
-- memory helpers
-- command system
-- cvar system
-- cfg/console backend
-- filesystem
-- pak/archive reading
-- logging
-- string helpers
-- math
-- common types
+- primitive types
+- stable handles and IDs
+- shared error packing
+- platform-independent macros
+- common string/span/helpers when they become necessary
+- public interface contracts when editor/runtime/tools need them
+- cross-subsystem data that truly has no single owner
 
-This is the layer everything else stands on.
+Rule:
+
+- `CypherCommon` is not a junk drawer
+- implementation belongs in the owning subsystem
+- shared contracts move here only when multiple systems need them
 
 ## `CypherRender`
 
@@ -28,7 +28,6 @@ Owns:
 
 - frame begin/end
 - world rendering
-- BSP rendering
 - model rendering
 - materials
 - shaders
@@ -41,6 +40,34 @@ Rule:
 
 - the rest of the engine should not call `OpenGL` directly
 - the renderer should use platform-created contexts, not leak platform APIs outward
+
+## `CypherPlatform`
+
+Owns:
+
+- OS detection
+- compiler/platform flags
+- SDL3 bootstrap seam
+- window creation
+- event pump seam
+- dynamic library loading
+- page size and virtual memory backend
+- path helpers where they are truly platform-specific
+
+Rule:
+
+- `CypherPlatform` is the engine/OS boundary
+- `CypherSystem` should eventually orchestrate engine lifetime, not become a dumping ground for OS code
+
+## `CypherSystem`
+
+Owns:
+
+- top-level engine initialization order
+- subsystem startup/shutdown
+- frame begin/update/render/end orchestration
+- global quit/request-shutdown flow
+- high-level runtime state
 
 ## `CypherServer`
 
@@ -78,16 +105,103 @@ Owns:
 
 Both client and server depend on this layer.
 
-## `CypherMap`
+## `CypherWorld`
 
 Owns:
 
-- BSP/custom map loading
-- map format definitions
+- custom Cypher world/map source data
+- runtime level representation
+- map metadata
+- object placement
+- static world objects
+- world bounds and visibility ownership
+- entity spawn data
+- future cooked world format loading
+
+Does not own:
+
+- low-level renderer backend
+- raw asset decoding
+- gameplay rules
+
+## `CypherEntity`
+
+Owns:
+
+- entity identity
+- component storage direction
+- entity/component handles
+- object lifetime glue between world, gameplay, physics, audio, and rendering
+- future prefab/object runtime bridge
+
+## `CypherResource`
+
+Owns:
+
+- asset handles
+- asset lifetime
+- loading/unloading
+- dependency tracking
+- hot reload direction
+- shader/mesh/texture/material/sound/animation/map resource registration
+
+## `CypherMemory`
+
+Owns:
+
+- permanent arenas
+- frame/scratch arenas
+- pool allocators
+- virtual memory backend abstraction
+- allocation stats
+- memory diagnostics
+
+## `CypherConsole`
+
+Owns:
+
+- visible developer console UI/runtime seam
+- command text entry
+- history
+- console output routing
+- integration with `CypherCommand` and `CypherCVar`
+
+## `CypherCommand`
+
+Owns:
+
+- command registration
+- argument parsing
+- command lookup
+- callback dispatch
+
+## `CypherCVar`
+
+Owns:
+
+- runtime tweakable variables
+- flags
+- typed cached values
+- archive/readonly/cheat/development behavior
+
+## `CypherConfig`
+
+Owns:
+
+- cfg file loading
+- executing command lines from files
+- startup config flow
+
+## Future map/compiler work
+
+Eventually owns:
+
+- Cypher map/source format definitions
+- cooked world format definitions
 - traceline / tracebox
-- PVS lookup
-- entity lump parsing
 - collision against brush geometry
+- visibility/portal/spatial partition data if needed
+- map compiler toolchain
 
 ## `CypherPhysics`
 
@@ -97,6 +211,10 @@ Owns:
 - slide movement
 - step movement
 - air movement
+- collision queries
+- traces
+- physics bodies
+- trigger/contact data
 - shared movement code used by both prediction and authoritative simulation
 
 ## `CypherAudio`
@@ -109,16 +227,25 @@ Owns:
 - spatial sound
 - music playback
 
-## `CypherECS`
+## `CypherAI`
 
 Owns:
 
-- entity/component definitions
-- system registration
-- prefab setup
-- query helpers
+- navigation data
+- perception queries
+- behavior state
+- combat decision helpers
+- squad/wave logic support
 
-This is the replacement for a monolithic entity array.
+## `CypherAnimation`
+
+Owns:
+
+- skeleton resources
+- animation clips
+- pose evaluation
+- blending
+- animation state machines or graphs
 
 ## `CypherScript`
 
@@ -128,18 +255,36 @@ Owns:
 - trap bridge between VM and native engine code
 - engine-side debugging of VM state
 
-## `CypherSystem`
+## `CypherProfile`
 
 Owns:
 
-- OS entry point details
-- timing
-- `SDL3` bootstrap and event pump seam
-- file/path wrappers where needed
-- OS socket differences where needed
-- crash/error/platform-specific behavior
+- CPU/GPU timing scopes
+- frame counters
+- memory reports
+- telemetry hooks
+- editor-visible diagnostics
 
-This is the engine/OS seam.
+## `CypherEditor`
+
+Owns:
+
+- Qt editor application
+- editor viewports
+- inspectors
+- asset browser
+- world/object editing tools
+- editor console
+- play-in-editor direction
+
+## `CypherTools`
+
+Owns:
+
+- shared native tool code
+- resource compiler helpers
+- map compiler helpers
+- asset compiler helpers
 
 ## `rvm`
 

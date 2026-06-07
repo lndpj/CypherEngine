@@ -1,13 +1,15 @@
 # CypherEngine Toolchain Plan
 
-REAP's toolchain should follow the runtime, not lead it.
+CypherEngine's toolchain should follow the runtime, not lead it.
 
 That means:
 
 - build runtime consumption first
+- prove the data shape in engine code
 - then build the offline pipeline that supports it
+- keep tools focused until real workflow pressure exists
 
-## Maps and BSP
+## Worlds and Maps
 
 Target:
 
@@ -15,57 +17,78 @@ Target:
 - entity metadata
 - collision-ready world representation
 - visibility-ready world representation
+- editor-friendly source format
+- cooked runtime format when needed
 
 Recommended order:
 
-1. get `Quake III BSP` loading working at runtime
-2. parse the entity lump
-3. use BSP for collision and visibility queries
-4. build debug inspection tools
-5. only then decide what editor-side tooling is truly missing
-6. if needed, build a small purpose-built editor for CypherEngine instead of chasing a giant all-purpose editor first
+1. define the minimum `CypherWorld` runtime data the engine needs
+2. load a simple loose world/map source file
+3. instantiate static objects and entity spawn data from it
+4. add collision and trace data once movement needs it
+5. add visibility/spatial partition data once renderer pressure needs it
+6. build `CypherMapCompiler` when hand-authored source data needs cooking
+7. build editor-side tooling only when the runtime world path already exists
 
 Important rule:
 
-- runtime BSP support comes before custom editor ambitions
+- the runtime world contract comes before the editor
+- the editor edits real engine data, not a disconnected fake format
 
 ## Models
 
 Target:
 
 - runtime model loading
-- later custom `.rmdl` format
+- later custom Cypher model format
 - later compiler/decompiler tooling
 
 Recommended order:
 
 1. get visible content on screen using the simplest viable path
 2. define the runtime model requirements
-3. design `.rmdl`
-4. build runtime `.rmdl` loader
+3. design the Cypher model format
+4. build runtime model loader
 5. build model compiler
 6. build inspector/decompiler only if it truly helps iteration
 
-## Textures and materials
+## Textures and Materials
 
 Target:
 
 - predictable runtime texture loading
 - material definition files
-- later atlas/packing tools
+- later conversion, mip, compression, and packing tools
 
 Recommended order:
 
 1. simple direct texture loading
 2. material file conventions
 3. texture conversion/mip work
-4. atlas tools only when they reduce pain
+4. atlas/packing tools only when they reduce pain
+
+## Resources
+
+Target:
+
+- handles for shaders, meshes, textures, materials, sounds, animations, and worlds
+- centralized load/unload/reload behavior
+- dependency tracking
+- editor/runtime hot-reload direction
+
+Recommended order:
+
+1. define resource handles
+2. load shader resources through the resource layer
+3. load mesh/texture/material resources through the resource layer
+4. track dependencies
+5. add hot reload once the editor or iteration flow needs it
 
 ## Scripts
 
 Target:
 
-- `game.bin` bytecode generated from the REAP script path
+- gameplay bytecode generated from the Cypher script path
 
 Recommended order:
 
@@ -75,21 +98,43 @@ Recommended order:
 4. later language compiler
 5. debug symbol support
 
-## Archives / packaging
+## Archives / Packaging
 
 Target:
 
 - packaged shipping asset archives
-- later custom `rpk` format if justified
+- later custom Cypher package format if justified
 
 Recommended order:
 
-1. direct loose-file runtime loading through VFS
+1. direct loose-file runtime loading through `CypherFileSystem`
 2. define archive format only once asset pressure exists
 3. build create/list/extract tooling
 4. keep archive design simple and debugger-friendly
 
-## Tooling rule
+## Editor
+
+Target:
+
+- Qt-based all-in-one editor application
+- live viewport
+- world/object editing
+- asset browser
+- inspector
+- console/CVar integration
+- play-in-editor direction
+
+Recommended order:
+
+1. finish runtime memory/filesystem/resource foundations
+2. finish basic input and camera
+3. load a real simple world
+4. create a Qt shell
+5. embed or host a runtime viewport
+6. edit real `CypherWorld` data
+7. add save/load and undo/redo
+
+## Tooling Rule
 
 Do not build a full toolchain because it sounds impressive.
 

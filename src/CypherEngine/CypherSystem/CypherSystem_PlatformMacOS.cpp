@@ -1,10 +1,10 @@
 /*======================================================================
-   File: sys_platform_macos.cpp
+   File: CypherSystem_PlatformMacOS.cpp
    Project: CypherEngine
    Author: ksiric <email@example.com>
    Created: 2026-04-27 17:32:33
    Last Modified by: ksiric
-   Last Modified: 2026-05-04 23:40:48
+   Last Modified: 2026-06-07 15:55:34
    ---------------------------------------------------------------------
    Description:
        

@@ -1,6 +1,6 @@
 # CypherEngine Development Phases
 
-This is the detailed build order for REAP.
+This is the detailed build order for CypherEngine and the REAP game direction.
 
 The rule is simple:
 
@@ -57,7 +57,31 @@ Exit when:
 
 - config and future assets no longer depend on raw ad-hoc file opens everywhere
 
-## Phase 3 - SDL3 and OpenGL Runtime Bootstrap
+Status:
+
+- partially complete now
+
+## Phase 3 - Memory and Ownership Foundation
+
+Build:
+
+- permanent arena
+- frame/scratch arena
+- arena markers and rewind
+- allocation counters and stats
+- pool allocator design for entities/resources
+- virtual memory backend direction
+
+Exit when:
+
+- runtime systems can allocate with explicit lifetime rules instead of ad-hoc ownership
+- assets and future world data have a clear memory model
+
+Status:
+
+- active now
+
+## Phase 4 - SDL3 and OpenGL Runtime Bootstrap
 
 Build:
 
@@ -71,7 +95,11 @@ Exit when:
 
 - the engine can open a visible window and run a frame loop with the intended platform/render path
 
-## Phase 4 - Local 3D Graybox
+Status:
+
+- partially complete now
+
+## Phase 5 - Local 3D Graybox
 
 Build:
 
@@ -85,20 +113,38 @@ Exit when:
 
 - the player can move around a 3D space comfortably
 
-## Phase 5 - Quake III BSP Runtime
+## Phase 6 - Resource and Material Runtime
 
 Build:
 
-- BSP loading
-- entity lump parsing
-- surface/lightmap/material runtime structures
-- debug/runtime inspection support
+- `CypherResource` handles
+- shader resource lifetime
+- mesh resource lifetime
+- texture loading
+- material definitions
+- resource dependency tracking
+- first hot-reload direction
 
 Exit when:
 
-- authored BSP content can replace pure graybox assumptions
+- renderer-facing assets are loaded through engine-owned resource paths instead of scattered direct calls
 
-## Phase 6 - Honest Runtime Split
+## Phase 7 - CypherWorld Runtime
+
+Build:
+
+- first custom world/map source format direction
+- world metadata
+- static object placement
+- entity spawn data
+- simple cooked/runtime world loading
+- debug inspection support
+
+Exit when:
+
+- authored world data can replace pure hardcoded graybox assumptions
+
+## Phase 8 - Honest Runtime Split
 
 Build:
 
@@ -110,7 +156,7 @@ Exit when:
 
 - multiplayer architecture is no longer only theoretical
 
-## Phase 7 - First Combat Loop
+## Phase 9 - First Combat Loop
 
 Build:
 
@@ -124,21 +170,38 @@ Exit when:
 
 - REAP starts to feel like a game, not just a runtime
 
-## Phase 8 - Custom Formats and Tools
+## Phase 10 - Custom Formats and Tools
 
 Build:
 
 - runtime model requirements
-- `rmdl` format design
-- runtime model loading path
-- `rpk` archive design when needed
-- small purpose-built editor/tooling only when workflow pressure justifies it
+- Cypher model format design
+- Cypher material format design
+- Cypher package/archive design when needed
+- map/world compiler when runtime world pressure justifies it
+- editor tooling when workflow pressure justifies it
 
 Exit when:
 
 - authored content has a defined production pipeline
 
-## Phase 9 - VM and Game Script Path
+## Phase 11 - CypherEditor Foundation
+
+Build:
+
+- Qt application shell
+- editor viewport embedding
+- asset browser
+- property inspector
+- world/object hierarchy
+- editor console
+- play-in-editor direction
+
+Exit when:
+
+- the editor can inspect and modify real engine-owned world/resource data
+
+## Phase 12 - VM and Game Script Path
 
 Build:
 
@@ -151,7 +214,7 @@ Exit when:
 
 - gameplay starts moving into the intended script/runtime split
 
-## Phase 10 - Product Growth
+## Phase 13 - Product Growth
 
 Build:
 

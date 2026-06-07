@@ -1,10 +1,10 @@
 /*======================================================================
-   File: math_bounds.cpp
+   File: CypherMath_Bounds.cpp
    Project: rengine
    Author: ksiric <email@example.com>
    Created: 2026-05-25 02:41:52
    Last Modified by: ksiric
-   Last Modified: 2026-05-26 18:57:17
+   Last Modified: 2026-06-07 16:58:40
    ---------------------------------------------------------------------
    Description:
        

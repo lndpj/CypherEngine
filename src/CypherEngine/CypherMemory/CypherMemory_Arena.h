@@ -168,8 +168,52 @@ arena_stats_t CypherMemory_ArenaStats( const arena_t &arena );
 void CypherMemory_ArenaResetCounters( arena_t &arena );
 
 void CypherMemory_ArenaReset( arena_t &arena );
-
-
     
+void *CypherMemory_ArenaAlloc( arena_t &arena, common::usize size, common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
+    
+void *CypherMemory_ArenaAllocZero( arena_t &arena, common::usize size, common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
+
+common::usize CypherMemory_ArenaRemaining( const arena_t &arena );
+
+arena_marker_t CypherMemory_ArenaGetMarker( const arena_t &arena );
+
+error_code_t CypherMemory_ArenaRewind( arena_t &arena, arena_marker_t marker );
+
+bool CypherMemory_ArenaContains( const arena_t &arena, const void *ptr );
+
+error_code_t CypherMemory_ArenaLastError( const arena_t &arena );
+
+bool CypherMemory_ArenaIsInitialized( const arena_t &arena );
+
+common::usize CypherMemory_ArenaUsed( const arena_t &arena );
+
+common::f32 CypherMemory_ArenaUsageRatio( const arena_t &arena );
+
+common::usize CypherMemory_ArenaCapacity( const arena_t &arena );
+
+common::usize CypherMemory_ArenaRemaining( const arena_t &arena );
+
+
+        
+/*
+================
+Arena Helper Functions
+
+List of necessary and helpful functions
+================
+*/
+
+template <typename T>
+T *CypherMemory_ArenaAllocType( arena_t &arena );
+
+template <typename T>
+T *CypherMemory_ArenaAllocTypeZero( arena_t &arena );
+
+template <typename T>
+T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count );
+
+template <typename T>
+T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count );
+
 }       // namespace cypher::engine::memory
 

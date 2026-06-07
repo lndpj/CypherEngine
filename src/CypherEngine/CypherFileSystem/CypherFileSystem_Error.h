@@ -141,4 +141,4 @@ constexpr inline common::error_t CypherFileSystem_ErrorCode( error_code_t  error
     return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_FS, static_cast<common::com_u16>( error ) );
 }
 
-}
+}       // namespace cypher::engine::fs
