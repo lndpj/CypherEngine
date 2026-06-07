@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-06-07 12:32:50
    Last Modified by: ksiric
-   Last Modified: 2026-06-07 22:14:46
+   Last Modified: 2026-06-07 23:39:18
    ---------------------------------------------------------------------
    Description:
        
@@ -270,47 +270,11 @@ common::f32 CypherMemory_ArenaUsageRatio( const arena_t &arena )
 
 common::usize CypherMemory_ArenaCapacity( const arena_t &arena )
 {
+    if ( !arena.initialized ) {
+        return 0u;
+    }
     
-}
-
-
-template <typename T>
-T *CypherMemory_ArenaAllocType( arena_t &arena ) {
-    return static_cast<T *>(
-            CypherMemory_ArenaAlloc(
-            arena,
-            sizeof( T ),
-            alignof( T ) ) );   
-}
-
-template <typename T>
-T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count )
-{
-    return static_cast<T *>(
-            CypherMemory_ArenaAlloc(
-            arena,
-            sizeof( T ) * count,
-            alignof( T ) ) );   
-}
-
-template <typename T>
-T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count )
-{
-    return static_cast<T *>(
-            CypherMemory_ArenaAllocZero(
-            arena,
-            sizeof( T ) * count,
-            alignof( T ) ) );   
-}
-
-template <typename T>
-T *CypherMemory_ArenaAllocTypeZero( arena_t &arena )
-{
-        return static_cast<T *>(
-            CypherMemory_ArenaAllocZero(
-            arena,
-            sizeof( T ),
-            alignof( T ) ) );   
+    return arena.capacity;
 }
 
 }       // namespace cypher::engine::memory

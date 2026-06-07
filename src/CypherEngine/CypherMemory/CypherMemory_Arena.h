@@ -69,7 +69,6 @@ enum class arena_backing_t : common::u8 {
     ARENA_VIRTUAL_MEMORY  
 };
 
-
 /*
 ================
 Arena Description
@@ -173,8 +172,6 @@ void *CypherMemory_ArenaAlloc( arena_t &arena, common::usize size, common::usize
     
 void *CypherMemory_ArenaAllocZero( arena_t &arena, common::usize size, common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
 
-common::usize CypherMemory_ArenaRemaining( const arena_t &arena );
-
 arena_marker_t CypherMemory_ArenaGetMarker( const arena_t &arena );
 
 error_code_t CypherMemory_ArenaRewind( arena_t &arena, arena_marker_t marker );
@@ -192,8 +189,6 @@ common::f32 CypherMemory_ArenaUsageRatio( const arena_t &arena );
 common::usize CypherMemory_ArenaCapacity( const arena_t &arena );
 
 common::usize CypherMemory_ArenaRemaining( const arena_t &arena );
-
-
         
 /*
 ================
@@ -204,16 +199,43 @@ List of necessary and helpful functions
 */
 
 template <typename T>
-T *CypherMemory_ArenaAllocType( arena_t &arena );
+T *CypherMemory_ArenaAllocType( arena_t &arena ) {
+    return static_cast<T *>(
+            CypherMemory_ArenaAlloc(
+            arena,
+            sizeof( T ),
+            alignof( T ) ) );   
+}
 
 template <typename T>
-T *CypherMemory_ArenaAllocTypeZero( arena_t &arena );
+T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count )
+{
+    return static_cast<T *>(
+            CypherMemory_ArenaAlloc(
+            arena,
+            sizeof( T ) * count,
+            alignof( T ) ) );   
+}
 
 template <typename T>
-T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count );
+T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count )
+{
+    return static_cast<T *>(
+            CypherMemory_ArenaAllocZero(
+            arena,
+            sizeof( T ) * count,
+            alignof( T ) ) );   
+}
 
 template <typename T>
-T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count );
+T *CypherMemory_ArenaAllocTypeZero( arena_t &arena )
+{
+        return static_cast<T *>(
+            CypherMemory_ArenaAllocZero(
+            arena,
+            sizeof( T ),
+            alignof( T ) ) );   
+}
 
 }       // namespace cypher::engine::memory
 
