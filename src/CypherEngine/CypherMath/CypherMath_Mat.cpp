@@ -1,10 +1,10 @@
 /*======================================================================
-   File: math_mat.cpp
+   File: CypherMath_Mat.cpp
    Project: rengine
    Author: ksiric <email@example.com>
    Created: 2026-05-23 11:16:37
    Last Modified by: ksiric
-   Last Modified: 2026-06-03 18:01:45
+   Last Modified: 2026-06-07 13:44:36
    ---------------------------------------------------------------------
    Description:
        

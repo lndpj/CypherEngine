@@ -95,7 +95,7 @@ Saved arena offset. Rewinding to this marker releases everything allocated
 after this point.
 ================
 */
-struct arena_market_t {
+struct arena_marker_t {
     common::usize used{ 0u };
 };
 
@@ -106,7 +106,9 @@ Arena Stats
 Snapshot of arena memory usage.
 ================
 */
-struct arean_stats_t {
+struct arena_stats_t {
+    const char *name{ nullptr };
+    
     common::usize capacity{ 0u };
     common::usize used{ 0u };
     common::usize remaining{ 0u };
@@ -133,13 +135,13 @@ struct arena_t {
     common::usize used{ 0u };           // how much is used by this specific arena in arena.
     common::usize peak_used{ 0u };      // peak usage in frames for debugging.
     
-    common::usize commited{ 0u };
+    common::usize committed{ 0u };
     common::usize page_size{ 0u };
     
     common::u64 allocation_count{ 0u }; // how many allocations happened for this, like usage
     common::u64 failed_allocation_count{ 0u };
     
-    common::f32 flags{};
+    common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
     
     error_code_t last_error{ error_code_t::OK };
     
@@ -159,6 +161,13 @@ List of functions necessary to use for creating arena memory layouts.
 
 error_code_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_desc );
 
+void CypherMemory_ArenaShutdown( arena_t &arena );
+
+arena_stats_t CypherMemory_ArenaStats( const arena_t &arena );
+
+void CypherMemory_ArenaResetCounters( arena_t &arena );
+
+void CypherMemory_ArenaReset( arena_t &arena );
 
 
     
