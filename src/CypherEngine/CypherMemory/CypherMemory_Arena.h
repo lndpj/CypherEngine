@@ -42,6 +42,7 @@ constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_NONE                  = 0u;      
 constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_ZERO_ON_ALLOC         = 1u << 0u;         // 0001
 constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_CLEAR_ON_RESET        = 1u << 1u;         // 0010
 constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_CLEAR_ON_SHUTDOWN     = 1u << 2u;         // 0100
+constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_GROW_COMMIT_ON_ALLOC  = 1u << 3u;         // 1000
 
 /*
 ================
@@ -62,6 +63,13 @@ constexpr inline common::usize CypherMemory_AlignForward( common::usize value, c
     return ( value + alignment - 1u ) & ~( alignment - 1u );
 }
 
+enum class arena_backing_t : common::u8 {
+    ARENA_HEAP = 0,
+    ARENA_EXTERNAL_BUFFER,
+    ARENA_VIRTUAL_MEMORY  
+};
+
+
 /*
 ================
 Arena Description
@@ -71,8 +79,12 @@ Creation request for an arena that owns its backing memory.
 */  
 struct arena_desc_t {
     const char *name{ nullptr };
+    
     common::usize capacity{ 0u };
+    common::usize initial_commit{ 0u };
+    
     common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
+    arena_backing_t backing{ arena_backing_t::ARENA_HEAP };
 };
 
 /*
@@ -121,9 +133,18 @@ struct arena_t {
     common::usize used{ 0u };           // how much is used by this specific arena in arena.
     common::usize peak_used{ 0u };      // peak usage in frames for debugging.
     
+    common::usize commited{ 0u };
+    common::usize page_size{ 0u };
+    
     common::u64 allocation_count{ 0u }; // how many allocations happened for this, like usage
+    common::u64 failed_allocation_count{ 0u };
     
     common::f32 flags{};
+    
+    error_code_t last_error{ error_code_t::OK };
+    
+    arena_backing_t backing{ arena_backing_t::ARENA_HEAP };
+    
     bool initialized{ false };          // did we init this arena or not
     bool owns_memory{ false };          // is it external or internal, arenas memory or not
 };
@@ -137,6 +158,8 @@ List of functions necessary to use for creating arena memory layouts.
 */
 
 error_code_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_desc );
+
+
 
     
 }       // namespace cypher::engine::memory
