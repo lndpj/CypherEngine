@@ -11,6 +11,7 @@ enum class error_code_t : common::u8 {
     
     ERR_INVALID_ARGUMENT,
     ERR_OUT_OF_MEMORY,
+    ERR_MEMORY_ALLOCATION,
     ERR_ALREADY_INITIALIZED,
     ERR_NOT_INITIALIZED,
     ERR_INVALID_ALIGNMENT,
@@ -29,6 +30,8 @@ constexpr inline const char *CypherMemory_ErrorName( const error_code_t error )
         return "ERR_INVALID_ARGUMENT";
     case error_code_t::ERR_OUT_OF_MEMORY:
         return "ERR_OUT_OF_MEMORY";
+    case error_code_t::ERR_MEMORY_ALLOCATION:
+        return "ERR_MEMORY_ALLOCATION";
     case error_code_t::ERR_ALREADY_INITIALIZED:
         return "ERR_ALREADY_INITIALIZED";
     case error_code_t::ERR_NOT_INITIALIZED:
@@ -55,6 +58,8 @@ constexpr inline const char *CypherMemory_ErrorDesc( const error_code_t error )
         return "invalid argument passed to memory subsystem";
     case error_code_t::ERR_OUT_OF_MEMORY:
         return "arena or allocator does not have enough remaining memory";
+    case error_code_t::ERR_MEMORY_ALLOCATION:
+        return "memory allocation failure";
     case error_code_t::ERR_ALREADY_INITIALIZED:
         return "memory object is already initialized";
     case error_code_t::ERR_NOT_INITIALIZED:
