@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-27 17:32:41
    Last Modified by: ksiric
-   Last Modified: 2026-06-07 15:55:37
+   Last Modified: 2026-06-08 16:46:56
    ---------------------------------------------------------------------
    Description:
        
@@ -180,8 +180,16 @@ void CypherSystem_PlatformSleepMilliseconds( const common::u64 milliseconds ) {
     request.tv_nsec = static_cast<long>( ( milliseconds % 1000u ) * 1000000u );
     
     while ( nanosleep( &request, &request ) == -1 && errno == EINTR ) {
-        
     }
+}
+
+common::usize CypherSystem_PlatformVirtualPageSize()
+{
+    
+    
+    
+    
+    
 }
     
 }       // namespace cypher::engine::sys

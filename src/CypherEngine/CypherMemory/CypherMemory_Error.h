@@ -18,7 +18,11 @@ enum class error_code_t : common::u8 {
     ERR_INVALID_CAPACITY,
     ERR_INVALID_MARKER,
     ERR_BUFFER_TOO_SMALL,
-    ERR_EXTERNAL_BUFFER_REQUIRED
+    ERR_EXTERNAL_BUFFER_REQUIRED,
+    
+    ERR_MEMORY_RESERVE,
+    ERR_MEMORY_COMMIT,
+    ERR_MEMORY_RELEASE
 };
 
 constexpr inline const char *CypherMemory_ErrorName( const error_code_t error )
@@ -46,6 +50,12 @@ constexpr inline const char *CypherMemory_ErrorName( const error_code_t error )
         return "ERR_BUFFER_TOO_SMALL";
     case error_code_t::ERR_EXTERNAL_BUFFER_REQUIRED:
         return "ERR_EXTERNAL_BUFFER_REQUIRED";
+    case error_code_t::ERR_MEMORY_RESERVE:
+        return "ERR_MEMORY_RESERVE";
+    case error_code_t::ERR_MEMORY_COMMIT:
+        return "ERR_MEMORY_COMMIT";
+    case error_code_t::ERR_MEMORY_RELEASE:
+        return "ERR_MEMORY_RELEASE";
     default:
         return "ERR_UNKNOWN";
     }
@@ -76,6 +86,12 @@ constexpr inline const char *CypherMemory_ErrorDesc( const error_code_t error )
         return "provided buffer is too small";
     case error_code_t::ERR_EXTERNAL_BUFFER_REQUIRED:
         return "external memory buffer is required";
+    case error_code_t::ERR_MEMORY_RESERVE:
+        return "error reserving virtual memory paging";
+    case error_code_t::ERR_MEMORY_COMMIT:
+        return "error commiting memory";
+    case error_code_t::ERR_MEMORY_RELEASE:
+        return "error releasing commited memory";
     default:
         return "unknown memory subsystem error";
     }

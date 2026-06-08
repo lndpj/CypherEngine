@@ -92,6 +92,16 @@ void CypherSystem_SleepMilliseconds( common::u64 milliseconds );
 
 bool CypherSystem_LocalTime( std::time_t time_value, std::tm &time_out );
 
+common::usize CypherSystem_VirtualPageSize();
+
+void *CypherSystem_VirtualReserve( const common::usize size );
+
+error_code_t CypherSystem_VirtualCommit( void *memory, common::usize size );
+
+error_code_t CypherSystem_VirtualDecommit( void *memory, common::usize size );
+
+error_code_t CypherSystem_VirtualRelease( void *memory, common::usize size );
+
 /*
 ================
 Cross Platform And Compiler Detection

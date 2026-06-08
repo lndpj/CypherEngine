@@ -16,4 +16,14 @@ error_code_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, path
 
 void CypherSystem_PlatformSleepMilliseconds(const common::u64 milliseconds );
 
+common::usize CypherSystem_PlatformVirtualPageSize();
+
+void *CypherSystem_PlatformVirtualReserve( common::usize size );
+
+bool CypherSystem_PlatformVirtualCommit( void *memory, common::usize size );
+
+bool CypherSystem_PlatformVirtualDecommit( void *memory, common::usize size );
+
+bool CypherSystem_PlatformVirtualRelease( void *memory, common::usize size );
+
 } // namespace cypher::engine::sys

@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-27 17:32:33
    Last Modified by: ksiric
-   Last Modified: 2026-06-07 15:55:34
+   Last Modified: 2026-06-08 16:54:15
    ---------------------------------------------------------------------
    Description:
        
@@ -29,6 +29,7 @@
 #include <filesystem>      // Path normalization and directory creation.
 #include <string>          // Temporary path strings.
 #include <system_error>    // std::error_code for non-throwing filesystem calls.
+#include <unistd.h>
 
 namespace cypher::engine::sys
 {
@@ -171,6 +172,24 @@ void CypherSystem_PlatformSleepMilliseconds( const common::u64 milliseconds ) {
                
     }      
 }
+
+common::usize CypherSystem_PlatformVirtualPageSize()
+{
+    constexpr common::usize DEFAULT_PAGE_SIZE = 4096u;
+    
+    long page_size = sysconf( _SC_PAGESIZE );
+    if ( page_size <= 0 ) {
+        return DEFAULT_PAGE_SIZE;
+    }
+    
+    return static_cast<common::usize>( page_size );
+}
+
+void *CypherSystem_PlatformVirtualReserve( common::usize size )
+{
+    
+}
+
 
 }       // namespace cypher::engine::sys
     
