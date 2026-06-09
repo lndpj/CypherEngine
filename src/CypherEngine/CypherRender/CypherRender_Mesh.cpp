@@ -16,6 +16,7 @@
                                                                        */
 
 #include "CypherEngine/CypherRender/CypherRender_Mesh.h"
+#include "CypherEngine/CypherLog/CypherLog.h"
 #include "CypherEngine/CypherRender/CypherRender_GL.h"
 
 namespace cypher::engine::render
@@ -35,10 +36,12 @@ error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
                              mesh_t &mesh_out )
 {
     if ( vertices == nullptr || vertex_count == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "mesh create failed: invalid vertices pointer/count=%u.", vertex_count );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( indices == nullptr || index_count == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "mesh create failed: invalid indices pointer/count=%u.", index_count );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
@@ -79,7 +82,10 @@ error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
         mesh_out );
 
     if ( result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "mesh create failed: GL upload failed: %s.", CypherRender_ErrorDesc( result ) );
         mesh_out = {};
+    } else {
+        CYPHER_LOG_DEBUG( log::channel_t::RENDER, "mesh created: vertices=%u, indices=%u, vao=%u, vbo=%u, ebo=%u.", mesh_out.vertex_count, mesh_out.index_count, mesh_out.gl_vao, mesh_out.gl_vbo, mesh_out.gl_ebo );
     }
 
     return result;
@@ -91,6 +97,7 @@ void CypherRender_MeshDestroy( mesh_t &mesh )
         return ;
     }
 
+    CYPHER_LOG_DEBUG( log::channel_t::RENDER, "mesh destroyed: vao=%u, vbo=%u, ebo=%u.", mesh.gl_vao, mesh.gl_vbo, mesh.gl_ebo );
     CypherRenderGL_MeshDestroy( mesh );
     mesh = {};
 
@@ -100,6 +107,7 @@ void CypherRender_MeshDestroy( mesh_t &mesh )
 error_code_t CypherRender_MeshDraw( const mesh_t &mesh )
 {
     if ( !mesh.loaded ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "mesh draw failed: mesh is not loaded." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
