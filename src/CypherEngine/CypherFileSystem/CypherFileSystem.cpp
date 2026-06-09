@@ -16,6 +16,7 @@
 																	   */
 
 #include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
+#include "CypherEngine/CypherLog/CypherLog.h"
 
 #include <cstdio>          // stdio file handles and read/write operations.
 #include <cstring>         // strcmp / strncpy for fixed path buffers.
@@ -49,11 +50,14 @@ CypherFileSystem_Init
 */
 error_code_t CypherFileSystem_Init() {
 	if ( g_fs_runtime_state.initialized ) {
+		CYPHER_LOG_WARNING( log::channel_t::FS, "filesystem init requested while already initialized." );
 		return error_code_t::ERR_IS_INIT;
 	}
 
 	g_fs_runtime_state = {};
 	g_fs_runtime_state.initialized = true;
+
+	CYPHER_LOG_INFO( log::channel_t::FS, "filesystem initialized." );
 
 	return error_code_t::OK;
 }
@@ -65,8 +69,10 @@ CypherFileSystem_Shutdown
 */
 error_code_t CypherFileSystem_Shutdown() {
 	if ( !g_fs_runtime_state.initialized ) {
+		CYPHER_LOG_WARNING( log::channel_t::FS, "filesystem shutdown requested while not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
+	CYPHER_LOG_INFO( log::channel_t::FS, "filesystem shutdown: mounts=%u.", g_fs_runtime_state.mount_count );
 	g_fs_runtime_state = {};
 	g_fs_runtime_state.initialized = false;
 	return error_code_t::OK;
@@ -99,23 +105,29 @@ Adds a physical directory to the virtual search path list.
 */
 error_code_t CypherFileSystem_MountDirectory( const char *virtual_root, const char *physical_path, common::u32 flags, common::u32 priority ) {
 	if ( !g_fs_runtime_state.initialized ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "mount failed: filesystem is not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
 	if ( virtual_root == nullptr ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "mount failed: virtual root is null." );
 		return error_code_t::ERR_INVALID_PATH;
 	}
 	if ( physical_path == nullptr || physical_path[0] == '\0' ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "mount failed: physical path is invalid." );
 		return error_code_t::ERR_INVALID_PATH;
 	}
 	const common::u32 allowed_flags = CYPHER_FILESYSTEM_MOUNT_READ_ONLY | CYPHER_FILESYSTEM_MOUNT_WRITABLE;
 	if ( ( flags & ~allowed_flags ) != 0u ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "mount failed for '%s': invalid flags 0x%x.", physical_path, flags );
 		return error_code_t::ERR_INVALID_ARGUMENT;
 	}
 	if ( ( flags & allowed_flags ) == 0u ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "mount failed for '%s': no mount access flags set.", physical_path );
 		return error_code_t::ERR_INVALID_ARGUMENT;
 	}
 
 	if ( g_fs_runtime_state.mount_count >= CYPHER_FILESYSTEM_MAX_MOUNTS ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "mount failed for '%s': mount table full (%u).", physical_path, CYPHER_FILESYSTEM_MAX_MOUNTS );
 		return error_code_t::ERR_TOO_MANY_MOUNTS;
 	}
 
@@ -131,6 +143,7 @@ error_code_t CypherFileSystem_MountDirectory( const char *virtual_root, const ch
 	mount.flags = flags;
 	mount.priority = priority;
 	++g_fs_runtime_state.mount_count;
+	CYPHER_LOG_INFO( log::channel_t::FS, "mounted '%s' -> '%s' flags=0x%x priority=%u.", virtual_root[0] ? virtual_root : "<root>", physical_path, flags, priority );
 	return error_code_t::OK;
 }
 
@@ -167,9 +180,11 @@ CypherFileSystem_SetWritePath
 */
 error_code_t CypherFileSystem_SetWritePath( const char *physical_path ) {
 	if ( !g_fs_runtime_state.initialized ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "set write path failed: filesystem is not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
 	if ( physical_path == nullptr || physical_path[0] == '\0' ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "set write path failed: invalid physical path." );
 		return error_code_t::ERR_INVALID_PATH;
 	}
 	std::strncpy(
@@ -177,6 +192,7 @@ error_code_t CypherFileSystem_SetWritePath( const char *physical_path ) {
 		physical_path,
 		sizeof( g_fs_runtime_state.write_path ) - 1u );
 	g_fs_runtime_state.write_path[sizeof( g_fs_runtime_state.write_path ) - 1u] = '\0';
+	CYPHER_LOG_INFO( log::channel_t::FS, "write path set to '%s'.", g_fs_runtime_state.write_path );
 	return error_code_t::OK;
 }
 
@@ -637,10 +653,12 @@ error_code_t CypherFileSystem_ReadEntireFile( const char *virtual_path, void *bu
 	bytes_read_out = 0u;
 
 	if ( !g_fs_runtime_state.initialized ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "read entire file failed for '%s': filesystem is not initialized.", virtual_path ? virtual_path : "<null>" );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( buffer == nullptr ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "read entire file failed for '%s': output buffer is null.", virtual_path ? virtual_path : "<null>" );
 		return error_code_t::ERR_INVALID_ARGUMENT;
 	}
 
@@ -648,11 +666,16 @@ error_code_t CypherFileSystem_ReadEntireFile( const char *virtual_path, void *bu
 	error_code_t err = CypherFileSystem_Open( virtual_path, open_mode_t::READ_BINARY, file );
 
 	if ( err != error_code_t::OK ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "read entire file failed for '%s': open failed: %s.", virtual_path ? virtual_path : "<null>", CypherFileSystem_ErrorDesc( err ) );
 		return err;
 	}
 
 	if ( file.size > bytes_to_read ) {
 		CypherFileSystem_Close( file );
+		CYPHER_LOG_ERROR( log::channel_t::FS, "read entire file failed for '%s': buffer too small, file=%llu bytes, buffer=%llu bytes.",
+		                  virtual_path ? virtual_path : "<null>",
+		                  static_cast<unsigned long long>( file.size ),
+		                  static_cast<unsigned long long>( bytes_to_read ) );
 		return error_code_t::ERR_BUFFER_TOO_SMALL;
 	}
 
@@ -665,14 +688,20 @@ error_code_t CypherFileSystem_ReadEntireFile( const char *virtual_path, void *bu
 	const error_code_t close_err = CypherFileSystem_Close( file );
 
 	if ( err != error_code_t::OK ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "read entire file failed for '%s': read failed: %s.", virtual_path ? virtual_path : "<null>", CypherFileSystem_ErrorDesc( err ) );
 		return err;
 	}
 
 	if ( close_err != error_code_t::OK ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "read entire file failed for '%s': close failed: %s.", virtual_path ? virtual_path : "<null>", CypherFileSystem_ErrorDesc( close_err ) );
 		return close_err;
 	}
 
 	if ( bytes_read_out != expected_size ) {
+		CYPHER_LOG_ERROR( log::channel_t::FS, "read entire file failed for '%s': short read, expected=%llu, actual=%llu.",
+		                  virtual_path ? virtual_path : "<null>",
+		                  static_cast<unsigned long long>( expected_size ),
+		                  static_cast<unsigned long long>( bytes_read_out ) );
 		return error_code_t::ERR_FILE_READ_FAILED;
 	}
 
