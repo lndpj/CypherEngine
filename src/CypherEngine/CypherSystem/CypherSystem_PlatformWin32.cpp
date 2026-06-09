@@ -1,10 +1,10 @@
 /*======================================================================
-   File: sys_platform_win32.cpp
+   File: CypherSystem_PlatformWin32.cpp
    Project: CypherEngine
    Author: ksiric <email@example.com>
    Created: 2026-04-27 17:32:49
    Last Modified by: ksiric
-   Last Modified: 2026-05-04 23:40:45
+   Last Modified: 2026-06-08 16:57:19
    ---------------------------------------------------------------------
    Description:
 
@@ -127,7 +127,7 @@ error_code_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, path
 
     const std::filesystem::path executable_dir = executable_path.parent_path();
     const char *base_path_override = CypherSystem_FindArgvValue( info_init, "-basedir" );
-    
+
     const std::filesystem::path base_path =
         ( base_path_override != nullptr && base_path_override[0] != '\0' ) ? std::filesystem::path( base_path_override ) : working_dir;
 
@@ -150,16 +150,16 @@ error_code_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, path
         if ( appdata_length >= sizeof( appdata_buffer ) ) {
             return error_code_t::ERR_PATH_TOO_LONG;
         }
-        
+
         appdata_buffer[appdata_length] = '\0';
 
         user_path = std::filesystem::path( appdata_buffer ) / info_init.app_name;
     }
 
-    std::filesystem::create_directories( user_path, ec ); 
+    std::filesystem::create_directories( user_path, ec );
     if ( ec ) {
         return error_code_t::ERR_DIRECTORY_CREATE_FAILED;
-    } 
+    }
 
     if ( !CypherSystem_CopyPath( out_paths.executable_path, sizeof( out_paths.executable_path ), executable_path ) ) {
         return error_code_t::ERR_PATH_TOO_LONG;
