@@ -37,6 +37,7 @@ error_code_t CypherRenderGL_Init( const sys::window_t &window, bool vsync, gl_st
     SDL_Window *sdl_window{ nullptr};
 
     if ( window.native_window == nullptr || !window.valid ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "OpenGL init failed: invalid native window." );
         return error_code_t::ERR_INVALID_WINDOW_CFG;
     }
 
@@ -111,6 +112,18 @@ error_code_t CypherRenderGL_Init( const sys::window_t &window, bool vsync, gl_st
 
     gl_state.context = gl_context;
 
+    const char *gl_vendor = reinterpret_cast<const char *>( glGetString( GL_VENDOR ) );
+    const char *gl_renderer = reinterpret_cast<const char *>( glGetString( GL_RENDERER ) );
+    const char *gl_version_string = reinterpret_cast<const char *>( glGetString( GL_VERSION ) );
+    const char *glsl_version_string = reinterpret_cast<const char *>( glGetString( GL_SHADING_LANGUAGE_VERSION ) );
+
+    CYPHER_LOG_INFO( log::channel_t::RENDER, "OpenGL initialized: version='%s', glsl='%s', vendor='%s', renderer='%s', vsync=%u.",
+                     gl_version_string ? gl_version_string : "<unknown>",
+                     glsl_version_string ? glsl_version_string : "<unknown>",
+                     gl_vendor ? gl_vendor : "<unknown>",
+                     gl_renderer ? gl_renderer : "<unknown>",
+                     vsync ? 1u : 0u );
+
     return error_code_t::OK;
 }
 
@@ -143,10 +156,12 @@ Sets per-frame GL state and clears the back buffer.
 error_code_t CypherRenderGL_BeginFrame( const sys::window_t &window )
 {
     if ( window.native_window == nullptr || !window.valid ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "GL begin frame failed: invalid native window." );
         return error_code_t::ERR_INVALID_WINDOW_CFG;
     }
 
     if ( window.width == 0u || window.height == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "GL begin frame failed: invalid viewport %ux%u.", window.width, window.height );
         return error_code_t::ERR_INVALID_VIEWPORT;
     }
 
@@ -170,6 +185,7 @@ error_code_t CypherRenderGL_EndFrame( const sys::window_t &window )
 {
     SDL_Window *sdl_window{ nullptr };
     if ( !window.valid || window.native_window == nullptr ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "GL end frame failed: invalid native window." );
         return error_code_t::ERR_INVALID_WINDOW_CFG;
     }
 
@@ -190,6 +206,7 @@ Compiles a single OpenGL shader stage and returns its temporary object id.
 GLuint CypherRenderGL_CompileShader( const GLenum shader_type, const char *shader_source )
 {
     if ( shader_source == nullptr || shader_source[0] == '\0' ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "OpenGL shader compile failed: shader source is empty." );
         return 0;
     }
 
@@ -224,10 +241,12 @@ error_code_t CypherRenderGL_CreateShaderProgram( const char *vertex_source, cons
     out_shader_program_id = 0;
 
     if ( vertex_source == nullptr || vertex_source[0] == '\0' ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader program creation failed: vertex source is empty." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( fragment_source == nullptr || fragment_source[0] == '\0') {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader program creation failed: fragment source is empty." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
@@ -274,6 +293,7 @@ CypherRenderGL_BindShaderProgram
 error_code_t CypherRenderGL_BindShaderProgram( const common::u32 shader_program_id )
 {
     if ( shader_program_id == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader program bind failed: program id is zero." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
@@ -312,10 +332,12 @@ error_code_t CypherRenderGL_MeshCreate( const vertex_t *vertices,
                                mesh_t &mesh_out )
 {
     if ( vertices == nullptr || vertex_count == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "GL mesh create failed: invalid vertices pointer/count=%u.", vertex_count );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( indices == nullptr || index_count == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "GL mesh create failed: invalid indices pointer/count=%u.", index_count );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
@@ -338,6 +360,7 @@ error_code_t CypherRenderGL_MeshCreate( const vertex_t *vertices,
             glDeleteVertexArrays( 1, &vertex_array_id );
         }
 
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "GL mesh create failed: failed generating buffers vao=%u, vbo=%u, ebo=%u.", static_cast<common::u32>( vertex_array_id ), static_cast<common::u32>( vertex_buffer_id ), static_cast<common::u32>( element_buffer_id ) );
         return error_code_t::ERR_OPENGL_INIT;
     }
 
@@ -380,6 +403,8 @@ error_code_t CypherRenderGL_MeshCreate( const vertex_t *vertices,
     mesh_out.gl_ebo = static_cast<common::u32>( element_buffer_id );
     mesh_out.loaded = true;
 
+    CYPHER_LOG_DEBUG( log::channel_t::RENDER, "GL mesh uploaded: vertices=%u, indices=%u, vao=%u, vbo=%u, ebo=%u.", vertex_count, index_count, mesh_out.gl_vao, mesh_out.gl_vbo, mesh_out.gl_ebo );
+
     return error_code_t::OK;
 }
 
@@ -421,6 +446,7 @@ CypherRenderGL_MeshDraw
 error_code_t CypherRenderGL_MeshDraw( const mesh_t &mesh )
 {
     if ( !mesh.loaded || mesh.gl_vao == 0u || mesh.index_count == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "GL mesh draw failed: loaded=%u, vao=%u, indices=%u.", mesh.loaded ? 1u : 0u, mesh.gl_vao, mesh.index_count );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
@@ -434,16 +460,19 @@ error_code_t CypherRenderGL_MeshDraw( const mesh_t &mesh )
 error_code_t CypherRenderGL_SetUniformMat4( common::u32 shader_program_id, const char *uniform_name, const math::mat4_t &matrix )
 {
     if ( shader_program_id == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "set uniform mat4 failed: shader program id is zero." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
     
     if ( uniform_name == nullptr || uniform_name[0] == '\0' ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "set uniform mat4 failed: invalid uniform name." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
     
     const GLint uniform_location = glad_glGetUniformLocation( static_cast<GLuint>( shader_program_id ), uniform_name );
     
     if ( uniform_location < 0 ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "set uniform mat4 failed: uniform '%s' not found in program=%u.", uniform_name, shader_program_id );
         return error_code_t::ERR_SHADER_UNIFORM;
     } 
     
