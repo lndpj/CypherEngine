@@ -18,6 +18,7 @@ enum class error_code_t : common::u8 {
       ERR_INVALID_CONFIG,
       ERR_FILE_OPEN_FAILED,
       ERR_FILE_WRITE_FAILED,
+      ERR_FORMAT_FAILED,
       ERR_INVALID_CHANNEL,
       ERR_INVALID_LEVEL
 };
@@ -41,6 +42,8 @@ constexpr inline const char *CypherLog_ErrorName( const error_code_t error ) {
         return "ERR_FILE_OPEN_FAILED";
     case error_code_t::ERR_FILE_WRITE_FAILED:
         return "ERR_FILE_WRITE_FAILED";
+    case error_code_t::ERR_FORMAT_FAILED:
+        return "ERR_FORMAT_FAILED";
     case error_code_t::ERR_INVALID_CHANNEL:
         return "ERR_INVALID_CHANNEL";
     case error_code_t::ERR_INVALID_LEVEL:
@@ -64,6 +67,8 @@ constexpr inline const char *CypherLog_ErrorDesc( const error_code_t error ) {
         return "log subsystem file open failure";
     case error_code_t::ERR_FILE_WRITE_FAILED:
         return "log subsystem file write failure";
+    case error_code_t::ERR_FORMAT_FAILED:
+        return "log subsystem formatting failure";
     case error_code_t::ERR_INVALID_CHANNEL:
         return "log subsystem invalid channel";
     case error_code_t::ERR_INVALID_LEVEL:
