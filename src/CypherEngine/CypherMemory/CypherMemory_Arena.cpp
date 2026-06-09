@@ -16,6 +16,7 @@
                                                                        */
 
 #include "CypherEngine/CypherMemory/CypherMemory_Arena.h"
+#include "CypherEngine/CypherLog/CypherLog.h"
 
 #include <cstdlib>          // for malloc func
 #include <cstring>          // for string memset
@@ -28,10 +29,12 @@ error_code_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_d
 {
     if ( arena.initialized ) {
         arena.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
+        CYPHER_LOG_WARNING( log::channel_t::MEMORY, "arena '%s' is already initialized.", arena.name ? arena.name : "<unnamed>" );
         return error_code_t::ERR_ALREADY_INITIALIZED;
     }
     if ( arena_desc.capacity == 0u ) {
         arena.last_error = error_code_t::ERR_INVALID_CAPACITY;
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena init failed for '%s': invalid capacity.", arena_desc.name ? arena_desc.name : "<unnamed>" );
         return error_code_t::ERR_INVALID_CAPACITY;
     }
     
@@ -40,6 +43,7 @@ error_code_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_d
     void *memory = ::operator new( arena_desc.capacity, std::nothrow );
     if ( memory == nullptr ) {
         arena.last_error = error_code_t::ERR_MEMORY_ALLOCATION;
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena init failed for '%s': heap allocation of %zu bytes failed.", arena_desc.name ? arena_desc.name : "<unnamed>", arena_desc.capacity );
         return error_code_t::ERR_MEMORY_ALLOCATION;
     }
     
@@ -63,6 +67,8 @@ error_code_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_d
     
     arena.initialized = true;
     arena.owns_memory = true;
+
+    CYPHER_LOG_INFO( log::channel_t::MEMORY, "arena '%s' initialized: capacity=%zu bytes, backing=%u.", arena.name ? arena.name : "<unnamed>", arena.capacity, static_cast<common::u32>( arena.backing ) );
     
     return error_code_t::OK;
 }
@@ -73,6 +79,13 @@ void CypherMemory_ArenaShutdown( arena_t &arena )
     if ( !arena.initialized ) {
         return ;
     }
+
+    CYPHER_LOG_INFO( log::channel_t::MEMORY, "arena '%s' shutdown: used=%zu bytes, peak=%zu bytes, allocations=%llu, failed=%llu.",
+                     arena.name ? arena.name : "<unnamed>",
+                     arena.used,
+                     arena.peak_used,
+                     static_cast<unsigned long long>( arena.allocation_count ),
+                     static_cast<unsigned long long>( arena.failed_allocation_count ) );
     
     if ( arena.owns_memory && arena.base != nullptr ) {
         ::operator delete( arena.base );
@@ -128,17 +141,20 @@ void *CypherMemory_ArenaAlloc( arena_t &arena, common::usize size, common::usize
     if ( !arena.initialized ) {
         arena.last_error = error_code_t::ERR_NOT_INITIALIZED;
         ++arena.failed_allocation_count;
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena allocation failed: arena is not initialized." );
         return nullptr;
     }
     if ( size == 0u ) {
         arena.last_error = error_code_t::ERR_INVALID_ARGUMENT;
         ++arena.failed_allocation_count;
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' allocation failed: requested size is zero.", arena.name ? arena.name : "<unnamed>" );
         return nullptr;
     }
     
     if ( !CypherMemory_IsPowerOfTwo( alignment ) ) {
         arena.last_error = error_code_t::ERR_INVALID_ALIGNMENT;
         ++arena.failed_allocation_count;
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' allocation failed: invalid alignment %zu.", arena.name ? arena.name : "<unnamed>", alignment );
         return nullptr;
     } 
     
@@ -150,6 +166,7 @@ void *CypherMemory_ArenaAlloc( arena_t &arena, common::usize size, common::usize
     if ( new_address > arena.capacity ) {
         arena.last_error = error_code_t::ERR_OUT_OF_MEMORY;
         ++arena.failed_allocation_count;
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' allocation failed: requested=%zu, alignment=%zu, used=%zu, capacity=%zu.", arena.name ? arena.name : "<unnamed>", size, alignment, arena.used, arena.capacity );
         return nullptr;
     }
     
@@ -212,11 +229,13 @@ error_code_t CypherMemory_ArenaRewind( arena_t &arena, arena_marker_t marker )
 {
     if ( !arena.initialized ) {
         arena.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena rewind failed: arena is not initialized." );
         return error_code_t::ERR_NOT_INITIALIZED;
     }
     
     if ( marker.used > arena.used || marker.used > arena.capacity ) {
         arena.last_error = error_code_t::ERR_INVALID_MARKER;
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' rewind failed: marker=%zu, used=%zu, capacity=%zu.", arena.name ? arena.name : "<unnamed>", marker.used, arena.used, arena.capacity );
         return error_code_t::ERR_INVALID_MARKER;
     }
     
