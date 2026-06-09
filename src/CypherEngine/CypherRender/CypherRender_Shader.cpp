@@ -18,6 +18,7 @@
 #include "CypherEngine/CypherRender/CypherRender_Shader.h"
 #include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
 #include "CypherEngine/CypherCommon/CypherCommon_Print.h"
+#include "CypherEngine/CypherLog/CypherLog.h"
 #include "CypherEngine/CypherRender/CypherRender_GL.h"
 
 #include <cstring>     // strcmp / strncpy for fixed-size shader names and paths.
@@ -71,21 +72,25 @@ Loads shader source through the file system and creates a GL shader program.
 error_code_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const char *name, const char *vertex_path, const char *fragment_path, shader_t **out_shader )
 {
     if ( name == nullptr || name[0] == '\0' ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader load failed: invalid shader name." );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( error_code_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_ShaderLoad: failed passing invalid shader name.\n" );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( vertex_path == nullptr || vertex_path[0] == '\0' ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader load failed: invalid vertex shader path." );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( error_code_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_ShaderLoad: failed passing invalid vertex shader path.\n" );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( fragment_path == nullptr || fragment_path[0] == '\0' ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader load failed: invalid fragment shader path." );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( error_code_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_ShaderLoad: failed passing invalid fragment shader path.\n" );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( out_shader == nullptr ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader load failed for '%s': out_shader is null.", name );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( error_code_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_ShaderLoad: failed, the out_shader is nullptr.\n" );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
@@ -93,10 +98,12 @@ error_code_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const 
     shader_t *existing_shader = CypherRender_ShaderFind( shader_registry, name );
     if ( existing_shader != nullptr ) {
         *out_shader = existing_shader;
+        CYPHER_LOG_DEBUG( log::channel_t::RENDER, "shader '%s' already loaded; reusing program=%u.", name, existing_shader->gl_shader_program_id );
         return error_code_t::OK;
     }
 
     if ( shader_registry.shader_count >= CYPHER_RENDER_MAX_SHADERS ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader load failed for '%s': registry full (%u).", name, CYPHER_RENDER_MAX_SHADERS );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( error_code_t::ERR_SHADER_REGISTRY_FULL), "CypherRender_ShaderLoad: shader_registry is full; [{ %d out of %d }] ", shader_registry.shader_count, CYPHER_RENDER_MAX_SHADERS );
         return error_code_t::ERR_SHADER_REGISTRY_FULL;
     }
@@ -118,6 +125,7 @@ error_code_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const 
     const auto vertex_read_result = fs::CypherFileSystem_ReadEntireFile( vertex_path, vertex_source, CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE, vertex_bytes_read );
 
     if ( vertex_read_result != fs::error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: vertex source '%s' read failed: %s.", name, vertex_path, fs::CypherFileSystem_ErrorDesc( vertex_read_result ) );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( error_code_t::ERR_SHADER_LOAD ), "CypherRender_ShaderLoad: failed reading vertex shader '%s'.\n", vertex_path );
         return error_code_t::ERR_SHADER_LOAD;
     }
@@ -125,6 +133,7 @@ error_code_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const 
 
     const auto fragment_read_result = fs::CypherFileSystem_ReadEntireFile( fragment_path, fragment_source, CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE, fragment_bytes_read );
     if ( fragment_read_result != fs::error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: fragment source '%s' read failed: %s.", name, fragment_path, fs::CypherFileSystem_ErrorDesc( fragment_read_result ) );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( error_code_t::ERR_SHADER_LOAD ), "CypherRender_ShaderLoad: failed reading fragment shader '%s'.\n", fragment_path );
         return error_code_t::ERR_SHADER_LOAD;
     }
@@ -133,6 +142,7 @@ error_code_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const 
     const auto shader_program_result = CypherRenderGL_CreateShaderProgram( vertex_source, fragment_source, shader->gl_shader_program_id );
 
     if ( shader_program_result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: GL program creation failed: %s.", name, CypherRender_ErrorDesc( shader_program_result ) );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( shader_program_result), "CypherRender_ShaderLoad: CypherRenderGL_CreateShaderProgram: failed creating shader program '%s'.\n", name );
         *shader = {};
         return shader_program_result;
@@ -141,6 +151,14 @@ error_code_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const 
     shader->loaded = true;
     shader_registry.shader_count++;
     *out_shader = shader;
+
+    CYPHER_LOG_INFO( log::channel_t::RENDER, "shader '%s' loaded: program=%u, vertex='%s' (%llu bytes), fragment='%s' (%llu bytes).",
+                     name,
+                     shader->gl_shader_program_id,
+                     vertex_path,
+                     static_cast<unsigned long long>( vertex_bytes_read ),
+                     fragment_path,
+                     static_cast<unsigned long long>( fragment_bytes_read ) );
 
     return error_code_t::OK;
 }
@@ -173,6 +191,7 @@ CypherRender_ShaderBind
 error_code_t CypherRender_ShaderBind( const shader_t &shader )
 {
     if ( shader.gl_shader_program_id == 0  || !shader.loaded ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "shader bind failed: invalid shader program id=%u loaded=%u.", shader.gl_shader_program_id, shader.loaded ? 1u : 0u );
         common::CypherCommon_Errorf( CypherRender_ErrorCode( error_code_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_BindShader: Invalid shader program id passed; %d\n", shader.gl_shader_program_id );
         return error_code_t::ERR_SHADER_LOAD;
     }
