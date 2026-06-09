@@ -16,6 +16,7 @@
                                                                        */
 
 #include "CypherEngine/CypherRender/CypherRender_Draw.h"
+#include "CypherEngine/CypherLog/CypherLog.h"
 
 namespace cypher::engine::render
 {
@@ -23,30 +24,36 @@ namespace cypher::engine::render
 error_code_t CypherRender_DrawItem( const draw_item_t &item, const camera_t &camera )
 {
     if ( item.mesh == nullptr ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw item failed: mesh is null." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER; 
     }
     
     if ( item.shader == nullptr ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw item failed: shader is null." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     error_code_t result = CypherRender_ShaderBind( *item.shader );
     if ( result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw item failed: shader bind failed: %s.", CypherRender_ErrorDesc( result ) );
         return result;
     }
     
     result = CypherRender_ShaderSetMat4( *item.shader, "u_model", item.model_matrix );
     if ( result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw item failed: setting u_model failed: %s.", CypherRender_ErrorDesc( result ) );
         return result;
     }         
     
     result = CypherRender_ShaderSetMat4( *item.shader, "u_view", camera.view );
     if ( result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw item failed: setting u_view failed: %s.", CypherRender_ErrorDesc( result ) );
         return result;
     }         
     
     result = CypherRender_ShaderSetMat4( *item.shader, "u_projection", camera.projection );
     if ( result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw item failed: setting u_projection failed: %s.", CypherRender_ErrorDesc( result ) );
         return result;
     }         
     
@@ -58,6 +65,8 @@ void CypherRender_DrawListInit( draw_list_t &draw_list, draw_item_t *items, comm
     draw_list.items = items;
     draw_list.item_count = 0u;
     draw_list.item_capacity = item_capacity;
+
+    CYPHER_LOG_DEBUG( log::channel_t::RENDER, "draw list initialized: capacity=%u.", item_capacity );
 
     return ;
 }
@@ -72,14 +81,17 @@ void CypherRender_DrawListClear( draw_list_t &draw_list )
 error_code_t CypherRender_DrawListSubmit( draw_list_t &draw_list, const draw_item_t &item )
 {
     if ( draw_list.items == nullptr || draw_list.item_capacity == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw list submit failed: draw list storage is invalid." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( item.mesh == nullptr || item.shader == nullptr ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw list submit failed: invalid draw item mesh=%p shader=%p.", static_cast<void *>( item.mesh ), static_cast<void *>( item.shader ) );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( draw_list.item_count >= draw_list.item_capacity ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw list submit failed: list full (%u/%u).", draw_list.item_count, draw_list.item_capacity );
         return error_code_t::ERR_DRAW_LIST_FULL;
     }
 
@@ -96,6 +108,7 @@ error_code_t CypherRender_DrawListDraw( const draw_list_t &draw_list, const came
     }
 
     if ( draw_list.items == nullptr ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw list draw failed: draw list storage is invalid." );
         return error_code_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
@@ -103,6 +116,7 @@ error_code_t CypherRender_DrawListDraw( const draw_list_t &draw_list, const came
         const error_code_t result = CypherRender_DrawItem( draw_list.items[i], camera );
 
         if ( result != error_code_t::OK ) {
+            CYPHER_LOG_ERROR( log::channel_t::RENDER, "draw list draw failed: item=%u error=%s.", i, CypherRender_ErrorDesc( result ) );
             return result;
         }
     }
