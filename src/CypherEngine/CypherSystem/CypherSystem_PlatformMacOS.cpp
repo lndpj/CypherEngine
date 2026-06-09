@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-27 17:32:33
    Last Modified by: ksiric
-   Last Modified: 2026-06-08 16:54:15
+   Last Modified: 2026-06-09 09:00:21
    ---------------------------------------------------------------------
    Description:
        
@@ -15,6 +15,7 @@
  ======================================================================
                                                                        */
 
+#include "CypherEngine/CypherLog/CypherLog.h"
 #include "CypherEngine/CypherSystem/CypherSystem_PlatformInternal.h"
 
 #if CYPHER_PLATFORM_MACOS
@@ -30,6 +31,7 @@
 #include <string>          // Temporary path strings.
 #include <system_error>    // std::error_code for non-throwing filesystem calls.
 #include <unistd.h>
+#include <sys/mman.h>
 
 namespace cypher::engine::sys
 {
@@ -179,6 +181,7 @@ common::usize CypherSystem_PlatformVirtualPageSize()
     
     long page_size = sysconf( _SC_PAGESIZE );
     if ( page_size <= 0 ) {
+        CYPHER_LOG_WARNING( log::channel_t::PLATFORM, "sysconf(_SC_PAGESIZE) failed; using default page size %zu.", DEFAULT_PAGE_SIZE );
         return DEFAULT_PAGE_SIZE;
     }
     
@@ -187,9 +190,77 @@ common::usize CypherSystem_PlatformVirtualPageSize()
 
 void *CypherSystem_PlatformVirtualReserve( common::usize size )
 {
-    
+    if ( size == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: requested size is zero." );
+        return nullptr;
+    }
+
+    void *memory;
+    memory = mmap(
+                  nullptr,                      // OS chooses the virtual address for us
+                  size,                         // reserve this many bytes
+                  PROT_NONE,                    // cannot read or write yet, not usable yet
+                  MAP_PRIVATE | MAP_ANON,       // private anonymous memory
+                  -1,                           //  file_descriptor = -1 -> no file
+                  0                             // no file offset
+                  );
+
+    if ( memory == MAP_FAILED ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: size=%zu, errno=%d.", size, errno );
+        return nullptr;
+    }
+
+    return memory;
 }
 
+bool CypherSystem_PlatformVirtualCommit( void *memory, common::usize size )
+{
+    if ( memory == nullptr || size == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu.", memory, size );
+        return false;
+    }
+    int result = mprotect( memory, size, PROT_READ | PROT_WRITE );
+    if ( result != 0 ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        return false;
+    }
+
+    return true;
+}
+
+bool CypherSystem_PlatformVirtualDecommit( void *memory, common::usize size )
+{
+    if ( memory == nullptr || size == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu.", memory, size );
+        return false;
+    }
+    int result = madvise( memory, size, MADV_FREE );
+    if ( result != 0 ) {
+        CYPHER_LOG_WARNING( log::channel_t::PLATFORM, "virtual decommit madvise warning: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+    }
+    result = mprotect( memory, size, PROT_NONE );
+    if ( result != 0 ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        return false;
+    }
+
+    return true;
+}
+
+bool CypherSystem_PlatformVirtualRelease( void *memory, common::usize size )
+{
+    if ( memory == nullptr || size == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu.", memory, size );
+        return false;
+    }
+    int result = munmap( memory, size );
+    if ( result != 0 ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        return false;
+    }
+
+    return true;
+}
 
 }       // namespace cypher::engine::sys
     
