@@ -77,6 +77,7 @@ error_code_t CypherRender_Init( const sys::window_t &window, const host::window_
 
 	const auto gl_result = CypherRenderGL_Init( window, window_config.vsync, g_render_runtime_state.gl_state );
 	if ( gl_result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "renderer backend initialization failed: %s.", CypherRender_ErrorDesc( gl_result ) );
 		g_render_runtime_state = {};
 		return gl_result;
 	}
@@ -125,15 +126,18 @@ Opens a render frame and prepares the backend for drawing.
 */
 error_code_t CypherRender_BeginFrame( const common::com_f32 delta_time_seconds ) {
 	if ( !CypherRender_IsInitialized() ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "begin frame failed: renderer is not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( g_render_runtime_state.in_frame ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "begin frame failed: frame is already active." );
 		return error_code_t::ERR_FRAME_ALREADY_ACTIVE;
 	}
 
 	const auto gl_result = CypherRenderGL_BeginFrame( *g_render_runtime_state.window );
 	if ( gl_result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "begin frame failed: GL begin failed: %s.", CypherRender_ErrorDesc( gl_result ) );
 		return error_code_t::ERR_BEGIN_DRAW;
 	}
 
@@ -154,10 +158,12 @@ Draws the items submitted by world/game/editor systems for the active frame.
 */
 error_code_t CypherRender_RenderFrame() {
 	if ( !CypherRender_IsInitialized() ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "render frame failed: renderer is not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( !g_render_runtime_state.in_frame ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "render frame failed: frame is not active." );
 		return error_code_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
@@ -175,15 +181,18 @@ Closes the render frame and presents the back buffer.
 */
 error_code_t CypherRender_EndFrame() {
 	if ( !CypherRender_IsInitialized() ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "end frame failed: renderer is not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( !g_render_runtime_state.in_frame ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "end frame failed: frame is not active." );
 		return error_code_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
 	const auto gl_result = CypherRenderGL_EndFrame( *g_render_runtime_state.window );
 	if ( gl_result != error_code_t::OK ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "end frame failed: GL end failed: %s.", CypherRender_ErrorDesc( gl_result ) );
 		return error_code_t::ERR_END_DRAW;
 	}
 
@@ -203,10 +212,12 @@ this as the public doorway into the renderer draw list.
 error_code_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item )
 {
     if ( !CypherRender_IsInitialized() ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: renderer is not initialized." );
         return error_code_t::ERR_NOT_INIT;
     }
     
     if ( !g_render_runtime_state.in_frame ) {
+        CYPHER_LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: frame is not active." );
         return error_code_t::ERR_FRAME_NOT_ACTIVE;
     }
     
