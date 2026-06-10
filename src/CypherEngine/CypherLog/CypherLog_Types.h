@@ -128,7 +128,7 @@ struct sink_config_t {
 };
 
 struct config_t {
-    level_t min_level{ level_t::INFO };
+    level_t min_level{ level_t::TRACE };
     common::u32 channel_mask{ 0xFFFFFFFFu };
     source_path_mode_t source_path{ source_path_mode_t::BASENAME };
 
