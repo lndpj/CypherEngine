@@ -25,6 +25,7 @@ using com_i16 = std::int16_t;
 using com_i32 = std::int32_t;
 using com_i64 = std::int64_t;
 
+
 using i8 = com_i8;
 using i16 = com_i16;
 using i32 = com_i32;
@@ -35,10 +36,13 @@ using com_u16 = std::uint16_t;
 using com_u32 = std::uint32_t;
 using com_u64 = std::uint64_t;
 
+using byte = std::uint8_t;
+
 using u8 = com_u8;
 using u16 = com_u16;
 using u32 = com_u32;
 using u64 = com_u64;
+
 
 using com_f32 = float;
 using com_f64 = double;
@@ -46,9 +50,27 @@ using com_f64 = double;
 using f32 = com_f32;
 using f64 = com_f64;
 
+using bool_t = bool;
+
 using com_usize = std::size_t;
 
 using usize = com_usize;
+
+/*
+================
+Common Boolean Types
+
+Use bool_t for normal runtime predicates. Use Bool when a stable one-byte
+boolean representation matters for files, networking or serialized engine data.
+================
+*/
+enum class Bool : com_u8 {
+    False = 0u,
+    True = 1u
+};
+
+constexpr bool_t COM_FALSE = false;
+constexpr bool_t COM_TRUE = true;
 
 using frame_index_t = com_u64;
 using entity_id_t = com_u32;
