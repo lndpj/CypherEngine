@@ -22,6 +22,7 @@ enum class error_code_t : common::u8 {
     
     ERR_MEMORY_RESERVE,
     ERR_MEMORY_COMMIT,
+    ERR_MEMORY_DECOMMIT,
     ERR_MEMORY_RELEASE
 };
 
@@ -54,6 +55,8 @@ constexpr inline const char *CypherMemory_ErrorName( const error_code_t error )
         return "ERR_MEMORY_RESERVE";
     case error_code_t::ERR_MEMORY_COMMIT:
         return "ERR_MEMORY_COMMIT";
+    case error_code_t::ERR_MEMORY_DECOMMIT:
+        return "ERR_MEMORY_DECOMMIT";
     case error_code_t::ERR_MEMORY_RELEASE:
         return "ERR_MEMORY_RELEASE";
     default:
@@ -90,6 +93,8 @@ constexpr inline const char *CypherMemory_ErrorDesc( const error_code_t error )
         return "error reserving virtual memory paging";
     case error_code_t::ERR_MEMORY_COMMIT:
         return "error commiting memory";
+    case error_code_t::ERR_MEMORY_DECOMMIT:
+        return "error decommiting memory";
     case error_code_t::ERR_MEMORY_RELEASE:
         return "error releasing commited memory";
     default:
