@@ -111,8 +111,10 @@ constexpr inline const char *CypherCommon_DomainName( const domain_t domain ) {
 		return "NET";
 	case domain_t::COM_DOMAIN_CMD:
 		return "CMD";
-	case domain_t::COM_DOMAIN_CVAR:
-		return "CVAR";
+    case domain_t::COM_DOMAIN_CVAR:
+        return "CVAR";
+    case domain_t::COM_DOMAIN_CFG:
+        return "CFG";
     case domain_t::COM_DOMAIN_MEMORY:
         return "MEMORY";
 	default:
