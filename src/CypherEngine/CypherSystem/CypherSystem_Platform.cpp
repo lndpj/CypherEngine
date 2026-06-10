@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-20 17:42:16
    Last Modified by: ksiric
-   Last Modified: 2026-06-08 12:21:50
+   Last Modified: 2026-06-10 10:33:03
    ---------------------------------------------------------------------
    Description:
        
@@ -24,6 +24,36 @@ namespace cypher::engine::sys
 {
 
 runtime_state_t g_sys_runtime_state;
+
+namespace {
+
+/*
+================
+CypherSystem_AlignVirtualMemorySize
+
+Rounds virtual-memory operation sizes up to the platform page size.
+================
+*/
+common::usize CypherSystem_AlignVirtualMemorySize( const common::usize size )
+{
+    if ( size == 0u ) {
+        return 0u;
+    }
+
+    const common::usize page_size = CypherSystem_PlatformVirtualPageSize();
+    if ( page_size == 0u ) {
+        return size;
+    }
+
+    const common::usize remainder = size % page_size;
+    if ( remainder == 0u ) {
+        return size;
+    }
+
+    return size + ( page_size - remainder );
+}
+
+}       // namespace
 
 /*
 ================
@@ -238,6 +268,68 @@ CypherSystem_SleepMilliseconds
 void CypherSystem_SleepMilliseconds( common::u64 milliseconds ) {
     CypherSystem_PlatformSleepMilliseconds( milliseconds );
     return ;
-}   
+}
+
+/*
+================
+CypherSystem_VirtualPageSize
+================
+*/
+common::usize CypherSystem_VirtualPageSize()
+{
+    return CypherSystem_PlatformVirtualPageSize();
+}
+
+/*
+================
+CypherSystem_VirtualReserve
+================
+*/
+void *CypherSystem_VirtualReserve( const common::usize size )
+{
+    return CypherSystem_PlatformVirtualReserve( CypherSystem_AlignVirtualMemorySize( size ) );
+}
+
+/*
+================
+CypherSystem_VirtualCommit
+================
+*/
+error_code_t CypherSystem_VirtualCommit( void *memory, common::usize size )
+{
+    if ( CypherSystem_PlatformVirtualCommit( memory, CypherSystem_AlignVirtualMemorySize( size ) ) ) {
+        return error_code_t::OK;
+    }
+
+    return error_code_t::ERR_INTERNAL_ERROR;
+}
+
+/*
+================
+CypherSystem_VirtualDecommit
+================
+*/
+error_code_t CypherSystem_VirtualDecommit( void *memory, common::usize size )
+{
+    if ( CypherSystem_PlatformVirtualDecommit( memory, CypherSystem_AlignVirtualMemorySize( size ) ) ) {
+        return error_code_t::OK;
+    }
+
+    return error_code_t::ERR_INTERNAL_ERROR;
+}
+
+/*
+================
+CypherSystem_VirtualRelease
+================
+*/
+error_code_t CypherSystem_VirtualRelease( void *memory, common::usize size )
+{
+    if ( CypherSystem_PlatformVirtualRelease( memory, CypherSystem_AlignVirtualMemorySize( size ) ) ) {
+        return error_code_t::OK;
+    }
+
+    return error_code_t::ERR_INTERNAL_ERROR;
+}
 
 }       // namespace cypher::engine::sys
