@@ -1,10 +1,10 @@
 /*======================================================================
-   File: com_print.cpp
+   File: CypherCommon_Print.cpp
    Project: CypherEngine
    Author: ksiric <email@example.com>
    Created: 2026-04-21 13:11:03
    Last Modified by: ksiric
-   Last Modified: 2026-04-21 20:51:07
+   Last Modified: 2026-06-09 20:12:03
    ---------------------------------------------------------------------
    Description:
 
@@ -16,12 +16,43 @@
                                                                        */
 
 #include "CypherEngine/CypherCommon/CypherCommon_Print.h"
+#include "CypherEngine/CypherLog/CypherLog.h"
 
 #include <cstdarg>     // va_list handling.
 #include <cstdio>      // stdio output and formatting.
+#include <ctime>       // std::time for common error log records.
 
 namespace cypher::engine::common
 {
+
+namespace {
+
+/*
+================
+CypherCommon_LogChannelForDomain
+================
+*/
+log::channel_t CypherCommon_LogChannelForDomain( const domain_t domain )
+{
+    switch ( domain ) {
+        case domain_t::COM_DOMAIN_RENDER: return log::channel_t::RENDER;
+        case domain_t::COM_DOMAIN_LOG:    return log::channel_t::CORE;
+        case domain_t::COM_DOMAIN_HOST:   return log::channel_t::HOST;
+        case domain_t::COM_DOMAIN_SYS:    return log::channel_t::SYSTEM;
+        case domain_t::COM_DOMAIN_AUDIO:  return log::channel_t::AUDIO;
+        case domain_t::COM_DOMAIN_FS:     return log::channel_t::FS;
+        case domain_t::COM_DOMAIN_NET:    return log::channel_t::NET;
+        case domain_t::COM_DOMAIN_GAME:   return log::channel_t::GAME;
+        case domain_t::COM_DOMAIN_CMD:    return log::channel_t::CMD;
+        case domain_t::COM_DOMAIN_CVAR:   return log::channel_t::CVAR;
+        case domain_t::COM_DOMAIN_CFG:    return log::channel_t::CFG;
+        case domain_t::COM_DOMAIN_MEMORY: return log::channel_t::MEMORY;
+        case domain_t::COM_DOMAIN_COMMON: return log::channel_t::CORE;
+        default:                          return log::channel_t::CORE;
+    }
+}
+
+}       // namespace
 
 /*
 ================
@@ -93,6 +124,28 @@ void CypherCommon_VErrorf( const error_t error, const char *message, va_list arg
     const char *safe_format = message ? message : "<null error message>";
     std::vsnprintf( msg_buf, sizeof( msg_buf ), safe_format, args );
     const domain_t domain = CypherCommon_ErrorDomain( error );
+
+    if ( log::CypherLog_IsInitialized() ) {
+        log::record_t record{};
+        record.level = log::level_t::ERROR;
+        record.channel = CypherCommon_LogChannelForDomain( domain );
+        record.sink_mask = log::CypherLog_DefaultSinkMaskForLevel( record.level );
+        record.file = "";
+        record.function = "";
+        record.line = 0;
+        record.timestamp = std::time( nullptr );
+
+        std::snprintf(
+            record.message,
+            sizeof( record.message ),
+            "[0x%08X] %s",
+            static_cast<unsigned int>( error ),
+            msg_buf
+        );
+
+        log::CypherLog_Emit( record );
+        return;
+    }
 
     std::snprintf(msg_final,
                   sizeof( msg_final ),
