@@ -43,6 +43,9 @@ constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_ZERO_ON_ALLOC         = 1u << 0u;
 constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_CLEAR_ON_RESET        = 1u << 1u;         // 0010
 constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_CLEAR_ON_SHUTDOWN     = 1u << 2u;         // 0100
 constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_GROW_COMMIT_ON_ALLOC  = 1u << 3u;         // 1000
+constexpr common::u32 CYPHER_MEMORY_ARENA_FLAG_DECOMMIT_ON_RESET     = 1u << 4u;         // 1 0000
+
+constexpr common::usize CYPHER_MEMORY_ARENA_ALLOCATION_TRACE_COUNT = 64u;
 
 /*
 ================
@@ -81,6 +84,7 @@ struct arena_desc_t {
     
     common::usize capacity{ 0u };
     common::usize initial_commit{ 0u };
+    void *external_buffer{ nullptr };
     
     common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
     arena_backing_t backing{ arena_backing_t::ARENA_HEAP };
@@ -100,6 +104,28 @@ struct arena_marker_t {
 
 /*
 ================
+Arena Allocation Trace
+
+Small debug record for recent arena allocation callsites.
+================
+*/
+struct arena_allocation_trace_t {
+    const char *file{ nullptr };
+    const char *function{ nullptr };
+    common::i32 line{ 0 };
+
+    void *ptr{ nullptr };
+    common::usize size{ 0u };
+    common::usize alignment{ 0u };
+    common::usize used_after{ 0u };
+
+    common::u64 allocation_index{ 0u };
+    error_code_t error{ error_code_t::OK };
+    bool failed{ false };
+};
+
+/*
+================
 Arena Stats
 
 Snapshot of arena memory usage.
@@ -115,6 +141,9 @@ struct arena_stats_t {
 
     common::u64 allocation_count{ 0u };
     common::u64 failed_allocation_count{ 0u };
+
+    common::usize committed{ 0u };
+    common::usize initial_commit{ 0u };
 };
 
 /*
@@ -128,13 +157,14 @@ block and serves allocations by moving the used offset forward.
 struct arena_t {
     const char *name{ nullptr };        // debugging/logging
     
-    common::u8 *base{ nullptr };        // offset to the beginning of raw byte for taht alloc
+    common::byte *base{ nullptr };      // pointer to the beginning of the arena memory block
     
     common::usize capacity{ 0u };       // max bytes allocation size
     common::usize used{ 0u };           // how much is used by this specific arena in arena.
     common::usize peak_used{ 0u };      // peak usage in frames for debugging.
     
     common::usize committed{ 0u };
+    common::usize initial_commit{ 0u };
     common::usize page_size{ 0u };
     
     common::u64 allocation_count{ 0u }; // how many allocations happened for this, like usage
@@ -143,6 +173,10 @@ struct arena_t {
     common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
     
     error_code_t last_error{ error_code_t::OK };
+
+    arena_allocation_trace_t allocation_traces[CYPHER_MEMORY_ARENA_ALLOCATION_TRACE_COUNT]{};
+    common::usize allocation_trace_index{ 0u };
+    common::usize allocation_trace_count{ 0u };
     
     arena_backing_t backing{ arena_backing_t::ARENA_HEAP };
     
@@ -169,8 +203,22 @@ void CypherMemory_ArenaResetCounters( arena_t &arena );
 void CypherMemory_ArenaReset( arena_t &arena );
     
 void *CypherMemory_ArenaAlloc( arena_t &arena, common::usize size, common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
+
+void *CypherMemory_ArenaAllocDebug( arena_t &arena,
+                                    common::usize size,
+                                    common::usize alignment,
+                                    const char *file,
+                                    const char *function,
+                                    common::i32 line );
     
 void *CypherMemory_ArenaAllocZero( arena_t &arena, common::usize size, common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
+
+void *CypherMemory_ArenaAllocZeroDebug( arena_t &arena,
+                                        common::usize size,
+                                        common::usize alignment,
+                                        const char *file,
+                                        const char *function,
+                                        common::i32 line );
 
 arena_marker_t CypherMemory_ArenaGetMarker( const arena_t &arena );
 
@@ -189,6 +237,8 @@ common::f32 CypherMemory_ArenaUsageRatio( const arena_t &arena );
 common::usize CypherMemory_ArenaCapacity( const arena_t &arena );
 
 common::usize CypherMemory_ArenaRemaining( const arena_t &arena );
+
+const arena_allocation_trace_t *CypherMemory_ArenaAllocationTraces( const arena_t &arena, common::usize &out_count );
         
 /*
 ================
@@ -204,7 +254,20 @@ T *CypherMemory_ArenaAllocType( arena_t &arena ) {
             CypherMemory_ArenaAlloc(
             arena,
             sizeof( T ),
-            alignof( T ) ) );   
+            alignof( T ) ) );
+}
+
+template <typename T>
+T *CypherMemory_ArenaAllocTypeDebug( arena_t &arena, const char *file, const char *function, common::i32 line )
+{
+    return static_cast<T *>(
+            CypherMemory_ArenaAllocDebug(
+            arena,
+            sizeof( T ),
+            alignof( T ),
+            file,
+            function,
+            line ) );
 }
 
 template <typename T>
@@ -218,6 +281,19 @@ T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count )
 }
 
 template <typename T>
+T *CypherMemory_ArenaAllocArrayDebug( arena_t &arena, const common::usize count, const char *file, const char *function, common::i32 line )
+{
+    return static_cast<T *>(
+            CypherMemory_ArenaAllocDebug(
+            arena,
+            sizeof( T ) * count,
+            alignof( T ),
+            file,
+            function,
+            line ) );
+}
+
+template <typename T>
 T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count )
 {
     return static_cast<T *>(
@@ -225,6 +301,19 @@ T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count )
             arena,
             sizeof( T ) * count,
             alignof( T ) ) );   
+}
+
+template <typename T>
+T *CypherMemory_ArenaAllocArrayZeroDebug( arena_t &arena, const common::usize count, const char *file, const char *function, common::i32 line )
+{
+    return static_cast<T *>(
+            CypherMemory_ArenaAllocZeroDebug(
+            arena,
+            sizeof( T ) * count,
+            alignof( T ),
+            file,
+            function,
+            line ) );
 }
 
 template <typename T>
@@ -237,5 +326,35 @@ T *CypherMemory_ArenaAllocTypeZero( arena_t &arena )
             alignof( T ) ) );   
 }
 
+template <typename T>
+T *CypherMemory_ArenaAllocTypeZeroDebug( arena_t &arena, const char *file, const char *function, common::i32 line )
+{
+        return static_cast<T *>(
+            CypherMemory_ArenaAllocZeroDebug(
+            arena,
+            sizeof( T ),
+            alignof( T ),
+            file,
+            function,
+            line ) );
+}
+
 }       // namespace cypher::engine::memory
 
+#define CYPHER_MEMORY_ARENA_ALLOC( ARENA, SIZE, ALIGNMENT ) \
+    ::cypher::engine::memory::CypherMemory_ArenaAllocDebug( ( ARENA ), ( SIZE ), ( ALIGNMENT ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_ARENA_ALLOC_ZERO( ARENA, SIZE, ALIGNMENT ) \
+    ::cypher::engine::memory::CypherMemory_ArenaAllocZeroDebug( ( ARENA ), ( SIZE ), ( ALIGNMENT ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_ARENA_ALLOC_TYPE( ARENA, TYPE ) \
+    ::cypher::engine::memory::CypherMemory_ArenaAllocTypeDebug<TYPE>( ( ARENA ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_ARENA_ALLOC_TYPE_ZERO( ARENA, TYPE ) \
+    ::cypher::engine::memory::CypherMemory_ArenaAllocTypeZeroDebug<TYPE>( ( ARENA ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_ARENA_ALLOC_ARRAY( ARENA, TYPE, COUNT ) \
+    ::cypher::engine::memory::CypherMemory_ArenaAllocArrayDebug<TYPE>( ( ARENA ), ( COUNT ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_ARENA_ALLOC_ARRAY_ZERO( ARENA, TYPE, COUNT ) \
+    ::cypher::engine::memory::CypherMemory_ArenaAllocArrayZeroDebug<TYPE>( ( ARENA ), ( COUNT ), __FILE__, __func__, __LINE__ )
