@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-19 22:31:16
    Last Modified by: ksiric
-   Last Modified: 2026-06-07 17:24:01
+   Last Modified: 2026-06-09 20:31:37
    ---------------------------------------------------------------------
    Description:
 
@@ -14,12 +14,13 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-
 #include "CypherEngine/CypherLog/CypherLog.h"
 #include "CypherEngine/CypherLog/CypherLog_Format.h"
 
+#include <cctype>      // std::tolower for level parsing.
 #include <cstdio>      // FILE and stdio logging sinks.
 #include <ctime>       // std::time.
+#include <cstring>     // std::strcmp / std::strncmp for level and sink config checks.
 
 namespace cypher::engine::log
 {
@@ -115,6 +116,47 @@ error_code_t CypherLog_OpenFileSink( const sink_config_t &sink_config, std::FILE
     }
 
     return error_code_t::OK;
+}
+
+/*
+================
+CypherLog_FileSinkSameTarget
+================
+*/
+bool CypherLog_FileSinkSameTarget( const sink_config_t &old_config, const sink_config_t &new_config )
+{
+    if ( old_config.enabled != new_config.enabled ) {
+        return false;
+    }
+
+    if ( old_config.file != new_config.file ) {
+        return false;
+    }
+
+    return std::strncmp( old_config.path, new_config.path, CYPHER_LOG_FILE_PATH_MAX ) == 0;
+}
+
+/*
+================
+CypherLog_UpdateFileSink
+
+Keeps unchanged file handles alive. This avoids truncating the active log file
+when runtime cvars are applied without changing the sink target.
+================
+*/
+error_code_t CypherLog_UpdateFileSink( const sink_config_t &old_config, const sink_config_t &new_config, std::FILE *&file_handle )
+{
+    if ( !new_config.enabled ) {
+        CypherLog_CloseFile( file_handle );
+        return error_code_t::OK;
+    }
+
+    if ( file_handle != nullptr && CypherLog_FileSinkSameTarget( old_config, new_config ) ) {
+        return error_code_t::OK;
+    }
+
+    CypherLog_CloseFile( file_handle );
+    return CypherLog_OpenFileSink( new_config, file_handle );
 }
 
 /*
@@ -327,6 +369,71 @@ const config_t &CypherLog_GetConfig()
 
 /*
 ================
+CypherLog_IsInitialized
+================
+*/
+bool CypherLog_IsInitialized()
+{
+    return g_log_runtime_state_t.initialized;
+}
+
+/*
+================
+CypherLog_LevelFromString
+
+Parses config/console level strings into logger severity values.
+================
+*/
+error_code_t CypherLog_LevelFromString( const char *level_name, level_t &out_level )
+{
+    if ( level_name == nullptr || level_name[0] == '\0' ) {
+        return error_code_t::ERR_INVALID_LEVEL;
+    }
+
+    char lower[32]{};
+    common::u32 i = 0u;
+
+    for ( ; i + 1u < sizeof( lower ) && level_name[i] != '\0'; ++i ) {
+        lower[i] = static_cast<char>( std::tolower( static_cast<unsigned char>( level_name[i] ) ) );
+    }
+
+    lower[i] = '\0';
+
+    if ( std::strcmp( lower, "trace" ) == 0 || std::strcmp( lower, "0" ) == 0 ) {
+        out_level = level_t::TRACE;
+        return error_code_t::OK;
+    }
+
+    if ( std::strcmp( lower, "debug" ) == 0 || std::strcmp( lower, "1" ) == 0 ) {
+        out_level = level_t::DEBUG;
+        return error_code_t::OK;
+    }
+
+    if ( std::strcmp( lower, "info" ) == 0 || std::strcmp( lower, "2" ) == 0 ) {
+        out_level = level_t::INFO;
+        return error_code_t::OK;
+    }
+
+    if ( std::strcmp( lower, "warning" ) == 0 || std::strcmp( lower, "warn" ) == 0 || std::strcmp( lower, "3" ) == 0 ) {
+        out_level = level_t::WARNING;
+        return error_code_t::OK;
+    }
+
+    if ( std::strcmp( lower, "error" ) == 0 || std::strcmp( lower, "4" ) == 0 ) {
+        out_level = level_t::ERROR;
+        return error_code_t::OK;
+    }
+
+    if ( std::strcmp( lower, "fatal" ) == 0 || std::strcmp( lower, "5" ) == 0 ) {
+        out_level = level_t::FATAL;
+        return error_code_t::OK;
+    }
+
+    return error_code_t::ERR_INVALID_LEVEL;
+}
+
+/*
+================
 CypherLog_SetConfig
 
 Replaces active configuration and rotates file sinks if requested.
@@ -338,33 +445,34 @@ error_code_t CypherLog_SetConfig( const config_t &config )
         return error_code_t::ERR_NOT_INIT;
     }
 
-    std::FILE *engine_file_handle = nullptr;
-    std::FILE *error_file_handle = nullptr;
-    std::FILE *console_file_handle = nullptr;
-    std::FILE *editor_file_handle = nullptr;
-    std::FILE *game_file_handle = nullptr;
+    error_code_t update_result = error_code_t::OK;
 
-    const error_code_t open_result = CypherLog_OpenFileSinks(
-        config,
-        engine_file_handle,
-        error_file_handle,
-        console_file_handle,
-        editor_file_handle,
-        game_file_handle
-    );
-
-    if ( open_result != error_code_t::OK ) {
-        return open_result;
+    update_result = CypherLog_UpdateFileSink( g_log_runtime_state_t.config.engine_file, config.engine_file, g_log_runtime_state_t.engine_file_handle );
+    if ( update_result != error_code_t::OK ) {
+        return update_result;
     }
 
-    CypherLog_CloseFileSinks( g_log_runtime_state_t );
+    update_result = CypherLog_UpdateFileSink( g_log_runtime_state_t.config.error_file, config.error_file, g_log_runtime_state_t.error_file_handle );
+    if ( update_result != error_code_t::OK ) {
+        return update_result;
+    }
+
+    update_result = CypherLog_UpdateFileSink( g_log_runtime_state_t.config.console_file, config.console_file, g_log_runtime_state_t.console_file_handle );
+    if ( update_result != error_code_t::OK ) {
+        return update_result;
+    }
+
+    update_result = CypherLog_UpdateFileSink( g_log_runtime_state_t.config.editor_file, config.editor_file, g_log_runtime_state_t.editor_file_handle );
+    if ( update_result != error_code_t::OK ) {
+        return update_result;
+    }
+
+    update_result = CypherLog_UpdateFileSink( g_log_runtime_state_t.config.game_file, config.game_file, g_log_runtime_state_t.game_file_handle );
+    if ( update_result != error_code_t::OK ) {
+        return update_result;
+    }
 
     g_log_runtime_state_t.config = config;
-    g_log_runtime_state_t.engine_file_handle = engine_file_handle;
-    g_log_runtime_state_t.error_file_handle = error_file_handle;
-    g_log_runtime_state_t.console_file_handle = console_file_handle;
-    g_log_runtime_state_t.editor_file_handle = editor_file_handle;
-    g_log_runtime_state_t.game_file_handle = game_file_handle;
     g_log_runtime_state_t.file_error_reported = false;
 
     return error_code_t::OK;
