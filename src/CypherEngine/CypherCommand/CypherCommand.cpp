@@ -218,6 +218,7 @@ error_code_t CypherCommand_Execute( const char *command_line ) {
     if ( err != cmd::error_code_t::OK ) {
         common::CypherCommon_Errorf( CypherCommand_ErrorCode( err ), "CypherCommand_Execute: CypherCommand_Parse: invalid parsing command line." );
         CYPHER_LOG_ERROR( log::channel_t::CMD, "command execute failed: parse failed for '%s'.", command_line );
+        return err;
     }
     
     if ( cmd_argc == 0u || cmd_argv[0] == nullptr || cmd_argv[0][0] == '\0' ) {
