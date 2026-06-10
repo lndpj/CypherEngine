@@ -94,17 +94,22 @@ error_code_t CypherLog_FormatDetailed(
         CypherLog_FormatTimestamp( record, timestamp_buffer, sizeof( timestamp_buffer ) );
     }
 
-    const char *source_file = record.file ? record.file : "<unknown_file>";
+    const bool has_source_location = record.file != nullptr && record.file[0] != '\0';
+    const bool has_function_name = record.function != nullptr && record.function[0] != '\0';
+    const bool include_source_location = sink_config.include_source_location && has_source_location;
+    const bool include_function_name = sink_config.include_function_name && has_function_name;
 
-    if ( config.source_path == source_path_mode_t::BASENAME ) {
+    const char *source_file = has_source_location ? record.file : "";
+
+    if ( include_source_location && config.source_path == source_path_mode_t::BASENAME ) {
         source_file = sys::CypherSystem_PathBasename( source_file );
     }
 
-    const char *function_name = record.function ? record.function : "<unknown_function>";
+    const char *function_name = has_function_name ? record.function : "";
 
     int written = 0;
 
-    if ( timestamp_buffer[0] != '\0' && sink_config.include_source_location && sink_config.include_function_name ) {
+    if ( timestamp_buffer[0] != '\0' && include_source_location && include_function_name ) {
         written = std::snprintf(
             out_buffer,
             out_buffer_size,
@@ -117,7 +122,7 @@ error_code_t CypherLog_FormatDetailed(
             function_name,
             record.message
         );
-    } else if ( timestamp_buffer[0] != '\0' && sink_config.include_source_location ) {
+    } else if ( timestamp_buffer[0] != '\0' && include_source_location ) {
         written = std::snprintf(
             out_buffer,
             out_buffer_size,
@@ -139,7 +144,7 @@ error_code_t CypherLog_FormatDetailed(
             CypherLog_ChannelName( record.channel ),
             record.message
         );
-    } else if ( sink_config.include_source_location && sink_config.include_function_name ) {
+    } else if ( include_source_location && include_function_name ) {
         written = std::snprintf(
             out_buffer,
             out_buffer_size,
@@ -151,7 +156,7 @@ error_code_t CypherLog_FormatDetailed(
             function_name,
             record.message
         );
-    } else if ( sink_config.include_source_location ) {
+    } else if ( include_source_location ) {
         written = std::snprintf(
             out_buffer,
             out_buffer_size,
