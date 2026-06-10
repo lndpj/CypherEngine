@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-27 17:32:41
    Last Modified by: ksiric
-   Last Modified: 2026-06-09 19:18:43
+   Last Modified: 2026-06-10 10:33:44
    ---------------------------------------------------------------------
    Description:
 
@@ -14,6 +14,7 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
+#include "CypherEngine/CypherLog/CypherLog.h"
 #include "CypherEngine/CypherSystem/CypherSystem_PlatformInternal.h"
 
 #if CYPHER_PLATFORM_LINUX
@@ -26,6 +27,7 @@
 #include <filesystem>      // Path normalization and directory creation.
 #include <string>          // Temporary path strings.
 #include <system_error>    // std::error_code for non-throwing filesystem calls.
+#include <sys/mman.h>      // mmap / mprotect / madvise / munmap.
 #include <unistd.h>        // readlink / nanosleep platform headers.
 
 namespace cypher::engine::sys
@@ -185,14 +187,114 @@ void CypherSystem_PlatformSleepMilliseconds( const common::u64 milliseconds ) {
 
 common::usize CypherSystem_PlatformVirtualPageSize()
 {
+    constexpr common::usize DEFAULT_PAGE_SIZE = 4096u;
     const long page_size = sysconf( _SC_PAGESIZE );
 
     if ( page_size <= 0 ) {
-        return 4096u;
+        CYPHER_LOG_WARNING( log::channel_t::PLATFORM, "sysconf(_SC_PAGESIZE) failed; using default page size %zu.", DEFAULT_PAGE_SIZE );
+        return DEFAULT_PAGE_SIZE;
     }
 
     return static_cast<common::usize>( page_size );
 }
+
+/*
+================
+CypherSystem_PlatformVirtualReserve
+================
+*/
+void *CypherSystem_PlatformVirtualReserve( common::usize size )
+{
+    if ( size == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: requested size is zero." );
+        return nullptr;
+    }
+
+    void *memory = mmap(
+        nullptr,
+        size,
+        PROT_NONE,
+        MAP_PRIVATE | MAP_ANONYMOUS,
+        -1,
+        0
+    );
+
+    if ( memory == MAP_FAILED ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: size=%zu, errno=%d.", size, errno );
+        return nullptr;
+    }
+
+    return memory;
+}
+
+/*
+================
+CypherSystem_PlatformVirtualCommit
+================
+*/
+bool CypherSystem_PlatformVirtualCommit( void *memory, common::usize size )
+{
+    if ( memory == nullptr || size == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu.", memory, size );
+        return false;
+    }
+
+    const int result = mprotect( memory, size, PROT_READ | PROT_WRITE );
+    if ( result != 0 ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        return false;
+    }
+
+    return true;
+}
+
+/*
+================
+CypherSystem_PlatformVirtualDecommit
+================
+*/
+bool CypherSystem_PlatformVirtualDecommit( void *memory, common::usize size )
+{
+    if ( memory == nullptr || size == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu.", memory, size );
+        return false;
+    }
+
+    int result = madvise( memory, size, MADV_DONTNEED );
+    if ( result != 0 ) {
+        CYPHER_LOG_WARNING( log::channel_t::PLATFORM, "virtual decommit madvise warning: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+    }
+
+    result = mprotect( memory, size, PROT_NONE );
+    if ( result != 0 ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        return false;
+    }
+
+    return true;
+}
+
+/*
+================
+CypherSystem_PlatformVirtualRelease
+================
+*/
+bool CypherSystem_PlatformVirtualRelease( void *memory, common::usize size )
+{
+    if ( memory == nullptr || size == 0u ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu.", memory, size );
+        return false;
+    }
+
+    const int result = munmap( memory, size );
+    if ( result != 0 ) {
+        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        return false;
+    }
+
+    return true;
+}
+
 
 }       // namespace cypher::engine::sys
 
