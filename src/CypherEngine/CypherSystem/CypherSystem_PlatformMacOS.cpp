@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-27 17:32:33
    Last Modified by: ksiric
-   Last Modified: 2026-06-09 09:00:21
+   Last Modified: 2026-06-10 09:11:27
    ---------------------------------------------------------------------
    Description:
        
@@ -171,7 +171,7 @@ void CypherSystem_PlatformSleepMilliseconds( const common::u64 milliseconds ) {
     request.tv_sec = static_cast<time_t>( milliseconds / 1000u );
     request.tv_nsec = static_cast<long>( ( milliseconds % 1000u ) * 1000000u );
     while ( nanosleep( &request, &request ) == -1 && errno == EINTR ) {
-               
+        // DO nothing, this is just for looping until.
     }      
 }
 
