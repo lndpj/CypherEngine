@@ -25,6 +25,8 @@ error_code_t CypherHost_RegisterBuiltinCommands( state_t &host_state );
 
 error_code_t CypherHost_LoadStartupConfig( void );
 
+error_code_t CypherHost_ApplyLogCvars( void );
+
 error_code_t CypherHost_ApplyCvarsToConfig( state_t &host_state );
 
 error_code_t CypherHost_CreateWindow( state_t &host_state );
