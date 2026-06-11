@@ -17,9 +17,6 @@ enum class error_code_t : common::u8 {
     ERR_INVALID_ALIGNMENT,
     ERR_INVALID_CAPACITY,
     ERR_INVALID_MARKER,
-    ERR_INVALID_POINTER,
-    ERR_DOUBLE_FREE,
-    ERR_INTEGER_OVERFLOW,
     ERR_BUFFER_TOO_SMALL,
     ERR_EXTERNAL_BUFFER_REQUIRED,
     
@@ -50,12 +47,6 @@ constexpr inline const char *CypherMemory_ErrorName( const error_code_t error )
         return "ERR_INVALID_CAPACITY";
     case error_code_t::ERR_INVALID_MARKER:
         return "ERR_INVALID_MARKER";
-    case error_code_t::ERR_INVALID_POINTER:
-        return "ERR_INVALID_POINTER";
-    case error_code_t::ERR_DOUBLE_FREE:
-        return "ERR_DOUBLE_FREE";
-    case error_code_t::ERR_INTEGER_OVERFLOW:
-        return "ERR_INTEGER_OVERFLOW";
     case error_code_t::ERR_BUFFER_TOO_SMALL:
         return "ERR_BUFFER_TOO_SMALL";
     case error_code_t::ERR_EXTERNAL_BUFFER_REQUIRED:
@@ -94,12 +85,6 @@ constexpr inline const char *CypherMemory_ErrorDesc( const error_code_t error )
         return "requested allocator capacity is invalid";
     case error_code_t::ERR_INVALID_MARKER:
         return "arena marker is invalid for this arena state";
-    case error_code_t::ERR_INVALID_POINTER:
-        return "pointer does not belong to the allocator";
-    case error_code_t::ERR_DOUBLE_FREE:
-        return "pointer has already been freed";
-    case error_code_t::ERR_INTEGER_OVERFLOW:
-        return "allocator size calculation overflowed";
     case error_code_t::ERR_BUFFER_TOO_SMALL:
         return "provided buffer is too small";
     case error_code_t::ERR_EXTERNAL_BUFFER_REQUIRED:
@@ -107,11 +92,11 @@ constexpr inline const char *CypherMemory_ErrorDesc( const error_code_t error )
     case error_code_t::ERR_MEMORY_RESERVE:
         return "error reserving virtual memory paging";
     case error_code_t::ERR_MEMORY_COMMIT:
-        return "error committing memory";
+        return "error commiting memory";
     case error_code_t::ERR_MEMORY_DECOMMIT:
-        return "error decommitting memory";
+        return "error decommiting memory";
     case error_code_t::ERR_MEMORY_RELEASE:
-        return "error releasing committed memory";
+        return "error releasing commited memory";
     default:
         return "unknown memory subsystem error";
     }

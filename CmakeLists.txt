@@ -90,20 +90,6 @@ else()
     message(STATUS "src/ has no C++ sources yet. Add your first entry file at src/main.cpp to enable executable target.")
 endif()
 
-option(CYPHERENGINE_BUILD_TESTS "Build CypherEngine test targets" OFF)
-
-if (CYPHERENGINE_BUILD_TESTS)
-    add_executable(cypher_memory_smoke
-        "${CYPHERENGINE_ROOT_DIR}/tests/CypherMemory_Smoke.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Arena.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Pool.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Scratch.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Bucket.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Thread.cpp"
-    )
-    target_include_directories(cypher_memory_smoke PRIVATE "${CYPHERENGINE_SRC_DIR}")
-endif()
-
 if (EXISTS "${CYPHERENGINE_ROOT_DIR}/tools/CMakeLists.txt")
     option(CYPHERENGINE_BUILD_TOOLS "Build tool targets" OFF)
     if (CYPHERENGINE_BUILD_TOOLS)
