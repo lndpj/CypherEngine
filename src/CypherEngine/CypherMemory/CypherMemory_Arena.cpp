@@ -39,12 +39,12 @@ common::usize CypherMemory_AlignSizeForward( const common::usize size, const com
         return size;
     }
 
-    const common::usize remainder = size % alignment;
-    if ( remainder == 0u ) {
-        return size;
+    common::usize aligned_size = size;
+    if ( !CypherMemory_AlignForwardChecked( size, alignment, aligned_size ) ) {
+        return 0u;
     }
 
-    return size + ( alignment - remainder );
+    return aligned_size;
 }
 
 /*
@@ -162,12 +162,19 @@ error_code_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_d
 
     case arena_backing_t::ARENA_VIRTUAL_MEMORY:
         page_size = sys::CypherSystem_VirtualPageSize();
+
+        if ( page_size == 0u || !CypherMemory_IsPowerOfTwo( page_size ) ) {
+            arena.last_error = error_code_t::ERR_INVALID_ALIGNMENT;
+            CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena init failed for '%s': invalid virtual page size %zu.", arena_desc.name ? arena_desc.name : "<unnamed>", page_size );
+            return error_code_t::ERR_INVALID_ALIGNMENT;
+        }
+
         capacity = CypherMemory_AlignSizeForward( arena_desc.capacity, page_size );
 
         if ( capacity == 0u ) {
-            arena.last_error = error_code_t::ERR_INVALID_CAPACITY;
-            CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena init failed for '%s': invalid virtual capacity.", arena_desc.name ? arena_desc.name : "<unnamed>" );
-            return error_code_t::ERR_INVALID_CAPACITY;
+            arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+            CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena init failed for '%s': virtual capacity alignment overflowed.", arena_desc.name ? arena_desc.name : "<unnamed>" );
+            return error_code_t::ERR_INTEGER_OVERFLOW;
         }
 
         committed = arena_desc.initial_commit;
@@ -182,6 +189,12 @@ error_code_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_d
         }
 
         committed = CypherMemory_AlignSizeForward( committed, page_size );
+        if ( committed == 0u && arena_desc.initial_commit > 0u ) {
+            arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+            CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena init failed for '%s': initial commit alignment overflowed.", arena_desc.name ? arena_desc.name : "<unnamed>" );
+            return error_code_t::ERR_INTEGER_OVERFLOW;
+        }
+
         memory = sys::CypherSystem_VirtualReserve( capacity );
 
         if ( memory == nullptr ) {
@@ -304,7 +317,7 @@ arena_stats_t CypherMemory_ArenaStats( const arena_t &arena )
     stats.committed = arena.committed;
     stats.initial_commit = arena.initial_commit;
     stats.peak_used = arena.peak_used;
-    stats.remaining = arena.capacity - arena.used;
+    stats.remaining = arena.used >= arena.capacity ? 0u : arena.capacity - arena.used;
     stats.used = arena.used;   
     
     return stats;
@@ -358,10 +371,43 @@ void *CypherMemory_ArenaAllocDebug(
         return nullptr;
     } 
     
-    const common::usize current_address = reinterpret_cast<common::usize>( arena.base ) + arena.used;
-    const common::usize aligned_address = CypherMemory_AlignForward( current_address, alignment );
-    const common::usize padding         = aligned_address - current_address;
-    const common::usize new_address     = arena.used + padding + size;
+    common::usize current_address = 0u;
+    if ( !CypherMemory_AddSizeChecked( reinterpret_cast<common::usize>( arena.base ), arena.used, current_address ) ) {
+        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        ++arena.failed_allocation_count;
+        CypherMemory_ArenaRecordAllocationTrace( arena, nullptr, size, alignment, file, function, line, arena.last_error, true );
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' allocation failed: current address calculation overflowed.", arena.name ? arena.name : "<unnamed>" );
+        return nullptr;
+    }
+
+    common::usize aligned_address = 0u;
+    if ( !CypherMemory_AlignForwardChecked( current_address, alignment, aligned_address ) ) {
+        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        ++arena.failed_allocation_count;
+        CypherMemory_ArenaRecordAllocationTrace( arena, nullptr, size, alignment, file, function, line, arena.last_error, true );
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' allocation failed: alignment calculation overflowed.", arena.name ? arena.name : "<unnamed>" );
+        return nullptr;
+    }
+
+    const common::usize padding = aligned_address - current_address;
+
+    common::usize used_with_padding = 0u;
+    if ( !CypherMemory_AddSizeChecked( arena.used, padding, used_with_padding ) ) {
+        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        ++arena.failed_allocation_count;
+        CypherMemory_ArenaRecordAllocationTrace( arena, nullptr, size, alignment, file, function, line, arena.last_error, true );
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' allocation failed: padding calculation overflowed.", arena.name ? arena.name : "<unnamed>" );
+        return nullptr;
+    }
+
+    common::usize new_address = 0u;
+    if ( !CypherMemory_AddSizeChecked( used_with_padding, size, new_address ) ) {
+        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        ++arena.failed_allocation_count;
+        CypherMemory_ArenaRecordAllocationTrace( arena, nullptr, size, alignment, file, function, line, arena.last_error, true );
+        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' allocation failed: allocation end calculation overflowed.", arena.name ? arena.name : "<unnamed>" );
+        return nullptr;
+    }
     
     if ( new_address > arena.capacity ) {
         arena.last_error = error_code_t::ERR_OUT_OF_MEMORY;
@@ -381,6 +427,14 @@ void *CypherMemory_ArenaAllocDebug(
         }
 
         common::usize commit_target = CypherMemory_AlignSizeForward( new_address, arena.page_size );
+        if ( commit_target == 0u ) {
+            arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+            ++arena.failed_allocation_count;
+            CypherMemory_ArenaRecordAllocationTrace( arena, nullptr, size, alignment, file, function, line, arena.last_error, true );
+            CYPHER_LOG_ERROR( log::channel_t::MEMORY, "arena '%s' allocation failed: commit target calculation overflowed.", arena.name ? arena.name : "<unnamed>" );
+            return nullptr;
+        }
+
         if ( commit_target > arena.capacity ) {
             commit_target = arena.capacity;
         }
@@ -506,10 +560,13 @@ bool CypherMemory_ArenaContains( const arena_t &arena, const void *ptr )
     }   
     
     const common::usize address = reinterpret_cast<common::usize>( ptr );
-    const common::usize base    = reinterpret_cast<common::usize>( arena.base );
-    const common::usize end     = base + arena.capacity;
+    const common::usize base = reinterpret_cast<common::usize>( arena.base );
     
-    return address >= base && address < end;
+    if ( address < base ) {
+        return false;
+    }
+
+    return ( address - base ) < arena.capacity;
 }
 
 error_code_t CypherMemory_ArenaLastError( const arena_t &arena )
