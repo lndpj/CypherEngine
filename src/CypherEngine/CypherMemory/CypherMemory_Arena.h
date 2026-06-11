@@ -3,6 +3,7 @@
 #include "CypherEngine/CypherCommon/CypherCommon.h"
 #include "CypherEngine/CypherMemory/CypherMemory_Error.h"
 #include <cassert>
+#include <limits>
 
 namespace cypher::engine::memory
 {
@@ -58,12 +59,55 @@ constexpr inline bool CypherMemory_IsPowerOfTwo( const common::usize value )
     return ( ( value > 0 ) && ( value & ( value - 1 ) ) == 0 );
 }
 
+constexpr inline bool CypherMemory_AddSizeChecked( const common::usize a, const common::usize b, common::usize &out_value )
+{
+    const common::usize max_value = std::numeric_limits<common::usize>::max();
+
+    if ( a > max_value - b ) {
+        return false;
+    }
+
+    out_value = a + b;
+    return true;
+}
+
+constexpr inline bool CypherMemory_MulSizeChecked( const common::usize a, const common::usize b, common::usize &out_value )
+{
+    const common::usize max_value = std::numeric_limits<common::usize>::max();
+
+    if ( a != 0u && b > max_value / a ) {
+        return false;
+    }
+
+    out_value = a * b;
+    return true;
+}
+
+constexpr inline bool CypherMemory_AlignForwardChecked( const common::usize value, const common::usize alignment, common::usize &out_value )
+{
+    if ( !CypherMemory_IsPowerOfTwo( alignment ) ) {
+        return false;
+    }
+
+    const common::usize mask = alignment - 1u;
+
+    if ( value > std::numeric_limits<common::usize>::max() - mask ) {
+        return false;
+    }
+
+    out_value = ( value + mask ) & ~mask;
+    return true;
+}
+
 constexpr inline common::usize CypherMemory_AlignForward( common::usize value, common::usize alignment ) 
 {
     assert( CypherMemory_IsPowerOfTwo( alignment ) );
-    
-    // write the code here now for aligning forward in the arena memory block. 
-    return ( value + alignment - 1u ) & ~( alignment - 1u );
+
+    common::usize result = value;
+    const bool aligned = CypherMemory_AlignForwardChecked( value, alignment, result );
+    assert( aligned );
+
+    return result;
 }
 
 enum class arena_backing_t : common::u8 {
@@ -273,20 +317,34 @@ T *CypherMemory_ArenaAllocTypeDebug( arena_t &arena, const char *file, const cha
 template <typename T>
 T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count )
 {
+    common::usize size = 0u;
+    if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
+        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        ++arena.failed_allocation_count;
+        return nullptr;
+    }
+
     return static_cast<T *>(
             CypherMemory_ArenaAlloc(
             arena,
-            sizeof( T ) * count,
+            size,
             alignof( T ) ) );   
 }
 
 template <typename T>
 T *CypherMemory_ArenaAllocArrayDebug( arena_t &arena, const common::usize count, const char *file, const char *function, common::i32 line )
 {
+    common::usize size = 0u;
+    if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
+        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        ++arena.failed_allocation_count;
+        return nullptr;
+    }
+
     return static_cast<T *>(
             CypherMemory_ArenaAllocDebug(
             arena,
-            sizeof( T ) * count,
+            size,
             alignof( T ),
             file,
             function,
@@ -296,20 +354,34 @@ T *CypherMemory_ArenaAllocArrayDebug( arena_t &arena, const common::usize count,
 template <typename T>
 T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count )
 {
+    common::usize size = 0u;
+    if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
+        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        ++arena.failed_allocation_count;
+        return nullptr;
+    }
+
     return static_cast<T *>(
             CypherMemory_ArenaAllocZero(
             arena,
-            sizeof( T ) * count,
+            size,
             alignof( T ) ) );   
 }
 
 template <typename T>
 T *CypherMemory_ArenaAllocArrayZeroDebug( arena_t &arena, const common::usize count, const char *file, const char *function, common::i32 line )
 {
+    common::usize size = 0u;
+    if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
+        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        ++arena.failed_allocation_count;
+        return nullptr;
+    }
+
     return static_cast<T *>(
             CypherMemory_ArenaAllocZeroDebug(
             arena,
-            sizeof( T ) * count,
+            size,
             alignof( T ),
             file,
             function,
