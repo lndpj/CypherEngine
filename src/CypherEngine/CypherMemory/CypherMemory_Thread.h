@@ -1,0 +1,176 @@
+#pragma once
+
+#include "CypherEngine/CypherCommon/CypherCommon.h"
+#include "CypherEngine/CypherMemory/CypherMemory_Arena.h"
+#include "CypherEngine/CypherMemory/CypherMemory_Bucket.h"
+#include "CypherEngine/CypherMemory/CypherMemory_Pool.h"
+
+#include <mutex>
+
+namespace cypher::engine::memory
+{
+
+enum class memory_thread_policy_t : common::u8 {
+    SINGLE_THREAD = 0,
+    EXTERNAL_LOCK,
+    INTERNAL_LOCK
+};
+
+struct memory_mutex_t {
+    std::mutex native_mutex{};
+};
+
+struct thread_safe_arena_t {
+    arena_t *arena{ nullptr };
+    memory_mutex_t mutex{};
+    error_code_t last_error{ error_code_t::OK };
+    bool initialized{ false };
+};
+
+struct thread_safe_pool_t {
+    pool_t *pool{ nullptr };
+    memory_mutex_t mutex{};
+    error_code_t last_error{ error_code_t::OK };
+    bool initialized{ false };
+};
+
+struct thread_safe_bucket_t {
+    bucket_t *bucket{ nullptr };
+    memory_mutex_t mutex{};
+    error_code_t last_error{ error_code_t::OK };
+    bool initialized{ false };
+};
+
+void CypherMemory_MutexLock( memory_mutex_t &mutex );
+
+void CypherMemory_MutexUnlock( memory_mutex_t &mutex );
+
+error_code_t CypherMemory_ThreadSafeArenaBind( thread_safe_arena_t &thread_safe_arena, arena_t &arena );
+
+void CypherMemory_ThreadSafeArenaUnbind( thread_safe_arena_t &thread_safe_arena );
+
+void *CypherMemory_ThreadSafeArenaAlloc( thread_safe_arena_t &thread_safe_arena,
+                                         common::usize size,
+                                         common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
+
+void *CypherMemory_ThreadSafeArenaAllocDebug( thread_safe_arena_t &thread_safe_arena,
+                                              common::usize size,
+                                              common::usize alignment,
+                                              const char *file,
+                                              const char *function,
+                                              common::i32 line );
+
+void *CypherMemory_ThreadSafeArenaAllocZero( thread_safe_arena_t &thread_safe_arena,
+                                             common::usize size,
+                                             common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
+
+void *CypherMemory_ThreadSafeArenaAllocZeroDebug( thread_safe_arena_t &thread_safe_arena,
+                                                  common::usize size,
+                                                  common::usize alignment,
+                                                  const char *file,
+                                                  const char *function,
+                                                  common::i32 line );
+
+void CypherMemory_ThreadSafeArenaReset( thread_safe_arena_t &thread_safe_arena );
+
+arena_stats_t CypherMemory_ThreadSafeArenaStats( thread_safe_arena_t &thread_safe_arena );
+
+error_code_t CypherMemory_ThreadSafeArenaLastError( const thread_safe_arena_t &thread_safe_arena );
+
+error_code_t CypherMemory_ThreadSafePoolBind( thread_safe_pool_t &thread_safe_pool, pool_t &pool );
+
+void CypherMemory_ThreadSafePoolUnbind( thread_safe_pool_t &thread_safe_pool );
+
+void *CypherMemory_ThreadSafePoolAlloc( thread_safe_pool_t &thread_safe_pool );
+
+void *CypherMemory_ThreadSafePoolAllocDebug( thread_safe_pool_t &thread_safe_pool,
+                                             const char *file,
+                                             const char *function,
+                                             common::i32 line );
+
+void *CypherMemory_ThreadSafePoolAllocZero( thread_safe_pool_t &thread_safe_pool );
+
+void *CypherMemory_ThreadSafePoolAllocZeroDebug( thread_safe_pool_t &thread_safe_pool,
+                                                 const char *file,
+                                                 const char *function,
+                                                 common::i32 line );
+
+error_code_t CypherMemory_ThreadSafePoolFree( thread_safe_pool_t &thread_safe_pool, void *ptr );
+
+error_code_t CypherMemory_ThreadSafePoolFreeDebug( thread_safe_pool_t &thread_safe_pool,
+                                                   void *ptr,
+                                                   const char *file,
+                                                   const char *function,
+                                                   common::i32 line );
+
+void CypherMemory_ThreadSafePoolReset( thread_safe_pool_t &thread_safe_pool );
+
+pool_stats_t CypherMemory_ThreadSafePoolStats( thread_safe_pool_t &thread_safe_pool );
+
+error_code_t CypherMemory_ThreadSafePoolLastError( const thread_safe_pool_t &thread_safe_pool );
+
+error_code_t CypherMemory_ThreadSafeBucketBind( thread_safe_bucket_t &thread_safe_bucket, bucket_t &bucket );
+
+void CypherMemory_ThreadSafeBucketUnbind( thread_safe_bucket_t &thread_safe_bucket );
+
+void *CypherMemory_ThreadSafeBucketAlloc( thread_safe_bucket_t &thread_safe_bucket,
+                                          common::usize size,
+                                          common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
+
+void *CypherMemory_ThreadSafeBucketAllocDebug( thread_safe_bucket_t &thread_safe_bucket,
+                                               common::usize size,
+                                               common::usize alignment,
+                                               const char *file,
+                                               const char *function,
+                                               common::i32 line );
+
+void *CypherMemory_ThreadSafeBucketAllocZero( thread_safe_bucket_t &thread_safe_bucket,
+                                              common::usize size,
+                                              common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
+
+void *CypherMemory_ThreadSafeBucketAllocZeroDebug( thread_safe_bucket_t &thread_safe_bucket,
+                                                   common::usize size,
+                                                   common::usize alignment,
+                                                   const char *file,
+                                                   const char *function,
+                                                   common::i32 line );
+
+error_code_t CypherMemory_ThreadSafeBucketFree( thread_safe_bucket_t &thread_safe_bucket, void *ptr );
+
+error_code_t CypherMemory_ThreadSafeBucketFreeDebug( thread_safe_bucket_t &thread_safe_bucket,
+                                                     void *ptr,
+                                                     const char *file,
+                                                     const char *function,
+                                                     common::i32 line );
+
+void CypherMemory_ThreadSafeBucketReset( thread_safe_bucket_t &thread_safe_bucket );
+
+bucket_stats_t CypherMemory_ThreadSafeBucketStats( thread_safe_bucket_t &thread_safe_bucket );
+
+error_code_t CypherMemory_ThreadSafeBucketLastError( const thread_safe_bucket_t &thread_safe_bucket );
+
+}       // namespace cypher::engine::memory
+
+#define CYPHER_MEMORY_THREAD_SAFE_ARENA_ALLOC( THREAD_SAFE_ARENA, SIZE, ALIGNMENT ) \
+    ::cypher::engine::memory::CypherMemory_ThreadSafeArenaAllocDebug( ( THREAD_SAFE_ARENA ), ( SIZE ), ( ALIGNMENT ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_THREAD_SAFE_ARENA_ALLOC_ZERO( THREAD_SAFE_ARENA, SIZE, ALIGNMENT ) \
+    ::cypher::engine::memory::CypherMemory_ThreadSafeArenaAllocZeroDebug( ( THREAD_SAFE_ARENA ), ( SIZE ), ( ALIGNMENT ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_THREAD_SAFE_POOL_ALLOC( THREAD_SAFE_POOL ) \
+    ::cypher::engine::memory::CypherMemory_ThreadSafePoolAllocDebug( ( THREAD_SAFE_POOL ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_THREAD_SAFE_POOL_ALLOC_ZERO( THREAD_SAFE_POOL ) \
+    ::cypher::engine::memory::CypherMemory_ThreadSafePoolAllocZeroDebug( ( THREAD_SAFE_POOL ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_THREAD_SAFE_POOL_FREE( THREAD_SAFE_POOL, PTR ) \
+    ::cypher::engine::memory::CypherMemory_ThreadSafePoolFreeDebug( ( THREAD_SAFE_POOL ), ( PTR ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_THREAD_SAFE_BUCKET_ALLOC( THREAD_SAFE_BUCKET, SIZE, ALIGNMENT ) \
+    ::cypher::engine::memory::CypherMemory_ThreadSafeBucketAllocDebug( ( THREAD_SAFE_BUCKET ), ( SIZE ), ( ALIGNMENT ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_THREAD_SAFE_BUCKET_ALLOC_ZERO( THREAD_SAFE_BUCKET, SIZE, ALIGNMENT ) \
+    ::cypher::engine::memory::CypherMemory_ThreadSafeBucketAllocZeroDebug( ( THREAD_SAFE_BUCKET ), ( SIZE ), ( ALIGNMENT ), __FILE__, __func__, __LINE__ )
+
+#define CYPHER_MEMORY_THREAD_SAFE_BUCKET_FREE( THREAD_SAFE_BUCKET, PTR ) \
+    ::cypher::engine::memory::CypherMemory_ThreadSafeBucketFreeDebug( ( THREAD_SAFE_BUCKET ), ( PTR ), __FILE__, __func__, __LINE__ )
