@@ -38,7 +38,7 @@ struct window_t {
 System Window API
 ================
 */
-error_code_t CypherSystem_CreateWindow( const window_desc_t &window_description, window_t &out_window );
+sys_error_t CypherSystem_CreateWindow( const window_desc_t &window_description, window_t &out_window );
 
 void CypherSystem_DestroyWindow( window_t &window );
 
