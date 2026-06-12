@@ -27,3 +27,17 @@ void CypherCommon_Errorf( const error_t error, const char *message, ... );
 void CypherCommon_VErrorf( const error_t error, const char *message, va_list args );
 
 }
+
+/*
+================
+Common Print Aliases
+
+Preferred call-site names for console-style output. The full CypherCommon_*
+functions remain the real API and can still be called directly.
+================
+*/
+#define COM_PRINTF( ... )                   ::cypher::engine::common::CypherCommon_Printf( __VA_ARGS__ )
+#define COM_DPRINTF( ... )                  ::cypher::engine::common::CypherCommon_DPrintf( __VA_ARGS__ )
+#define COM_VPRINTF( MESSAGE, ARGS )        ::cypher::engine::common::CypherCommon_VPrintf( ( MESSAGE ), ( ARGS ) )
+#define COM_ERRORF( ERROR, ... )            ::cypher::engine::common::CypherCommon_Errorf( ( ERROR ), __VA_ARGS__ )
+#define COM_VERRORF( ERROR, MESSAGE, ARGS ) ::cypher::engine::common::CypherCommon_VErrorf( ( ERROR ), ( MESSAGE ), ( ARGS ) )
