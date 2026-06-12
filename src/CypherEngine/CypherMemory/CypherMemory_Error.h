@@ -6,9 +6,9 @@
 namespace cypher::engine::memory
 {
 
-enum class error_code_t : common::u8 {
+enum class mem_error_t : common::u8 {
     OK = 0,
-    
+
     ERR_INVALID_ARGUMENT,
     ERR_OUT_OF_MEMORY,
     ERR_MEMORY_ALLOCATION,
@@ -22,104 +22,104 @@ enum class error_code_t : common::u8 {
     ERR_INTEGER_OVERFLOW,
     ERR_BUFFER_TOO_SMALL,
     ERR_EXTERNAL_BUFFER_REQUIRED,
-    
+
     ERR_MEMORY_RESERVE,
     ERR_MEMORY_COMMIT,
     ERR_MEMORY_DECOMMIT,
     ERR_MEMORY_RELEASE
 };
 
-constexpr inline const char *CypherMemory_ErrorName( const error_code_t error )
+constexpr inline const char *CypherMemory_ErrorName( const mem_error_t error )
 {
     switch ( error ) {
-    case error_code_t::OK:
+    case mem_error_t::OK:
         return "OK";
-    case error_code_t::ERR_INVALID_ARGUMENT:
+    case mem_error_t::ERR_INVALID_ARGUMENT:
         return "ERR_INVALID_ARGUMENT";
-    case error_code_t::ERR_OUT_OF_MEMORY:
+    case mem_error_t::ERR_OUT_OF_MEMORY:
         return "ERR_OUT_OF_MEMORY";
-    case error_code_t::ERR_MEMORY_ALLOCATION:
+    case mem_error_t::ERR_MEMORY_ALLOCATION:
         return "ERR_MEMORY_ALLOCATION";
-    case error_code_t::ERR_ALREADY_INITIALIZED:
+    case mem_error_t::ERR_ALREADY_INITIALIZED:
         return "ERR_ALREADY_INITIALIZED";
-    case error_code_t::ERR_NOT_INITIALIZED:
+    case mem_error_t::ERR_NOT_INITIALIZED:
         return "ERR_NOT_INITIALIZED";
-    case error_code_t::ERR_INVALID_ALIGNMENT:
+    case mem_error_t::ERR_INVALID_ALIGNMENT:
         return "ERR_INVALID_ALIGNMENT";
-    case error_code_t::ERR_INVALID_CAPACITY:
+    case mem_error_t::ERR_INVALID_CAPACITY:
         return "ERR_INVALID_CAPACITY";
-    case error_code_t::ERR_INVALID_MARKER:
+    case mem_error_t::ERR_INVALID_MARKER:
         return "ERR_INVALID_MARKER";
-    case error_code_t::ERR_INVALID_POINTER:
+    case mem_error_t::ERR_INVALID_POINTER:
         return "ERR_INVALID_POINTER";
-    case error_code_t::ERR_DOUBLE_FREE:
+    case mem_error_t::ERR_DOUBLE_FREE:
         return "ERR_DOUBLE_FREE";
-    case error_code_t::ERR_INTEGER_OVERFLOW:
+    case mem_error_t::ERR_INTEGER_OVERFLOW:
         return "ERR_INTEGER_OVERFLOW";
-    case error_code_t::ERR_BUFFER_TOO_SMALL:
+    case mem_error_t::ERR_BUFFER_TOO_SMALL:
         return "ERR_BUFFER_TOO_SMALL";
-    case error_code_t::ERR_EXTERNAL_BUFFER_REQUIRED:
+    case mem_error_t::ERR_EXTERNAL_BUFFER_REQUIRED:
         return "ERR_EXTERNAL_BUFFER_REQUIRED";
-    case error_code_t::ERR_MEMORY_RESERVE:
+    case mem_error_t::ERR_MEMORY_RESERVE:
         return "ERR_MEMORY_RESERVE";
-    case error_code_t::ERR_MEMORY_COMMIT:
+    case mem_error_t::ERR_MEMORY_COMMIT:
         return "ERR_MEMORY_COMMIT";
-    case error_code_t::ERR_MEMORY_DECOMMIT:
+    case mem_error_t::ERR_MEMORY_DECOMMIT:
         return "ERR_MEMORY_DECOMMIT";
-    case error_code_t::ERR_MEMORY_RELEASE:
+    case mem_error_t::ERR_MEMORY_RELEASE:
         return "ERR_MEMORY_RELEASE";
     default:
         return "ERR_UNKNOWN";
     }
 }
 
-constexpr inline const char *CypherMemory_ErrorDesc( const error_code_t error )
+constexpr inline const char *CypherMemory_ErrorDesc( const mem_error_t error )
 {
     switch ( error ) {
-    case error_code_t::OK:
+    case mem_error_t::OK:
         return "operation completed successfully";
-    case error_code_t::ERR_INVALID_ARGUMENT:
+    case mem_error_t::ERR_INVALID_ARGUMENT:
         return "invalid argument passed to memory subsystem";
-    case error_code_t::ERR_OUT_OF_MEMORY:
+    case mem_error_t::ERR_OUT_OF_MEMORY:
         return "arena or allocator does not have enough remaining memory";
-    case error_code_t::ERR_MEMORY_ALLOCATION:
+    case mem_error_t::ERR_MEMORY_ALLOCATION:
         return "memory allocation failure";
-    case error_code_t::ERR_ALREADY_INITIALIZED:
+    case mem_error_t::ERR_ALREADY_INITIALIZED:
         return "memory object is already initialized";
-    case error_code_t::ERR_NOT_INITIALIZED:
+    case mem_error_t::ERR_NOT_INITIALIZED:
         return "memory object is not initialized";
-    case error_code_t::ERR_INVALID_ALIGNMENT:
+    case mem_error_t::ERR_INVALID_ALIGNMENT:
         return "requested alignment is invalid";
-    case error_code_t::ERR_INVALID_CAPACITY:
+    case mem_error_t::ERR_INVALID_CAPACITY:
         return "requested allocator capacity is invalid";
-    case error_code_t::ERR_INVALID_MARKER:
+    case mem_error_t::ERR_INVALID_MARKER:
         return "arena marker is invalid for this arena state";
-    case error_code_t::ERR_INVALID_POINTER:
+    case mem_error_t::ERR_INVALID_POINTER:
         return "pointer does not belong to the allocator";
-    case error_code_t::ERR_DOUBLE_FREE:
+    case mem_error_t::ERR_DOUBLE_FREE:
         return "pointer has already been freed";
-    case error_code_t::ERR_INTEGER_OVERFLOW:
+    case mem_error_t::ERR_INTEGER_OVERFLOW:
         return "allocator size calculation overflowed";
-    case error_code_t::ERR_BUFFER_TOO_SMALL:
+    case mem_error_t::ERR_BUFFER_TOO_SMALL:
         return "provided buffer is too small";
-    case error_code_t::ERR_EXTERNAL_BUFFER_REQUIRED:
+    case mem_error_t::ERR_EXTERNAL_BUFFER_REQUIRED:
         return "external memory buffer is required";
-    case error_code_t::ERR_MEMORY_RESERVE:
+    case mem_error_t::ERR_MEMORY_RESERVE:
         return "error reserving virtual memory paging";
-    case error_code_t::ERR_MEMORY_COMMIT:
+    case mem_error_t::ERR_MEMORY_COMMIT:
         return "error committing memory";
-    case error_code_t::ERR_MEMORY_DECOMMIT:
+    case mem_error_t::ERR_MEMORY_DECOMMIT:
         return "error decommitting memory";
-    case error_code_t::ERR_MEMORY_RELEASE:
+    case mem_error_t::ERR_MEMORY_RELEASE:
         return "error releasing committed memory";
     default:
         return "unknown memory subsystem error";
     }
 }
 
-constexpr inline common::error_t CypherMemory_ErrorCode( const error_code_t code ) 
+constexpr inline common::error_t CypherMemory_ErrorCode( const mem_error_t code )
 {
-    return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_MEMORY, static_cast<common::u16>( code ) );    
+    return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_MEMORY, static_cast<common::u16>( code ) );
 }
 
 }       // namespace cypher::engine::memory
