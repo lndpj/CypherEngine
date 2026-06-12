@@ -35,7 +35,7 @@ CypherCommand_Init
 */
 error_code_t CypherCommand_Init( ) {
     if ( g_cmd_registery.initialized ) {
-        CYPHER_LOG_WARNING( log::channel_t::CMD, "command system init requested while already initialized." );
+        LOG_WARNING( log::channel_t::CMD, "command system init requested while already initialized." );
         return cmd::error_code_t::ERR_IS_INIT;
     }
 
@@ -44,7 +44,7 @@ error_code_t CypherCommand_Init( ) {
     g_cmd_registery.cmd_count = 0;
     g_cmd_registery.initialized = true;
 
-    CYPHER_LOG_INFO( log::channel_t::CMD, "command system initialized." );
+    LOG_INFO( log::channel_t::CMD, "command system initialized." );
 
     return cmd::error_code_t::OK;
 }
@@ -56,11 +56,11 @@ CypherCommand_Shutdown
 */
 void CypherCommand_Shutdown() {
     if ( !g_cmd_registery.initialized ) {
-        CYPHER_LOG_WARNING( log::channel_t::CMD, "command system shutdown requested while not initialized." );
+        LOG_WARNING( log::channel_t::CMD, "command system shutdown requested while not initialized." );
         return ;
     }
 
-    CYPHER_LOG_INFO( log::channel_t::CMD, "command system shutdown: commands=%u.", g_cmd_registery.cmd_count );
+    LOG_INFO( log::channel_t::CMD, "command system shutdown: commands=%u.", g_cmd_registery.cmd_count );
 
     g_cmd_registery = {};
     g_cmd_registery.cmd_count = 0;
@@ -78,31 +78,31 @@ Adds a named command callback to the fixed registry.
 */
 error_code_t CypherCommand_Register( const char *cmd_name, command_fn_t callback_fn, void *extra_data, const char *cmd_description ) {
     if ( !g_cmd_registery.initialized ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command register failed for '%s': command system is not initialized.", cmd_name ? cmd_name : "<null>" );
+        LOG_ERROR( log::channel_t::CMD, "command register failed for '%s': command system is not initialized.", cmd_name ? cmd_name : "<null>" );
         return cmd::error_code_t::ERR_NOT_INIT;
     }
 
     if ( cmd_name == nullptr || cmd_name[0] == '\0' ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command register failed: invalid command name." );
+        LOG_ERROR( log::channel_t::CMD, "command register failed: invalid command name." );
         return cmd::error_code_t::ERR_INVALID_COMMAND;
     }
 
     const cmd_t *command = CypherCommand_Find( cmd_name );
 
     if ( command != nullptr ) {
-        CYPHER_LOG_WARNING( log::channel_t::CMD, "command register skipped: '%s' already exists.", cmd_name );
+        LOG_WARNING( log::channel_t::CMD, "command register skipped: '%s' already exists.", cmd_name );
         return cmd::error_code_t::ERR_COMMAND_ALREADY_EXISTS;
     }
 
     if ( callback_fn == nullptr ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command register failed for '%s': invalid callback.", cmd_name );
+        LOG_ERROR( log::channel_t::CMD, "command register failed for '%s': invalid callback.", cmd_name );
         return cmd::error_code_t::ERR_INVALID_CALLBACK;
     }
 
     common::u32 count = g_cmd_registery.cmd_count;
 
     if ( g_cmd_registery.cmd_count >= CYPHER_COMMAND_MAX_COMMANDS ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command register failed for '%s': registry full (%u).", cmd_name, CYPHER_COMMAND_MAX_COMMANDS );
+        LOG_ERROR( log::channel_t::CMD, "command register failed for '%s': registry full (%u).", cmd_name, CYPHER_COMMAND_MAX_COMMANDS );
         return cmd::error_code_t::ERR_REGISTRY_FULL;
     }
 
@@ -114,7 +114,7 @@ error_code_t CypherCommand_Register( const char *cmd_name, command_fn_t callback
 
     g_cmd_registery.cmd_count = count;
 
-    CYPHER_LOG_DEBUG( log::channel_t::CMD, "registered command '%s'.", cmd_name );
+    LOG_DEBUG( log::channel_t::CMD, "registered command '%s'.", cmd_name );
 
     return cmd::error_code_t::OK;
 }
@@ -126,12 +126,12 @@ CypherCommand_Find
 */
 const cmd_t *CypherCommand_Find( const char *cmd_name ) {
     if ( !g_cmd_registery.initialized ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command find failed for '%s': command system is not initialized.", cmd_name ? cmd_name : "<null>" );
+        LOG_ERROR( log::channel_t::CMD, "command find failed for '%s': command system is not initialized.", cmd_name ? cmd_name : "<null>" );
         return nullptr;
     }
 
     if ( cmd_name == nullptr || cmd_name[0] == '\0' ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command find failed: invalid command name." );
+        LOG_ERROR( log::channel_t::CMD, "command find failed: invalid command name." );
         return nullptr;
     }
 
@@ -154,7 +154,7 @@ Splits a mutable command line into argv-style tokens.
 error_code_t CypherCommand_Parse( char *command_line, common::u32 &argc, char **argv ) {
 
     if ( command_line == nullptr || command_line[0] == '\0' ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command parse failed: invalid command line." );
+        LOG_ERROR( log::channel_t::CMD, "command parse failed: invalid command line." );
         return cmd::error_code_t::ERR_INVALID_COMMAND;
     }
 
@@ -197,12 +197,12 @@ Parses a command line, finds the command, and calls its callback.
 */
 error_code_t CypherCommand_Execute( const char *command_line ) {
     if ( !g_cmd_registery.initialized ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command execute failed: command system is not initialized." );
+        LOG_ERROR( log::channel_t::CMD, "command execute failed: command system is not initialized." );
         return cmd::error_code_t::ERR_NOT_INIT;
     }
 
     if ( command_line == nullptr || command_line[0] == '\0' ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command execute failed: invalid command line." );
+        LOG_ERROR( log::channel_t::CMD, "command execute failed: invalid command line." );
         return cmd::error_code_t::ERR_INVALID_COMMAND;
     }
 
@@ -216,24 +216,24 @@ error_code_t CypherCommand_Execute( const char *command_line ) {
     error_code_t err = CypherCommand_Parse( buffer, cmd_argc, cmd_argv );
     
     if ( err != cmd::error_code_t::OK ) {
-        common::CypherCommon_Errorf( CypherCommand_ErrorCode( err ), "CypherCommand_Execute: CypherCommand_Parse: invalid parsing command line." );
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command execute failed: parse failed for '%s'.", command_line );
+        COM_ERRORF( CypherCommand_ErrorCode( err ), "CypherCommand_Execute: CypherCommand_Parse: invalid parsing command line." );
+        LOG_ERROR( log::channel_t::CMD, "command execute failed: parse failed for '%s'.", command_line );
         return err;
     }
     
     if ( cmd_argc == 0u || cmd_argv[0] == nullptr || cmd_argv[0][0] == '\0' ) {
-        CYPHER_LOG_WARNING( log::channel_t::CMD, "command execute skipped: parsed command line is empty." );
+        LOG_WARNING( log::channel_t::CMD, "command execute skipped: parsed command line is empty." );
         return cmd::error_code_t::ERR_INVALID_COMMAND;
     }
     
     const cmd_t *cmd = CypherCommand_Find( cmd_argv[0] );
     if ( cmd == nullptr ) {
-        CYPHER_LOG_WARNING( log::channel_t::CMD, "command execute failed: command '%s' not found.", cmd_argv[0] );
+        LOG_WARNING( log::channel_t::CMD, "command execute failed: command '%s' not found.", cmd_argv[0] );
         return cmd::error_code_t::ERR_COMMAND_NOT_FOUND; 
     }
     
     if ( cmd->callback_fn == nullptr ) {
-        CYPHER_LOG_ERROR( log::channel_t::CMD, "command execute failed: command '%s' has invalid callback.", cmd_argv[0] );
+        LOG_ERROR( log::channel_t::CMD, "command execute failed: command '%s' has invalid callback.", cmd_argv[0] );
         return cmd::error_code_t::ERR_INVALID_CALLBACK;
     }
     
