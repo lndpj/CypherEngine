@@ -191,7 +191,7 @@ common::usize CypherSystem_PlatformVirtualPageSize()
     const long page_size = sysconf( _SC_PAGESIZE );
 
     if ( page_size <= 0 ) {
-        CYPHER_LOG_WARNING( log::channel_t::PLATFORM, "sysconf(_SC_PAGESIZE) failed; using default page size %zu.", DEFAULT_PAGE_SIZE );
+        LOG_WARNING( log::channel_t::PLATFORM, "sysconf(_SC_PAGESIZE) failed; using default page size %zu.", DEFAULT_PAGE_SIZE );
         return DEFAULT_PAGE_SIZE;
     }
 
@@ -206,7 +206,7 @@ CypherSystem_PlatformVirtualReserve
 void *CypherSystem_PlatformVirtualReserve( common::usize size )
 {
     if ( size == 0u ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: requested size is zero." );
+        LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: requested size is zero." );
         return nullptr;
     }
 
@@ -220,7 +220,7 @@ void *CypherSystem_PlatformVirtualReserve( common::usize size )
     );
 
     if ( memory == MAP_FAILED ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: size=%zu, errno=%d.", size, errno );
+        LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: size=%zu, errno=%d.", size, errno );
         return nullptr;
     }
 
@@ -235,13 +235,13 @@ CypherSystem_PlatformVirtualCommit
 bool CypherSystem_PlatformVirtualCommit( void *memory, common::usize size )
 {
     if ( memory == nullptr || size == 0u ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu.", memory, size );
+        LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu.", memory, size );
         return false;
     }
 
     const int result = mprotect( memory, size, PROT_READ | PROT_WRITE );
     if ( result != 0 ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
         return false;
     }
 
@@ -256,18 +256,18 @@ CypherSystem_PlatformVirtualDecommit
 bool CypherSystem_PlatformVirtualDecommit( void *memory, common::usize size )
 {
     if ( memory == nullptr || size == 0u ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu.", memory, size );
+        LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu.", memory, size );
         return false;
     }
 
     int result = madvise( memory, size, MADV_DONTNEED );
     if ( result != 0 ) {
-        CYPHER_LOG_WARNING( log::channel_t::PLATFORM, "virtual decommit madvise warning: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        LOG_WARNING( log::channel_t::PLATFORM, "virtual decommit madvise warning: memory=%p, size=%zu, errno=%d.", memory, size, errno );
     }
 
     result = mprotect( memory, size, PROT_NONE );
     if ( result != 0 ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
         return false;
     }
 
@@ -282,13 +282,13 @@ CypherSystem_PlatformVirtualRelease
 bool CypherSystem_PlatformVirtualRelease( void *memory, common::usize size )
 {
     if ( memory == nullptr || size == 0u ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu.", memory, size );
+        LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu.", memory, size );
         return false;
     }
 
     const int result = munmap( memory, size );
     if ( result != 0 ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
+        LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu, errno=%d.", memory, size, errno );
         return false;
     }
 
