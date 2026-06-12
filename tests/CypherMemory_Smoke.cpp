@@ -41,20 +41,20 @@ void *CypherSystem_VirtualReserve( const common::usize size )
     return ::operator new( size, std::nothrow );
 }
 
-error_code_t CypherSystem_VirtualCommit( void *, common::usize )
+sys_error_t CypherSystem_VirtualCommit( void *, common::usize )
 {
-    return error_code_t::OK;
+    return sys_error_t::OK;
 }
 
-error_code_t CypherSystem_VirtualDecommit( void *, common::usize )
+sys_error_t CypherSystem_VirtualDecommit( void *, common::usize )
 {
-    return error_code_t::OK;
+    return sys_error_t::OK;
 }
 
-error_code_t CypherSystem_VirtualRelease( void *memory, common::usize )
+sys_error_t CypherSystem_VirtualRelease( void *memory, common::usize )
 {
     ::operator delete( memory );
-    return error_code_t::OK;
+    return sys_error_t::OK;
 }
 
 }       // namespace cypher::engine::sys
@@ -74,7 +74,7 @@ bool SmokeArenaAndScratch()
     arena_desc.external_buffer = arena_buffer;
     arena_desc.backing = memory::arena_backing_t::ARENA_EXTERNAL_BUFFER;
 
-    if ( memory::CypherMemory_ArenaInit( arena, arena_desc ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_ArenaInit( arena, arena_desc ) != memory::mem_error_t::OK ) {
         return false;
     }
 
@@ -84,7 +84,7 @@ bool SmokeArenaAndScratch()
     }
 
     memory::scratch_scope_t scratch{};
-    if ( memory::CypherMemory_ScratchBegin( scratch, arena, "SmokeScratch" ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_ScratchBegin( scratch, arena, "SmokeScratch" ) != memory::mem_error_t::OK ) {
         return false;
     }
 
@@ -94,7 +94,7 @@ bool SmokeArenaAndScratch()
         return false;
     }
 
-    if ( memory::CypherMemory_ScratchEnd( scratch ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_ScratchEnd( scratch ) != memory::mem_error_t::OK ) {
         return false;
     }
 
@@ -121,7 +121,7 @@ bool SmokePool()
     pool_desc.backing = memory::pool_backing_t::POOL_EXTERNAL_BUFFER;
     pool_desc.flags = memory::CYPHER_MEMORY_POOL_FLAG_CLEAR_ON_FREE;
 
-    if ( memory::CypherMemory_PoolInit( pool, pool_desc ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_PoolInit( pool, pool_desc ) != memory::mem_error_t::OK ) {
         return false;
     }
 
@@ -137,15 +137,15 @@ bool SmokePool()
         return false;
     }
 
-    if ( memory::CypherMemory_PoolLastError( pool ) != memory::error_code_t::ERR_OUT_OF_MEMORY ) {
+    if ( memory::CypherMemory_PoolLastError( pool ) != memory::mem_error_t::ERR_OUT_OF_MEMORY ) {
         return false;
     }
 
-    if ( memory::CypherMemory_PoolFree( pool, slots[4u] ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_PoolFree( pool, slots[4u] ) != memory::mem_error_t::OK ) {
         return false;
     }
 
-    if ( memory::CypherMemory_PoolFree( pool, slots[4u] ) != memory::error_code_t::ERR_DOUBLE_FREE ) {
+    if ( memory::CypherMemory_PoolFree( pool, slots[4u] ) != memory::mem_error_t::ERR_DOUBLE_FREE ) {
         return false;
     }
 
@@ -164,7 +164,7 @@ bool SmokeBucket()
     arena_desc.external_buffer = arena_buffer;
     arena_desc.backing = memory::arena_backing_t::ARENA_EXTERNAL_BUFFER;
 
-    if ( memory::CypherMemory_ArenaInit( arena, arena_desc ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_ArenaInit( arena, arena_desc ) != memory::mem_error_t::OK ) {
         return false;
     }
 
@@ -178,7 +178,7 @@ bool SmokeBucket()
     bucket_desc.classes[1] = memory::bucket_class_desc_t{ 128u, 4u };
     bucket_desc.classes[2] = memory::bucket_class_desc_t{ 512u, 2u };
 
-    if ( memory::CypherMemory_BucketInit( bucket, bucket_desc ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_BucketInit( bucket, bucket_desc ) != memory::mem_error_t::OK ) {
         return false;
     }
 
@@ -196,11 +196,11 @@ bool SmokeBucket()
         return false;
     }
 
-    if ( memory::CypherMemory_BucketFree( bucket, medium ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_BucketFree( bucket, medium ) != memory::mem_error_t::OK ) {
         return false;
     }
 
-    if ( memory::CypherMemory_BucketFree( bucket, medium ) != memory::error_code_t::ERR_DOUBLE_FREE ) {
+    if ( memory::CypherMemory_BucketFree( bucket, medium ) != memory::mem_error_t::ERR_DOUBLE_FREE ) {
         return false;
     }
 
@@ -223,12 +223,12 @@ bool SmokeThreadSafePool()
     pool_desc.alignment = 16u;
     pool_desc.backing = memory::pool_backing_t::POOL_EXTERNAL_BUFFER;
 
-    if ( memory::CypherMemory_PoolInit( pool, pool_desc ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_PoolInit( pool, pool_desc ) != memory::mem_error_t::OK ) {
         return false;
     }
 
     memory::thread_safe_pool_t thread_safe_pool{};
-    if ( memory::CypherMemory_ThreadSafePoolBind( thread_safe_pool, pool ) != memory::error_code_t::OK ) {
+    if ( memory::CypherMemory_ThreadSafePoolBind( thread_safe_pool, pool ) != memory::mem_error_t::OK ) {
         return false;
     }
 
@@ -242,7 +242,7 @@ bool SmokeThreadSafePool()
                 return;
             }
 
-            if ( memory::CypherMemory_ThreadSafePoolFree( thread_safe_pool, ptr ) != memory::error_code_t::OK ) {
+            if ( memory::CypherMemory_ThreadSafePoolFree( thread_safe_pool, ptr ) != memory::mem_error_t::OK ) {
                 failed = true;
                 return;
             }
