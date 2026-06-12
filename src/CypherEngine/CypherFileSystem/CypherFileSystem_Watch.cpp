@@ -49,8 +49,8 @@ fs_error_t CypherFileSystem_PollChanges(
     if ( events == nullptr && max_events != 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
-
-    return fs_error_t::OK;
+    // @note -> it is still not fully finished and implemented so we wont use it whatsoever.
+    return fs_error_t::ERR_NOT_IMPLEMENTED;
 }
 
 }       // namespace cypher::engine::fs
