@@ -46,13 +46,13 @@ constexpr common::u32 CYPHER_CVAR_REGISTER_ALLOWED_FLAGS =
 Cvar API
 ================
 */
-error_code_t CypherCVar_Init();
+cvar_error_t CypherCVar_Init();
 
-error_code_t CypherCVar_Register( const char *name, const char *default_value, flags_t flags );
+cvar_error_t CypherCVar_Register( const char *name, const char *default_value, flags_t flags );
 
-error_code_t CypherCVar_Set( const char *name, const char *value );
+cvar_error_t CypherCVar_Set( const char *name, const char *value );
 
-error_code_t CypherCVar_Shutdown();
+cvar_error_t CypherCVar_Shutdown();
 
 const cvar_t *CypherCVar_Find( const char *name );
 
