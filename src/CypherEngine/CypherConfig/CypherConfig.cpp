@@ -46,12 +46,12 @@ CypherConfig_Init
 */
 error_code_t CypherConfig_Init() {
 	if ( g_cfg_runtime_state.initialized ) {
-		CYPHER_LOG_WARNING( log::channel_t::CFG, "config system init requested while already initialized." );
+		LOG_WARNING( log::channel_t::CFG, "config system init requested while already initialized." );
 		return error_code_t::ERR_IS_INIT;
 	}
 	g_cfg_runtime_state = {};
 	g_cfg_runtime_state.initialized = true;
-	CYPHER_LOG_INFO( log::channel_t::CFG, "config system initialized." );
+	LOG_INFO( log::channel_t::CFG, "config system initialized." );
 	return error_code_t::OK;
 }
 
@@ -62,10 +62,10 @@ CypherConfig_Shutdown
 */
 error_code_t CypherConfig_Shutdown() {
 	if ( !g_cfg_runtime_state.initialized ) {
-		CYPHER_LOG_WARNING( log::channel_t::CFG, "config system shutdown requested while not initialized." );
+		LOG_WARNING( log::channel_t::CFG, "config system shutdown requested while not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
-	CYPHER_LOG_INFO( log::channel_t::CFG, "config system shutdown." );
+	LOG_INFO( log::channel_t::CFG, "config system shutdown." );
 	g_cfg_runtime_state = {};
 	return error_code_t::OK;
 }
@@ -79,11 +79,11 @@ Loads a cfg file through FS and executes it one line at a time.
 */
 error_code_t CypherConfig_LoadFile( const char *path, const bool required ) {
 	if ( path == nullptr || path[0] == '\0' ) {
-		CYPHER_LOG_ERROR( log::channel_t::CFG, "config load failed: invalid path." );
+		LOG_ERROR( log::channel_t::CFG, "config load failed: invalid path." );
 		return error_code_t::ERR_INVALID_PATH;
 	}
 	if ( !g_cfg_runtime_state.initialized ) {
-		CYPHER_LOG_ERROR( log::channel_t::CFG, "config load failed for '%s': config system is not initialized.", path );
+		LOG_ERROR( log::channel_t::CFG, "config load failed for '%s': config system is not initialized.", path );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
@@ -92,22 +92,22 @@ error_code_t CypherConfig_LoadFile( const char *path, const bool required ) {
     const fs::error_code_t open_result = fs::CypherFileSystem_Open( path, fs::open_mode_t::READ_TEXT, file );
     if ( open_result != fs::error_code_t::OK ) {
         if ( required ) {
-            CYPHER_LOG_ERROR( log::channel_t::CFG, "required config '%s' failed to open: %s.", path, fs::CypherFileSystem_ErrorDesc( open_result ) );
+            LOG_ERROR( log::channel_t::CFG, "required config '%s' failed to open: %s.", path, fs::CypherFileSystem_ErrorDesc( open_result ) );
         } else {
-            CYPHER_LOG_DEBUG( log::channel_t::CFG, "optional config '%s' not loaded: %s.", path, fs::CypherFileSystem_ErrorDesc( open_result ) );
+            LOG_DEBUG( log::channel_t::CFG, "optional config '%s' not loaded: %s.", path, fs::CypherFileSystem_ErrorDesc( open_result ) );
         }
         return required ? error_code_t::ERR_FILE_OPEN_FAILED : error_code_t::OK;
     }
 
     if ( file.size == 0u ) {
         fs::CypherFileSystem_Close( file );
-        CYPHER_LOG_INFO( log::channel_t::CFG, "config '%s' loaded: empty file.", path );
+        LOG_INFO( log::channel_t::CFG, "config '%s' loaded: empty file.", path );
         return error_code_t::OK;
     }
 
     if ( file.size >= CYPHER_CONFIG_MAX_FILE_SIZE ) {
         fs::CypherFileSystem_Close( file );
-        CYPHER_LOG_ERROR( log::channel_t::CFG, "config '%s' failed: file too large (%llu bytes).",
+        LOG_ERROR( log::channel_t::CFG, "config '%s' failed: file too large (%llu bytes).",
                           path,
                           static_cast<unsigned long long>( file.size ) );
         return error_code_t::ERR_IO_ERROR;
@@ -120,12 +120,12 @@ error_code_t CypherConfig_LoadFile( const char *path, const bool required ) {
     const fs::error_code_t close_result = fs::CypherFileSystem_Close( file );
 
     if ( read_result != fs::error_code_t::OK ) {
-        CYPHER_LOG_ERROR( log::channel_t::CFG, "config '%s' failed: read failed: %s.", path, fs::CypherFileSystem_ErrorDesc( read_result ) );
+        LOG_ERROR( log::channel_t::CFG, "config '%s' failed: read failed: %s.", path, fs::CypherFileSystem_ErrorDesc( read_result ) );
         return error_code_t::ERR_IO_ERROR;
     }
 
     if ( close_result != fs::error_code_t::OK ) {
-        CYPHER_LOG_ERROR( log::channel_t::CFG, "config '%s' failed: close failed: %s.", path, fs::CypherFileSystem_ErrorDesc( close_result ) );
+        LOG_ERROR( log::channel_t::CFG, "config '%s' failed: close failed: %s.", path, fs::CypherFileSystem_ErrorDesc( close_result ) );
         return error_code_t::ERR_IO_ERROR;
     }
 
@@ -147,7 +147,7 @@ error_code_t CypherConfig_LoadFile( const char *path, const bool required ) {
         const error_code_t line_result = CypherConfig_ExecuteLine( line_start );
 
         if ( line_result != error_code_t::OK && result == error_code_t::OK ) {
-            CYPHER_LOG_WARNING( log::channel_t::CFG, "config '%s' line failed: %s.", path, CypherConfig_ErrorDesc( line_result ) );
+            LOG_WARNING( log::channel_t::CFG, "config '%s' line failed: %s.", path, CypherConfig_ErrorDesc( line_result ) );
             result = line_result;
         }
 
@@ -164,7 +164,7 @@ error_code_t CypherConfig_LoadFile( const char *path, const bool required ) {
     }
 
     if ( result == error_code_t::OK ) {
-        CYPHER_LOG_INFO( log::channel_t::CFG, "config '%s' loaded successfully (%llu bytes).",
+        LOG_INFO( log::channel_t::CFG, "config '%s' loaded successfully (%llu bytes).",
                          path,
                          static_cast<unsigned long long>( bytes_read ) );
     }
