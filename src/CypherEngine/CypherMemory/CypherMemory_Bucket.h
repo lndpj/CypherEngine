@@ -79,7 +79,7 @@ struct bucket_t {
     common::u64 failed_free_count{ 0u };
 
     common::u32 flags{ CYPHER_MEMORY_BUCKET_FLAG_NONE };
-    error_code_t last_error{ error_code_t::OK };
+    mem_error_t last_error{ mem_error_t::OK };
     bool initialized{ false };
 };
 
@@ -87,7 +87,7 @@ using bucket_allocator_t = bucket_t;
 
 bucket_desc_t CypherMemory_BucketDefaultDesc( arena_t &arena, const char *name = nullptr );
 
-error_code_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &bucket_desc );
+mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &bucket_desc );
 
 void CypherMemory_BucketShutdown( bucket_t &bucket );
 
@@ -115,9 +115,9 @@ void *CypherMemory_BucketAllocZeroDebug( bucket_t &bucket,
                                          const char *function,
                                          common::i32 line );
 
-error_code_t CypherMemory_BucketFree( bucket_t &bucket, void *ptr );
+mem_error_t CypherMemory_BucketFree( bucket_t &bucket, void *ptr );
 
-error_code_t CypherMemory_BucketFreeDebug( bucket_t &bucket, void *ptr, const char *file, const char *function, common::i32 line );
+mem_error_t CypherMemory_BucketFreeDebug( bucket_t &bucket, void *ptr, const char *file, const char *function, common::i32 line );
 
 bool CypherMemory_BucketContains( const bucket_t &bucket, const void *ptr );
 
@@ -125,7 +125,7 @@ bool CypherMemory_BucketOwnsSlot( const bucket_t &bucket, const void *ptr );
 
 bool CypherMemory_BucketIsInitialized( const bucket_t &bucket );
 
-error_code_t CypherMemory_BucketLastError( const bucket_t &bucket );
+mem_error_t CypherMemory_BucketLastError( const bucket_t &bucket );
 
 common::usize CypherMemory_BucketClassIndexForSize( const bucket_t &bucket, common::usize size, common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
 
