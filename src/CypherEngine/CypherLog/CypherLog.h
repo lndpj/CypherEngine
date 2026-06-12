@@ -15,7 +15,7 @@ Log API
 Structured logging with severity levels, channels and optional file output.
 ================
 */
-error_code_t CypherLog_Init( const config_t &config = {} );
+log_error_t CypherLog_Init( const config_t &config = {} );
 
 void CypherLog_Shutdown();
 
@@ -23,9 +23,9 @@ bool CypherLog_IsInitialized();
 
 const config_t &CypherLog_GetConfig();
 
-error_code_t CypherLog_SetConfig( const config_t &config );
+log_error_t CypherLog_SetConfig( const config_t &config );
 
-error_code_t CypherLog_LevelFromString( const char *level_name, level_t &out_level );
+log_error_t CypherLog_LevelFromString( const char *level_name, level_t &out_level );
 
 bool CypherLog_LevelEnabled( const level_t log_level, const channel_t channel );
 
