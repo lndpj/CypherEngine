@@ -72,7 +72,7 @@ struct pool_operation_trace_t {
 
     common::u64 operation_index{ 0u };
     pool_operation_t operation{ pool_operation_t::POOL_OPERATION_ALLOC };
-    error_code_t error{ error_code_t::OK };
+    mem_error_t error{ mem_error_t::OK };
     bool failed{ false };
 };
 
@@ -139,7 +139,7 @@ struct pool_t {
 
     common::u32 flags{ CYPHER_MEMORY_POOL_FLAG_NONE };
     pool_backing_t backing{ pool_backing_t::POOL_ARENA };
-    error_code_t last_error{ error_code_t::OK };
+    mem_error_t last_error{ mem_error_t::OK };
 
     pool_operation_trace_t operation_traces[CYPHER_MEMORY_POOL_OPERATION_TRACE_COUNT]{};
     common::usize operation_trace_index{ 0u };
@@ -150,7 +150,7 @@ struct pool_t {
 
 using pool_allocator_t = pool_t;
 
-error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc );
+mem_error_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc );
 
 void CypherMemory_PoolShutdown( pool_t &pool );
 
@@ -186,9 +186,9 @@ void *CypherMemory_PoolAllocSizeZeroDebug( pool_t &pool,
                                            const char *function,
                                            common::i32 line );
 
-error_code_t CypherMemory_PoolFree( pool_t &pool, void *ptr );
+mem_error_t CypherMemory_PoolFree( pool_t &pool, void *ptr );
 
-error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *file, const char *function, common::i32 line );
+mem_error_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *file, const char *function, common::i32 line );
 
 bool CypherMemory_PoolContains( const pool_t &pool, const void *ptr );
 
@@ -196,7 +196,7 @@ bool CypherMemory_PoolOwnsSlot( const pool_t &pool, const void *ptr );
 
 bool CypherMemory_PoolIsInitialized( const pool_t &pool );
 
-error_code_t CypherMemory_PoolLastError( const pool_t &pool );
+mem_error_t CypherMemory_PoolLastError( const pool_t &pool );
 
 common::usize CypherMemory_PoolSlotIndex( const pool_t &pool, const void *ptr );
 
