@@ -102,7 +102,7 @@ void CypherHost_CmdLogApply( void *extra_data, rc::u32 argc, char **argv ) {
 
     const auto result = cypher::engine::host::CypherHost_ApplyLogCvars();
 
-    if ( result != cypher::engine::host::error_code_t::OK ) {
+    if ( result != cypher::engine::host::host_error_t::OK ) {
         COM_ERRORF(
             cypher::engine::host::CypherHost_ErrorCode( result ),
             "log_apply failed." );
@@ -181,7 +181,7 @@ CypherHost_InitCoreEngineSystems
 Brings up low-level systems in dependency order.
 ================
 */
-error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
+host_error_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
     sys::init_info_t sys_info {
         .argc = host_state.config.argc,
         .argv = host_state.config.argv,
@@ -190,23 +190,23 @@ error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
     };
 
     const auto sys_result = sys::CypherSystem_Init( sys_info );
-    if ( sys_result != sys::error_code_t::OK ) {
+    if ( sys_result != sys::sys_error_t::OK ) {
         COM_ERRORF( CypherSystem_ErrorCode( sys_result ) , "CypherHost_Init: CypherSystem_Init failed: %s", sys::CypherSystem_ErrorDesc( sys_result ) );
 
         host_state.running = false;
         host_state.stage = stage_t::SHUTDOWN;
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     const auto log_result = log::CypherLog_Init();
-    if ( log_result != log::error_code_t::OK ) {
+    if ( log_result != log::log_error_t::OK ) {
         COM_ERRORF( log::CypherLog_ErrorCode( log_result ), "CypherHost_Init: CypherLog_Init failed: %s", log::CypherLog_ErrorDesc( log_result ) );
 
         sys::CypherSystem_Shutdown();
 
         host_state.running = false;
         host_state.stage = stage_t::SHUTDOWN;
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     LOG_INFO( log::channel_t::HOST, "%s startup begin.", common::COM_ENGINE_INFO.name );
@@ -214,7 +214,7 @@ error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
     LOG_INFO( log::channel_t::SYSTEM, "paths: base='%s', user='%s', executable='%s'.", sys::CypherSystem_Paths().base_path, sys::CypherSystem_Paths().user_path, sys::CypherSystem_Paths().executable_path );
 
     const auto memory_result = mem::CypherMemory_Init( mem::CypherMemory_DefaultConfig() );
-    if ( memory_result != mem::error_code_t::OK ) {
+    if ( memory_result != mem::mem_error_t::OK ) {
         LOG_ERROR( log::channel_t::MEMORY, "memory system initialization failed: %s.", mem::CypherMemory_ErrorDesc( memory_result ) );
         COM_ERRORF( mem::CypherMemory_ErrorCode( memory_result ), "CypherHost_Init: CypherMemory_Init failed: %s", mem::CypherMemory_ErrorDesc( memory_result ) );
         log::CypherLog_Shutdown();
@@ -222,11 +222,11 @@ error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
 
         host_state.running = false;
         host_state.stage = stage_t::SHUTDOWN;
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     const auto fs_result = fs::CypherFileSystem_Init();
-    if( fs_result != fs::error_code_t::OK ) {
+    if( fs_result != fs::fs_error_t::OK ) {
         LOG_ERROR( log::channel_t::FS, "filesystem initialization failed: %s.", fs::CypherFileSystem_ErrorDesc( fs_result ) );
         COM_ERRORF( CypherFileSystem_ErrorCode( fs_result ), "CypherHost_Init: CypherFileSystem_Init failed: %s", fs::CypherFileSystem_ErrorDesc( fs_result ) );
         mem::CypherMemory_Shutdown();
@@ -235,10 +235,10 @@ error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
 
         host_state.running = false;
         host_state.stage = stage_t::SHUTDOWN;
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
     const auto cmd_result = cmd::CypherCommand_Init();
-    if ( cmd_result != cmd::error_code_t::OK )
+    if ( cmd_result != cmd::cmd_error_t::OK )
     {
         LOG_ERROR( log::channel_t::CMD, "command system initialization failed: %s.", CypherCommand_ErrorDesc( cmd_result ) );
         COM_ERRORF( CypherCommand_ErrorCode( cmd_result ), "CypherHost_Init: CypherCommand_Init failed: %s", CypherCommand_ErrorDesc( cmd_result ) );
@@ -250,12 +250,12 @@ error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
 
         host_state.running = false;
         host_state.stage = stage_t::SHUTDOWN;
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     const auto cvar_result = cvar::CypherCVar_Init();
 
-    if ( cvar_result != cvar::error_code_t::OK )
+    if ( cvar_result != cvar::cvar_error_t::OK )
     {
         LOG_ERROR( log::channel_t::CVAR, "cvar system initialization failed: %s.", cvar::CypherCVar_ErrorDesc( cvar_result ) );
         COM_ERRORF( CypherCVar_ErrorCode( cvar_result ), "CypherHost_Init: CypherCVar_Init failed: %s", cvar::CypherCVar_ErrorDesc( cvar_result ) );
@@ -268,12 +268,12 @@ error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
 
         host_state.running = false;
         host_state.stage = stage_t::SHUTDOWN;
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     const auto cfg_result = cfg::CypherConfig_Init();
 
-    if ( cfg_result != cfg::error_code_t::OK )
+    if ( cfg_result != cfg::cfg_error_t::OK )
     {
         LOG_ERROR( log::channel_t::CFG, "config system initialization failed: %s.", cfg::CypherConfig_ErrorDesc( cfg_result ) );
         COM_ERRORF( CypherConfig_ErrorCode( cfg_result ), "CypherHost_Init: CypherConfig_Init failed: %s", cfg::CypherConfig_ErrorDesc( cfg_result ) );
@@ -287,11 +287,11 @@ error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
 
         host_state.running = false;
         host_state.stage = stage_t::SHUTDOWN;
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     LOG_INFO( log::channel_t::HOST, "core engine systems initialized." );
-    return error_code_t::OK;
+    return host_error_t::OK;
 }
 
 /*
@@ -299,7 +299,7 @@ error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state ) {
 CypherHost_MountFileSystem
 ================
 */
-error_code_t CypherHost_MountFileSystem( void ) {
+host_error_t CypherHost_MountFileSystem( void ) {
     const sys::paths_t &paths = sys::CypherSystem_Paths();
 
     const auto base_mount_result = fs::CypherFileSystem_MountDirectory(
@@ -308,27 +308,27 @@ error_code_t CypherHost_MountFileSystem( void ) {
         fs::CYPHER_FILESYSTEM_MOUNT_READ_ONLY,
         0u );
 
-    if ( base_mount_result != fs::error_code_t::OK ) {
+    if ( base_mount_result != fs::fs_error_t::OK ) {
         LOG_ERROR( log::channel_t::FS, "filesystem base mount failed: base='%s', error=%s.", paths.base_path, fs::CypherFileSystem_ErrorDesc( base_mount_result ) );
         COM_ERRORF(
             fs::CypherFileSystem_ErrorCode( base_mount_result ),
             "CypherHost_Init: filesystem base mount failed: %s",
             fs::CypherFileSystem_ErrorDesc( base_mount_result ) );
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     const auto write_path_result = fs::CypherFileSystem_SetWritePath( paths.user_path );
-    if ( write_path_result != fs::error_code_t::OK ) {
+    if ( write_path_result != fs::fs_error_t::OK ) {
         LOG_ERROR( log::channel_t::FS, "filesystem write path failed: user='%s', error=%s.", paths.user_path, fs::CypherFileSystem_ErrorDesc( write_path_result ) );
         COM_ERRORF(
             fs::CypherFileSystem_ErrorCode( write_path_result ),
             "CypherHost_Init: filesystem write path failed: %s",
             fs::CypherFileSystem_ErrorDesc( write_path_result ) );
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     LOG_INFO( log::channel_t::FS, "filesystem mounted: base='%s', write='%s'.", paths.base_path, paths.user_path );
-    return error_code_t::OK;
+    return host_error_t::OK;
 }
 
 /*
@@ -336,7 +336,7 @@ error_code_t CypherHost_MountFileSystem( void ) {
 CypherHost_RegisterBuiltinCvars
 ================
 */
-error_code_t CypherHost_RegisterBuiltinCvars( void ) {
+host_error_t CypherHost_RegisterBuiltinCvars( void ) {
     struct builtin_cvar_t {
         const char *name;
         const char *default_value;
@@ -398,18 +398,18 @@ error_code_t CypherHost_RegisterBuiltinCvars( void ) {
             builtin_cvar.default_value,
             builtin_cvar.flags );
 
-        if ( result != cvar::error_code_t::OK ) {
+        if ( result != cvar::cvar_error_t::OK ) {
             COM_ERRORF(
                 cvar::CypherCVar_ErrorCode( result ),
                 "CypherHost_Init: failed to register cvar '%s': %s",
                 builtin_cvar.name,
                 cvar::CypherCVar_ErrorDesc( result ) );
-            return error_code_t::ERR_INITIALIZING;
+            return host_error_t::ERR_INITIALIZING;
         }
     }
 
     LOG_INFO( log::channel_t::CVAR, "registered %zu builtin cvars.", sizeof( builtin_cvars ) / sizeof( builtin_cvars[0] ) );
-    return error_code_t::OK;
+    return host_error_t::OK;
 }
 
 /*
@@ -417,7 +417,7 @@ error_code_t CypherHost_RegisterBuiltinCvars( void ) {
 CypherHost_RegisterBuiltinCommands
 ================
 */
-error_code_t CypherHost_RegisterBuiltinCommands( state_t &host_state ) {
+host_error_t CypherHost_RegisterBuiltinCommands( state_t &host_state ) {
     struct builtin_command_t {
         const char *name;
         cmd::command_fn_t callback;
@@ -441,18 +441,18 @@ error_code_t CypherHost_RegisterBuiltinCommands( state_t &host_state ) {
             builtin_command.extra_data,
             builtin_command.description );
 
-        if ( result != cmd::error_code_t::OK ) {
+        if ( result != cmd::cmd_error_t::OK ) {
             COM_ERRORF(
                 cmd::CypherCommand_ErrorCode( result ),
                 "CypherHost_Init: failed to register command '%s': %s",
                 builtin_command.name,
                 cmd::CypherCommand_ErrorDesc( result ) );
-            return error_code_t::ERR_INITIALIZING;
+            return host_error_t::ERR_INITIALIZING;
         }
     }
 
     LOG_INFO( log::channel_t::CMD, "registered %zu builtin commands.", sizeof( builtin_commands ) / sizeof( builtin_commands[0] ) );
-    return error_code_t::OK;
+    return host_error_t::OK;
 }
 
 /*
@@ -460,29 +460,29 @@ error_code_t CypherHost_RegisterBuiltinCommands( state_t &host_state ) {
 CypherHost_LoadStartupConfig
 ================
 */
-error_code_t CypherHost_LoadStartupConfig( void ) {
+host_error_t CypherHost_LoadStartupConfig( void ) {
     const auto default_result = cfg::CypherConfig_LoadFile( "config/default.cfg", false );
-    if ( default_result != cfg::error_code_t::OK ) {
+    if ( default_result != cfg::cfg_error_t::OK ) {
         LOG_ERROR( log::channel_t::CFG, "default startup config failed: %s.", cfg::CypherConfig_ErrorDesc( default_result ) );
         COM_ERRORF(
             cfg::CypherConfig_ErrorCode( default_result ),
             "CypherHost_Init: default config load failed: %s",
             cfg::CypherConfig_ErrorDesc( default_result ) );
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     const auto autoexec_result = cfg::CypherConfig_LoadAutoexec();
-    if ( autoexec_result != cfg::error_code_t::OK ) {
+    if ( autoexec_result != cfg::cfg_error_t::OK ) {
         LOG_ERROR( log::channel_t::CFG, "autoexec startup config failed: %s.", cfg::CypherConfig_ErrorDesc( autoexec_result ) );
         COM_ERRORF(
             cfg::CypherConfig_ErrorCode( autoexec_result ),
             "CypherHost_Init: autoexec config load failed: %s",
             cfg::CypherConfig_ErrorDesc( autoexec_result ) );
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     LOG_INFO( log::channel_t::CFG, "startup configs loaded." );
-    return error_code_t::OK;
+    return host_error_t::OK;
 }
 
 /*
@@ -496,7 +496,7 @@ log::level_t CypherHost_LogLevelFromCvar( const char *cvar_name, const log::leve
     const char *level_name = cvar::CypherCVar_GetString( cvar_name );
     const auto parse_result = log::CypherLog_LevelFromString( level_name, parsed_level );
 
-    if ( parse_result != log::error_code_t::OK ) {
+    if ( parse_result != log::log_error_t::OK ) {
         LOG_WARNING( log::channel_t::CFG, "invalid log level cvar '%s'='%s'; keeping '%s'.", cvar_name, level_name ? level_name : "<null>", log::CypherLog_LevelName( fallback ) );
         return fallback;
     }
@@ -532,7 +532,7 @@ CypherHost_ApplyLogCvars
 Converts registered log cvars into the active logger sink configuration.
 ================
 */
-error_code_t CypherHost_ApplyLogCvars( void )
+host_error_t CypherHost_ApplyLogCvars( void )
 {
     log::config_t log_config = log::CypherLog_GetConfig();
 
@@ -593,14 +593,14 @@ error_code_t CypherHost_ApplyLogCvars( void )
 
     const auto set_result = log::CypherLog_SetConfig( log_config );
 
-    if ( set_result != log::error_code_t::OK ) {
+    if ( set_result != log::log_error_t::OK ) {
         COM_ERRORF( log::CypherLog_ErrorCode( set_result ), "CypherHost_ApplyLogCvars: CypherLog_SetConfig failed: %s", log::CypherLog_ErrorDesc( set_result ) );
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
 
     LOG_INFO( log::channel_t::CFG, "log cvars applied: terminal=%u, engine_file=%u, error_file=%u.", log_config.terminal.enabled ? 1u : 0u, log_config.engine_file.enabled ? 1u : 0u, log_config.error_file.enabled ? 1u : 0u );
 
-    return error_code_t::OK;
+    return host_error_t::OK;
 }
 
 /*
@@ -608,7 +608,7 @@ error_code_t CypherHost_ApplyLogCvars( void )
 CypherHost_ApplyCvarsToConfig
 ================
 */
-error_code_t CypherHost_ApplyCvarsToConfig( state_t &host_state ) {
+host_error_t CypherHost_ApplyCvarsToConfig( state_t &host_state ) {
     host::window_config_t &window_config = host_state.config.window_config;
 
     const common::u32 width = cvar::CypherCVar_GetInt( "r_width" );
@@ -632,7 +632,7 @@ error_code_t CypherHost_ApplyCvarsToConfig( state_t &host_state ) {
 
     LOG_INFO( log::channel_t::HOST, "applied startup cvars: viewport=%ux%u, fullscreen=%u, vsync=%u, target_fps=%u.", window_config.viewport.width, window_config.viewport.height, window_config.fullscreen ? 1u : 0u, window_config.vsync ? 1u : 0u, window_config.target_fps );
 
-    return error_code_t::OK;
+    return host_error_t::OK;
 }
 
 /*
@@ -640,24 +640,24 @@ error_code_t CypherHost_ApplyCvarsToConfig( state_t &host_state ) {
 CypherHost_CreateWindow
 ================
 */
-error_code_t CypherHost_CreateWindow( state_t &host_state ) 
+host_error_t CypherHost_CreateWindow( state_t &host_state )
 {
     sys::window_desc_t window_description{};
-     
+
     window_description.title        = host_state.config.window_config.title;
     window_description.width        = host_state.config.window_config.viewport.width;
     window_description.height       = host_state.config.window_config.viewport.height;
     window_description.fullscreen   = host_state.config.window_config.fullscreen;
-    window_description.vsync        = host_state.config.window_config.vsync; 
-    
+    window_description.vsync        = host_state.config.window_config.vsync;
+
     const auto window_result = sys::CypherSystem_CreateWindow( window_description, host_state.window );
-    if ( window_result != sys::error_code_t::OK ) {
+    if ( window_result != sys::sys_error_t::OK ) {
         LOG_ERROR( log::channel_t::HOST, "window creation failed: %s.", sys::CypherSystem_ErrorDesc( window_result ) );
         COM_ERRORF( sys::CypherSystem_ErrorCode( window_result ), "CypherHost_CreateWindow: CypherSystem_CreateWindow failed: %s", sys::CypherSystem_ErrorDesc( window_result ) );
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
-    
-    return error_code_t::OK;
+
+    return host_error_t::OK;
 }
 
 /*
@@ -665,17 +665,17 @@ error_code_t CypherHost_CreateWindow( state_t &host_state )
 CypherHost_InitRenderer
 ================
 */
-error_code_t CypherHost_InitRenderer( state_t &host_state ) {
+host_error_t CypherHost_InitRenderer( state_t &host_state ) {
     const auto render_result = render::CypherRender_Init( host_state.window, host_state.config.window_config );
-    if ( render_result != render::error_code_t::OK ) {
+    if ( render_result != render::render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "renderer initialization failed." );
         COM_ERRORF(
             render::CypherRender_ErrorCode( render_result ),
             "CypherHost_Init: renderer initialization failed." );
-        return error_code_t::ERR_INITIALIZING;
+        return host_error_t::ERR_INITIALIZING;
     }
-    
-    return error_code_t::OK;
+
+    return host_error_t::OK;
 }
 
 /*
@@ -683,7 +683,7 @@ error_code_t CypherHost_InitRenderer( state_t &host_state ) {
 CypherHost_FinishInit
 ================
 */
-error_code_t CypherHost_FinishInit( state_t &host_state ) {
+host_error_t CypherHost_FinishInit( state_t &host_state ) {
     host_state.running = true;
     host_state.stage = stage_t::RUNNING;
 
@@ -694,7 +694,7 @@ error_code_t CypherHost_FinishInit( state_t &host_state ) {
 
     LOG_INFO( log::channel_t::HOST, "%s startup complete.", common::COM_ENGINE_INFO.name );
 
-    return error_code_t::OK;
+    return host_error_t::OK;
 }
 
 /*
@@ -723,66 +723,66 @@ CypherHost_Init
 Main engine startup sequence.
 ================
 */
-error_code_t CypherHost_Init( state_t &host_state ) {
-    error_code_t result{};
+host_error_t CypherHost_Init( state_t &host_state ) {
+    host_error_t result{};
 
     CypherHost_PrepareStateForInit( host_state );
 
     result = CypherHost_InitCoreEngineSystems( host_state );
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         return result;
     }
 
     result = CypherHost_MountFileSystem();
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
 
     result = CypherHost_RegisterBuiltinCvars();
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
 
     result = CypherHost_RegisterBuiltinCommands( host_state );
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
 
     result = CypherHost_LoadStartupConfig();
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
 
     result = CypherHost_ApplyLogCvars();
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
 
     result = CypherHost_ApplyCvarsToConfig( host_state );
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
-    
+
     result = CypherHost_CreateWindow( host_state );
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
 
     result = CypherHost_InitRenderer( host_state );
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
 
     result = CypherHost_FinishInit( host_state );
-    if ( result != error_code_t::OK ) {
+    if ( result != host_error_t::OK ) {
         CypherHost_Shutdown( host_state );
         return result;
     }
@@ -852,7 +852,7 @@ void CypherHost_BeginFrame( state_t &host_state ) {
 
 	const auto render_result = render::CypherRender_BeginFrame( frame.delta_time_seconds );
 
-	if ( render_result != render::error_code_t::OK ) {
+	if ( render_result != render::render_error_t::OK ) {
 		COM_ERRORF(
 			render::CypherRender_ErrorCode( render_result ),
 			"CypherHost_BeginFrame: renderer begin-frame failed." );
@@ -880,13 +880,13 @@ void CypherHost_Update( state_t &host_state ) {
 		return;
 	}
 
-    sys::CypherSystem_PollWindowEvents( host_state.window );   
-    
+    sys::CypherSystem_PollWindowEvents( host_state.window );
+
     if ( sys::CypherSystem_WindowShouldClose( host_state.window ) ) {
         CypherHost_RequestShutdown( host_state );
         return ;
     }
-    
+
     /*
     Future order:
     CypherHost_UpdateInput -> CypherHost_UpdateConsole -> CypherHost_UpdateGame -> CypherHost_UpdateAudio.
@@ -905,7 +905,7 @@ void CypherHost_Render( state_t &host_state ) {
 
 	const auto render_result = render::CypherRender_RenderFrame();
 
-	if ( render_result != render::error_code_t::OK ) {
+	if ( render_result != render::render_error_t::OK ) {
 		COM_ERRORF(
 			render::CypherRender_ErrorCode( render_result ),
 			"CypherHost_Render: renderer frame submission failed." );
@@ -927,7 +927,7 @@ void CypherHost_EndFrame( state_t &host_state ) {
 
 	const auto render_result = render::CypherRender_EndFrame();
 
-	if ( render_result != render::error_code_t::OK ) {
+	if ( render_result != render::render_error_t::OK ) {
 		COM_ERRORF(
 			render::CypherRender_ErrorCode( render_result ),
 			"CypherHost_EndFrame: renderer end-frame failed." );
