@@ -49,9 +49,9 @@ common::u32 CypherMemory_BucketPoolFlags( const common::u32 bucket_flags )
     return pool_flags;
 }
 
-error_code_t CypherMemory_BucketFailInit( bucket_t &bucket,
+mem_error_t CypherMemory_BucketFailInit( bucket_t &bucket,
                                           const bucket_desc_t &bucket_desc,
-                                          const error_code_t error,
+                                          const mem_error_t error,
                                           const char *reason )
 {
     bucket.name = bucket_desc.name;
@@ -114,7 +114,7 @@ void CypherMemory_BucketRefreshPeak( bucket_t &bucket )
 }
 
 void *CypherMemory_BucketFailAlloc( bucket_t &bucket,
-                                    const error_code_t error,
+                                    const mem_error_t error,
                                     const char *reason )
 {
     bucket.last_error = error;
@@ -154,28 +154,28 @@ bucket_desc_t CypherMemory_BucketDefaultDesc( arena_t &arena, const char *name )
     return desc;
 }
 
-error_code_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &bucket_desc )
+mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &bucket_desc )
 {
     if ( bucket.initialized ) {
-        bucket.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
+        bucket.last_error = mem_error_t::ERR_ALREADY_INITIALIZED;
         LOG_WARNING( log::channel_t::MEMORY, "bucket '%s' is already initialized.", bucket.name ? bucket.name : "<unnamed>" );
         return bucket.last_error;
     }
 
     if ( bucket_desc.arena == nullptr ) {
-        return CypherMemory_BucketFailInit( bucket, bucket_desc, error_code_t::ERR_INVALID_ARGUMENT, "arena pointer is required" );
+        return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_ARGUMENT, "arena pointer is required" );
     }
 
     if ( !CypherMemory_ArenaIsInitialized( *bucket_desc.arena ) ) {
-        return CypherMemory_BucketFailInit( bucket, bucket_desc, error_code_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
+        return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
     }
 
     if ( bucket_desc.class_count == 0u || bucket_desc.class_count > CYPHER_MEMORY_BUCKET_MAX_CLASSES ) {
-        return CypherMemory_BucketFailInit( bucket, bucket_desc, error_code_t::ERR_INVALID_CAPACITY, "invalid bucket class count" );
+        return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_CAPACITY, "invalid bucket class count" );
     }
 
     if ( !CypherMemory_IsPowerOfTwo( bucket_desc.alignment ) ) {
-        return CypherMemory_BucketFailInit( bucket, bucket_desc, error_code_t::ERR_INVALID_ALIGNMENT, "invalid bucket alignment" );
+        return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_ALIGNMENT, "invalid bucket alignment" );
     }
 
     const arena_marker_t init_marker = CypherMemory_ArenaGetMarker( *bucket_desc.arena );
@@ -198,7 +198,7 @@ error_code_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buc
             }
             CypherMemory_ArenaRewind( *bucket_desc.arena, init_marker );
             bucket = {};
-            return CypherMemory_BucketFailInit( bucket, bucket_desc, error_code_t::ERR_INVALID_CAPACITY, "invalid bucket class configuration" );
+            return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_CAPACITY, "invalid bucket class configuration" );
         }
 
         bucket_class_t &bucket_class = bucket.classes[class_index];
@@ -214,8 +214,8 @@ error_code_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buc
         pool_desc.flags = pool_flags;
         pool_desc.backing = pool_backing_t::POOL_ARENA;
 
-        const error_code_t pool_result = CypherMemory_PoolInit( bucket_class.pool, pool_desc );
-        if ( pool_result != error_code_t::OK ) {
+        const mem_error_t pool_result = CypherMemory_PoolInit( bucket_class.pool, pool_desc );
+        if ( pool_result != mem_error_t::OK ) {
             for ( common::usize shutdown_index = 0u; shutdown_index < class_index; ++shutdown_index ) {
                 CypherMemory_PoolShutdown( bucket.classes[shutdown_index].pool );
             }
@@ -226,7 +226,7 @@ error_code_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buc
     }
 
     bucket.initialized = true;
-    bucket.last_error = error_code_t::OK;
+    bucket.last_error = mem_error_t::OK;
 
     LOG_INFO( log::channel_t::MEMORY,
                      "bucket '%s' initialized: classes=%zu, alignment=%zu, backing_bytes=%zu.",
@@ -235,7 +235,7 @@ error_code_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buc
                      bucket.alignment,
                      CypherMemory_BucketStats( bucket ).backing_bytes );
 
-    return error_code_t::OK;
+    return mem_error_t::OK;
 }
 
 void CypherMemory_BucketShutdown( bucket_t &bucket )
@@ -271,7 +271,7 @@ void CypherMemory_BucketReset( bucket_t &bucket )
         CypherMemory_PoolReset( bucket.classes[class_index].pool );
     }
 
-    bucket.last_error = error_code_t::OK;
+    bucket.last_error = mem_error_t::OK;
 }
 
 void CypherMemory_BucketResetCounters( bucket_t &bucket )
@@ -285,7 +285,7 @@ void CypherMemory_BucketResetCounters( bucket_t &bucket )
     bucket.free_operation_count = 0u;
     bucket.failed_allocation_count = 0u;
     bucket.failed_free_count = 0u;
-    bucket.last_error = error_code_t::OK;
+    bucket.last_error = mem_error_t::OK;
 
     for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
         CypherMemory_PoolResetCounters( bucket.classes[class_index].pool );
@@ -336,24 +336,24 @@ void *CypherMemory_BucketAllocDebug( bucket_t &bucket,
                                      common::i32 line )
 {
     if ( !bucket.initialized ) {
-        return CypherMemory_BucketFailAlloc( bucket, error_code_t::ERR_NOT_INITIALIZED, "bucket is not initialized" );
+        return CypherMemory_BucketFailAlloc( bucket, mem_error_t::ERR_NOT_INITIALIZED, "bucket is not initialized" );
     }
 
     if ( size == 0u ) {
-        return CypherMemory_BucketFailAlloc( bucket, error_code_t::ERR_INVALID_ARGUMENT, "requested size is zero" );
+        return CypherMemory_BucketFailAlloc( bucket, mem_error_t::ERR_INVALID_ARGUMENT, "requested size is zero" );
     }
 
     if ( !CypherMemory_IsPowerOfTwo( alignment ) ) {
-        return CypherMemory_BucketFailAlloc( bucket, error_code_t::ERR_INVALID_ALIGNMENT, "requested alignment is invalid" );
+        return CypherMemory_BucketFailAlloc( bucket, mem_error_t::ERR_INVALID_ALIGNMENT, "requested alignment is invalid" );
     }
 
     if ( !CypherMemory_BucketHasCompatibleClass( bucket, size, alignment ) ) {
-        return CypherMemory_BucketFailAlloc( bucket, error_code_t::ERR_BUFFER_TOO_SMALL, "no bucket class can satisfy the request" );
+        return CypherMemory_BucketFailAlloc( bucket, mem_error_t::ERR_BUFFER_TOO_SMALL, "no bucket class can satisfy the request" );
     }
 
     const common::usize class_index = CypherMemory_BucketFindBestClass( bucket, size, alignment, true );
     if ( class_index == CYPHER_MEMORY_BUCKET_INVALID_CLASS_INDEX ) {
-        return CypherMemory_BucketFailAlloc( bucket, error_code_t::ERR_OUT_OF_MEMORY, "all compatible bucket classes are full" );
+        return CypherMemory_BucketFailAlloc( bucket, mem_error_t::ERR_OUT_OF_MEMORY, "all compatible bucket classes are full" );
     }
 
     void *memory = CypherMemory_PoolAllocSizeDebug( bucket.classes[class_index].pool, size, alignment, file, function, line );
@@ -399,21 +399,21 @@ void *CypherMemory_BucketAllocZeroDebug( bucket_t &bucket,
     return memory;
 }
 
-error_code_t CypherMemory_BucketFree( bucket_t &bucket, void *ptr )
+mem_error_t CypherMemory_BucketFree( bucket_t &bucket, void *ptr )
 {
     return CypherMemory_BucketFreeDebug( bucket, ptr, nullptr, nullptr, 0 );
 }
 
-error_code_t CypherMemory_BucketFreeDebug( bucket_t &bucket, void *ptr, const char *file, const char *function, common::i32 line )
+mem_error_t CypherMemory_BucketFreeDebug( bucket_t &bucket, void *ptr, const char *file, const char *function, common::i32 line )
 {
     if ( !bucket.initialized ) {
-        bucket.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        bucket.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         ++bucket.failed_free_count;
         return bucket.last_error;
     }
 
     if ( ptr == nullptr ) {
-        bucket.last_error = error_code_t::ERR_INVALID_POINTER;
+        bucket.last_error = mem_error_t::ERR_INVALID_POINTER;
         ++bucket.failed_free_count;
         return bucket.last_error;
     }
@@ -424,10 +424,10 @@ error_code_t CypherMemory_BucketFreeDebug( bucket_t &bucket, void *ptr, const ch
             continue;
         }
 
-        const error_code_t free_result = CypherMemory_PoolFreeDebug( pool, ptr, file, function, line );
+        const mem_error_t free_result = CypherMemory_PoolFreeDebug( pool, ptr, file, function, line );
         bucket.last_error = free_result;
 
-        if ( free_result == error_code_t::OK ) {
+        if ( free_result == mem_error_t::OK ) {
             ++bucket.free_operation_count;
         } else {
             ++bucket.failed_free_count;
@@ -436,7 +436,7 @@ error_code_t CypherMemory_BucketFreeDebug( bucket_t &bucket, void *ptr, const ch
         return free_result;
     }
 
-    bucket.last_error = error_code_t::ERR_INVALID_POINTER;
+    bucket.last_error = mem_error_t::ERR_INVALID_POINTER;
     ++bucket.failed_free_count;
     LOG_ERROR( log::channel_t::MEMORY,
                       "bucket '%s' free failed: pointer does not belong to any bucket class.",
@@ -480,7 +480,7 @@ bool CypherMemory_BucketIsInitialized( const bucket_t &bucket )
     return bucket.initialized;
 }
 
-error_code_t CypherMemory_BucketLastError( const bucket_t &bucket )
+mem_error_t CypherMemory_BucketLastError( const bucket_t &bucket )
 {
     return bucket.last_error;
 }
