@@ -37,15 +37,15 @@ CypherRender_Init
 Validates host/window config, starts the GL backend and initializes renderer state.
 ================
 */
-error_code_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &window_config ) {
+render_error_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &window_config ) {
 	if ( CypherRender_IsInitialized() ) {
 		LOG_WARNING( log::channel_t::RENDER, "renderer already initialized." );
-		return error_code_t::ERR_IS_INIT;
+		return render_error_t::ERR_IS_INIT;
 	}
 
 	if ( !window.valid || window.native_window == nullptr ) {
 		LOG_ERROR( log::channel_t::RENDER, "invalid sys window." );
-		return error_code_t::ERR_INVALID_WINDOW_CFG;
+		return render_error_t::ERR_INVALID_WINDOW_CFG;
 	}
 
 	if ( window_config.viewport.width == 0u || window_config.viewport.height == 0u ) {
@@ -54,7 +54,7 @@ error_code_t CypherRender_Init( const sys::window_t &window, const host::window_
 			"invalid viewport %ux%u (both dimensions must be > 0).",
 			window_config.viewport.width,
 			window_config.viewport.height );
-		return error_code_t::ERR_INVALID_VIEWPORT;
+		return render_error_t::ERR_INVALID_VIEWPORT;
 	}
 
 	g_render_runtime_state.window = &window;
@@ -76,7 +76,7 @@ error_code_t CypherRender_Init( const sys::window_t &window, const host::window_
 		g_render_runtime_state.viewport_height );
 
 	const auto gl_result = CypherRenderGL_Init( window, window_config.vsync, g_render_runtime_state.gl_state );
-	if ( gl_result != error_code_t::OK ) {
+	if ( gl_result != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "renderer backend initialization failed: %s.", CypherRender_ErrorDesc( gl_result ) );
 		g_render_runtime_state = {};
 		return gl_result;
@@ -95,7 +95,7 @@ error_code_t CypherRender_Init( const sys::window_t &window, const host::window_
     
     g_render_runtime_state.initialized = true;
 
-	return error_code_t::OK;
+	return render_error_t::OK;
 }
 
 /*
@@ -124,21 +124,21 @@ CypherRender_BeginFrame
 Opens a render frame and prepares the backend for drawing.
 ================
 */
-error_code_t CypherRender_BeginFrame( const common::com_f32 delta_time_seconds ) {
+render_error_t CypherRender_BeginFrame( const common::com_f32 delta_time_seconds ) {
 	if ( !CypherRender_IsInitialized() ) {
         LOG_ERROR( log::channel_t::RENDER, "begin frame failed: renderer is not initialized." );
-		return error_code_t::ERR_NOT_INIT;
+		return render_error_t::ERR_NOT_INIT;
 	}
 
 	if ( g_render_runtime_state.in_frame ) {
         LOG_ERROR( log::channel_t::RENDER, "begin frame failed: frame is already active." );
-		return error_code_t::ERR_FRAME_ALREADY_ACTIVE;
+		return render_error_t::ERR_FRAME_ALREADY_ACTIVE;
 	}
 
 	const auto gl_result = CypherRenderGL_BeginFrame( *g_render_runtime_state.window );
-	if ( gl_result != error_code_t::OK ) {
+	if ( gl_result != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "begin frame failed: GL begin failed: %s.", CypherRender_ErrorDesc( gl_result ) );
-		return error_code_t::ERR_BEGIN_DRAW;
+		return render_error_t::ERR_BEGIN_DRAW;
 	}
 
     CypherRender_DrawListClear( g_render_runtime_state.main_draw_list );
@@ -146,7 +146,7 @@ error_code_t CypherRender_BeginFrame( const common::com_f32 delta_time_seconds )
 	(void)delta_time_seconds;
 	g_render_runtime_state.in_frame = true;
 
-	return error_code_t::OK;
+	return render_error_t::OK;
 }
 
 /*
@@ -156,15 +156,15 @@ CypherRender_RenderFrame
 Draws the items submitted by world/game/editor systems for the active frame.
 ================
 */
-error_code_t CypherRender_RenderFrame() {
+render_error_t CypherRender_RenderFrame() {
 	if ( !CypherRender_IsInitialized() ) {
         LOG_ERROR( log::channel_t::RENDER, "render frame failed: renderer is not initialized." );
-		return error_code_t::ERR_NOT_INIT;
+		return render_error_t::ERR_NOT_INIT;
 	}
 
 	if ( !g_render_runtime_state.in_frame ) {
         LOG_ERROR( log::channel_t::RENDER, "render frame failed: frame is not active." );
-		return error_code_t::ERR_FRAME_NOT_ACTIVE;
+		return render_error_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
     return CypherRender_DrawListDraw(
@@ -179,26 +179,26 @@ CypherRender_EndFrame
 Closes the render frame and presents the back buffer.
 ================
 */
-error_code_t CypherRender_EndFrame() {
+render_error_t CypherRender_EndFrame() {
 	if ( !CypherRender_IsInitialized() ) {
         LOG_ERROR( log::channel_t::RENDER, "end frame failed: renderer is not initialized." );
-		return error_code_t::ERR_NOT_INIT;
+		return render_error_t::ERR_NOT_INIT;
 	}
 
 	if ( !g_render_runtime_state.in_frame ) {
         LOG_ERROR( log::channel_t::RENDER, "end frame failed: frame is not active." );
-		return error_code_t::ERR_FRAME_NOT_ACTIVE;
+		return render_error_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
 	const auto gl_result = CypherRenderGL_EndFrame( *g_render_runtime_state.window );
-	if ( gl_result != error_code_t::OK ) {
+	if ( gl_result != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "end frame failed: GL end failed: %s.", CypherRender_ErrorDesc( gl_result ) );
-		return error_code_t::ERR_END_DRAW;
+		return render_error_t::ERR_END_DRAW;
 	}
 
 	g_render_runtime_state.in_frame = false;
 
-	return error_code_t::OK;
+	return render_error_t::OK;
 }
 
 /*
@@ -209,16 +209,16 @@ Submits one draw item for the current frame. Game, editor and ECS layers use
 this as the public doorway into the renderer draw list.
 ================
 */
-error_code_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item )
+render_error_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item )
 {
     if ( !CypherRender_IsInitialized() ) {
         LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: renderer is not initialized." );
-        return error_code_t::ERR_NOT_INIT;
+        return render_error_t::ERR_NOT_INIT;
     }
     
     if ( !g_render_runtime_state.in_frame ) {
         LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: frame is not active." );
-        return error_code_t::ERR_FRAME_NOT_ACTIVE;
+        return render_error_t::ERR_FRAME_NOT_ACTIVE;
     }
     
     return CypherRender_DrawListSubmit( g_render_runtime_state.main_draw_list, draw_item );
