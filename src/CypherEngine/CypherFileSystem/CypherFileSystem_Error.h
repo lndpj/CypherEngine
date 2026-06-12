@@ -21,10 +21,15 @@ enum class fs_error_t : common::u8 {
     ERR_INVALID_MODE,
     ERR_INVALID_HANDLE,
     ERR_INVALID_ARGUMENT,
+    ERR_WRITE_PATH_NOT_SET,
 
     ERR_TOO_MANY_MOUNTS,
     ERR_MOUNT_NOT_FOUND,
     ERR_PATH_NOT_FOUND,
+    ERR_ALREADY_EXISTS,
+    ERR_NOT_DIRECTORY,
+    ERR_NOT_FILE,
+    ERR_DIRECTORY_NOT_EMPTY,
 
     ERR_FILE_OPEN_FAILED,
     ERR_FILE_CLOSE_FAILED,
@@ -62,12 +67,22 @@ constexpr inline const char *CypherFileSystem_ErrorName( const fs_error_t error 
         return "ERR_INVALID_HANDLE";
     case fs_error_t::ERR_INVALID_ARGUMENT:
         return "ERR_INVALID_ARGUMENT";
+    case fs_error_t::ERR_WRITE_PATH_NOT_SET:
+        return "ERR_WRITE_PATH_NOT_SET";
     case fs_error_t::ERR_TOO_MANY_MOUNTS:
         return "ERR_TOO_MANY_MOUNTS";
     case fs_error_t::ERR_MOUNT_NOT_FOUND:
         return "ERR_MOUNT_NOT_FOUND";
     case fs_error_t::ERR_PATH_NOT_FOUND:
         return "ERR_PATH_NOT_FOUND";
+    case fs_error_t::ERR_ALREADY_EXISTS:
+        return "ERR_ALREADY_EXISTS";
+    case fs_error_t::ERR_NOT_DIRECTORY:
+        return "ERR_NOT_DIRECTORY";
+    case fs_error_t::ERR_NOT_FILE:
+        return "ERR_NOT_FILE";
+    case fs_error_t::ERR_DIRECTORY_NOT_EMPTY:
+        return "ERR_DIRECTORY_NOT_EMPTY";
     case fs_error_t::ERR_FILE_OPEN_FAILED:
         return "ERR_FILE_OPEN_FAILED";
     case fs_error_t::ERR_FILE_CLOSE_FAILED:
@@ -111,12 +126,22 @@ constexpr inline const char *CypherFileSystem_ErrorDesc( const fs_error_t error 
         return "invalid filesystem file handle";
     case fs_error_t::ERR_INVALID_ARGUMENT:
         return "invalid filesystem argument";
+    case fs_error_t::ERR_WRITE_PATH_NOT_SET:
+        return "filesystem write path is not set";
     case fs_error_t::ERR_TOO_MANY_MOUNTS:
         return "filesystem mount table is full";
     case fs_error_t::ERR_MOUNT_NOT_FOUND:
         return "filesystem mount was not found";
     case fs_error_t::ERR_PATH_NOT_FOUND:
         return "filesystem path was not found";
+    case fs_error_t::ERR_ALREADY_EXISTS:
+        return "filesystem path already exists";
+    case fs_error_t::ERR_NOT_DIRECTORY:
+        return "filesystem path is not a directory";
+    case fs_error_t::ERR_NOT_FILE:
+        return "filesystem path is not a file";
+    case fs_error_t::ERR_DIRECTORY_NOT_EMPTY:
+        return "filesystem directory is not empty";
     case fs_error_t::ERR_FILE_OPEN_FAILED:
         return "file open failed";
     case fs_error_t::ERR_FILE_CLOSE_FAILED:
