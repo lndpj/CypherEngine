@@ -153,6 +153,10 @@ fs_error_t CypherFileSystem_MountDirectoryWithHandle(
         LOG_ERROR( log::channel_t::FS, "mount failed for '%s': no mount access flags set.", physical_path );
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
+    if ( ( flags & CYPHER_FILESYSTEM_MOUNT_WRITABLE ) != 0u ) {
+        LOG_ERROR( log::channel_t::FS, "mount failed for '%s': writable mounts are not implemented; use the filesystem write path.", physical_path );
+        return fs_error_t::ERR_NOT_IMPLEMENTED;
+    }
     if ( state.mount_count >= CYPHER_FILESYSTEM_MAX_MOUNTS ) {
         LOG_ERROR( log::channel_t::FS, "mount failed for '%s': mount table full (%u).", physical_path, CYPHER_FILESYSTEM_MAX_MOUNTS );
         return fs_error_t::ERR_TOO_MANY_MOUNTS;
@@ -299,7 +303,6 @@ fs_error_t CypherFileSystem_ResolvePath( const char *virtual_path, char *out_res
 {
     runtime_state_t &state = CypherFileSystem_RuntimeState();
     std::lock_guard<std::recursive_mutex> lock( CypherFileSystem_RuntimeMutex() );
-
     if ( !state.initialized ) {
         return fs_error_t::ERR_NOT_INIT;
     }
@@ -309,53 +312,21 @@ fs_error_t CypherFileSystem_ResolvePath( const char *virtual_path, char *out_res
     if ( out_resolved_path == nullptr || out_resolved_path_size == 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
-
     out_resolved_path[0] = '\0';
-
-    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    const fs_error_t normalize_result = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
-    if ( normalize_result != fs_error_t::OK ) {
-        return normalize_result;
+    resolved_file_t resolved_file{};
+    const fs_error_t resolved_result = CypherFileSystem_ResolveReadableFile( virtual_path, resolved_file );
+    if ( resolved_result != fs_error_t::OK ) {
+        return resolved_result;
     }
-
-    for ( common::u32 i = 0u; i < state.mount_count; ++i ) {
-        const mount_t &mount = state.mounts[i];
-        if ( mount.type != mount_type_t::CYPHER_FILESYSTEM_DIRECTORY ) {
-            continue;
-        }
-
-        const char *relative_path = nullptr;
-        if ( !CypherFileSystem_VirtualPathStartsWithRoot( normalized_path, mount.virtual_root, &relative_path ) ) {
-            continue;
-        }
-
-        char candidate_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-        const fs_error_t build_path_result = CypherFileSystem_BuildPhysicalPath( mount.physical_root, relative_path, candidate_path, sizeof( candidate_path ) );
-        if ( build_path_result != fs_error_t::OK ) {
-            out_resolved_path[0] = '\0';
-            return build_path_result;
-        }
-
-        std::error_code ec{};
-        if ( !std::filesystem::exists( candidate_path, ec ) ) {
-            continue;
-        }
-        if ( ec ) {
-            return fs_error_t::ERR_IO_ERROR;
-        }
-
-        const common::u32 candidate_path_length = static_cast<common::u32>( std::strlen( candidate_path ) );
-        if ( candidate_path_length + 1u > out_resolved_path_size ) {
-            out_resolved_path[0] = '\0';
-            return fs_error_t::ERR_BUFFER_TOO_SMALL;
-        }
-
-        std::memcpy( out_resolved_path, candidate_path, candidate_path_length + 1u );
-        return fs_error_t::OK;
+    if ( resolved_file.backend != file_backend_t::OS_FILE ) {
+        return fs_error_t::ERR_UNSUPPORTED_BACKEND;
     }
-
-    state.stats.failed_lookup_count++;
-    return fs_error_t::ERR_PATH_NOT_FOUND;
+    const common::u32 resolved_path_length = static_cast<common::u32>( std::strlen( resolved_file.physical_path ) );
+    if ( resolved_path_length + 1u > out_resolved_path_size ) {
+        return fs_error_t::ERR_BUFFER_TOO_SMALL;
+    }
+    std::memcpy( out_resolved_path, resolved_file.physical_path, resolved_path_length + 1u );
+    return fs_error_t::OK;
 }
 
 fs_error_t CypherFileSystem_ResolveReadableFile( const char *virtual_path, resolved_file_t &out_file )
