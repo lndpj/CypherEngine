@@ -34,7 +34,7 @@ void CypherRender_CameraInit( camera_t &camera, const camera_desc_t &camera_desc
     
     CypherRender_CameraUpdateMatrices( camera );
 
-    CYPHER_LOG_INFO( log::channel_t::RENDER, "camera initialized: fov_y=%f, aspect=%f, near=%f, far=%f.", camera.camera_desc.fov_y_radians, camera.camera_desc.aspect_ratio, camera.camera_desc.near_z, camera.camera_desc.far_z );
+    LOG_INFO( log::channel_t::RENDER, "camera initialized: fov_y=%f, aspect=%f, near=%f, far=%f.", camera.camera_desc.fov_y_radians, camera.camera_desc.aspect_ratio, camera.camera_desc.near_z, camera.camera_desc.far_z );
 }
 
 void CypherRender_CameraUpdateMatrices( camera_t &camera )
@@ -66,7 +66,7 @@ void CypherRender_CameraSetPerspective( camera_t &camera, common::f32 fov_y_radi
     
     CypherRender_CameraUpdateMatrices( camera );
 
-    CYPHER_LOG_INFO( log::channel_t::RENDER, "camera perspective changed: fov_y=%f, aspect=%f, near=%f, far=%f.", fov_y_radians, aspect_ratio, near_z, far_z );
+    LOG_INFO( log::channel_t::RENDER, "camera perspective changed: fov_y=%f, aspect=%f, near=%f, far=%f.", fov_y_radians, aspect_ratio, near_z, far_z );
 }
 
 void CypherRender_CameraSetTransform( camera_t &camera, const math::vec3_t &position, const math::quat_t &orientation )
@@ -97,7 +97,7 @@ void CypherRender_CameraSetPerspectiveMode( camera_t &camera, camera_projection_
     
     CypherRender_CameraUpdateMatrices( camera );
 
-    CYPHER_LOG_INFO( log::channel_t::RENDER, "camera projection mode changed: mode=%u.", static_cast<common::u32>( mode ) );
+    LOG_INFO( log::channel_t::RENDER, "camera projection mode changed: mode=%u.", static_cast<common::u32>( mode ) );
 }
 
 }       // namespace cypher::engine::render
