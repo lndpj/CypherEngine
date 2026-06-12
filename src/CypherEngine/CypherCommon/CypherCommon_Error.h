@@ -26,7 +26,8 @@ enum class domain_t : u16 {
 	COM_DOMAIN_CMD,
 	COM_DOMAIN_CVAR,
 	COM_DOMAIN_CFG,
-    COM_DOMAIN_MEMORY
+    COM_DOMAIN_MEMORY,
+    COM_DOMAIN_PAK
 };
 
 enum class common_error_t : com_u8 {
@@ -117,6 +118,8 @@ constexpr inline const char *CypherCommon_DomainName( const domain_t domain ) {
         return "CFG";
     case domain_t::COM_DOMAIN_MEMORY:
         return "MEMORY";
+    case domain_t::COM_DOMAIN_PAK:
+        return "PAK";
 	default:
 		return "UNKNOWN";
 	}
