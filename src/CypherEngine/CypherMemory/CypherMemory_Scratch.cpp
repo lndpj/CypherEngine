@@ -27,7 +27,7 @@ void *CypherMemory_ScratchFailAlloc( scratch_scope_t &scope,
 {
     scope.last_error = error;
 
-    CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+    LOG_ERROR( log::channel_t::MEMORY,
                       "scratch scope '%s' allocation failed: %s.",
                       scope.name ? scope.name : "<unnamed>",
                       reason ? reason : CypherMemory_ErrorDesc( error ) );
@@ -41,7 +41,7 @@ error_code_t CypherMemory_ScratchBegin( scratch_scope_t &scope, arena_t &arena, 
 {
     if ( scope.active ) {
         scope.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
-        CYPHER_LOG_WARNING( log::channel_t::MEMORY,
+        LOG_WARNING( log::channel_t::MEMORY,
                             "scratch scope '%s' begin failed: scope is already active.",
                             scope.name ? scope.name : "<unnamed>" );
         return scope.last_error;
@@ -52,7 +52,7 @@ error_code_t CypherMemory_ScratchBegin( scratch_scope_t &scope, arena_t &arena, 
         scope.name = name;
         scope.arena = &arena;
         scope.last_error = error_code_t::ERR_NOT_INITIALIZED;
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+        LOG_ERROR( log::channel_t::MEMORY,
                           "scratch scope '%s' begin failed: backing arena is not initialized.",
                           name ? name : "<unnamed>" );
         return scope.last_error;
