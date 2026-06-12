@@ -7,12 +7,13 @@ This is the navigation root for CypherEngine.
 Read these in order when resuming work:
 
 1. [current_status.md](current_status.md)
-2. [development_phases.md](development_phases.md)
-3. [roadmap.md](roadmap.md)
-4. [project_structure.md](project_structure.md)
-5. [architecture.md](architecture.md)
-6. [subsystems.md](subsystems.md)
-7. [toolchain_plan.md](toolchain_plan.md)
+2. [master_plan.md](master_plan.md)
+3. [development_phases.md](development_phases.md)
+4. [roadmap.md](roadmap.md)
+5. [project_structure.md](project_structure.md)
+6. [architecture.md](architecture.md)
+7. [subsystems.md](subsystems.md)
+8. [toolchain_plan.md](toolchain_plan.md)
 
 API docs:
 
@@ -37,6 +38,11 @@ Project memory:
   - what is active now
   - what is done-for-now
   - what is intentionally deferred
+- `master_plan`
+  - the full long-term implementation schedule
+  - concrete near-term dates
+  - subsystem LOC ranges
+  - runtime, toolchain, editor, and game progression
 - `development_phases`
   - the current build order
   - what should be implemented next and why
