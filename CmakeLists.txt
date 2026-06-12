@@ -81,10 +81,10 @@ endif()
 
 
 if (CYPHERENGINE_SOURCES)
-    add_executable(cypherengine ${CYPHERENGINE_SOURCES})
-    target_include_directories(cypherengine PRIVATE "${CYPHERENGINE_SRC_DIR}")
+    add_executable(CypherEngine ${CYPHERENGINE_SOURCES})
+    target_include_directories(CypherEngine PRIVATE "${CYPHERENGINE_SRC_DIR}")
     if (CYPHERENGINE_LINK_LIBS)
-        target_link_libraries(cypherengine PRIVATE ${CYPHERENGINE_LINK_LIBS})
+        target_link_libraries(CypherEngine PRIVATE ${CYPHERENGINE_LINK_LIBS})
     endif()
 else()
     message(STATUS "src/ has no C++ sources yet. Add your first entry file at src/main.cpp to enable executable target.")
@@ -93,15 +93,29 @@ endif()
 option(CYPHERENGINE_BUILD_TESTS "Build CypherEngine test targets" OFF)
 
 if (CYPHERENGINE_BUILD_TESTS)
-    add_executable(cypher_memory_smoke
-        "${CYPHERENGINE_ROOT_DIR}/tests/CypherMemory_Smoke.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Arena.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Pool.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Scratch.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Bucket.cpp"
-        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Thread.cpp"
+    set(CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES
+        "${CYPHERENGINE_ROOT_DIR}/tests/CypherFileSystem_Smoke.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Directory.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Mount.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Path.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Watch.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherLog/CypherLog.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherLog/CypherLog_Format.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_Platform.cpp"
     )
-    target_include_directories(cypher_memory_smoke PRIVATE "${CYPHERENGINE_SRC_DIR}")
+
+    if(APPLE)
+        list(APPEND CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformMacOS.cpp")
+    elseif(WIN32)
+        list(APPEND CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformWin32.cpp")
+    elseif(UNIX)
+        list(APPEND CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformLinux.cpp")
+    endif()
+
+    add_executable(cypher_filesystem_smoke ${CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES})
+    target_include_directories(cypher_filesystem_smoke PRIVATE "${CYPHERENGINE_SRC_DIR}")
 endif()
 
 if (EXISTS "${CYPHERENGINE_ROOT_DIR}/tools/CMakeLists.txt")
