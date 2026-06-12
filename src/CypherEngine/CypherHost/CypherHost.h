@@ -15,32 +15,32 @@ Kept separate so startup order stays readable and failure cleanup is explicit.
 */
 void CypherHost_PrepareStateForInit( state_t &host_state );
 
-error_code_t CypherHost_InitCoreEngineSystems( state_t &host_state );
+host_error_t CypherHost_InitCoreEngineSystems( state_t &host_state );
 
-error_code_t CypherHost_MountFileSystem( void );
+host_error_t CypherHost_MountFileSystem( void );
 
-error_code_t CypherHost_RegisterBuiltinCvars( void );
+host_error_t CypherHost_RegisterBuiltinCvars( void );
 
-error_code_t CypherHost_RegisterBuiltinCommands( state_t &host_state );
+host_error_t CypherHost_RegisterBuiltinCommands( state_t &host_state );
 
-error_code_t CypherHost_LoadStartupConfig( void );
+host_error_t CypherHost_LoadStartupConfig( void );
 
-error_code_t CypherHost_ApplyLogCvars( void );
+host_error_t CypherHost_ApplyLogCvars( void );
 
-error_code_t CypherHost_ApplyCvarsToConfig( state_t &host_state );
+host_error_t CypherHost_ApplyCvarsToConfig( state_t &host_state );
 
-error_code_t CypherHost_CreateWindow( state_t &host_state );
+host_error_t CypherHost_CreateWindow( state_t &host_state );
 
-error_code_t CypherHost_InitRenderer( state_t &host_state );
+host_error_t CypherHost_InitRenderer( state_t &host_state );
 
-error_code_t CypherHost_FinishInit( state_t &host_state );
+host_error_t CypherHost_FinishInit( state_t &host_state );
 
 /*
 ================
 Host Runtime API
 ================
 */
-error_code_t CypherHost_Init( state_t &host_state );
+host_error_t CypherHost_Init( state_t &host_state );
 
 void CypherHost_RequestShutdown( state_t &host_state );
 
