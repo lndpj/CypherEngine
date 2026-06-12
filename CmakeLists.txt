@@ -93,14 +93,23 @@ endif()
 option(CYPHERENGINE_BUILD_TESTS "Build CypherEngine test targets" OFF)
 
 if (CYPHERENGINE_BUILD_TESTS)
+    enable_testing()
+
     set(CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES
         "${CYPHERENGINE_ROOT_DIR}/tests/CypherFileSystem_Smoke.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Async.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Diagnostics.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Discovery.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Directory.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Mount.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Package.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Path.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Watch.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Compression.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Reader.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Writer.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherLog/CypherLog.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherLog/CypherLog_Format.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_Platform.cpp"
@@ -116,6 +125,18 @@ if (CYPHERENGINE_BUILD_TESTS)
 
     add_executable(cypher_filesystem_smoke ${CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES})
     target_include_directories(cypher_filesystem_smoke PRIVATE "${CYPHERENGINE_SRC_DIR}")
+    add_test(NAME cypher_filesystem_smoke COMMAND cypher_filesystem_smoke)
+
+    set(CYPHERENGINE_PAK_SMOKE_SOURCES
+        "${CYPHERENGINE_ROOT_DIR}/tests/CypherPak_Smoke.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Compression.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Reader.cpp"
+        "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Writer.cpp"
+    )
+
+    add_executable(cypher_pak_smoke ${CYPHERENGINE_PAK_SMOKE_SOURCES})
+    target_include_directories(cypher_pak_smoke PRIVATE "${CYPHERENGINE_SRC_DIR}")
+    add_test(NAME cypher_pak_smoke COMMAND cypher_pak_smoke)
 endif()
 
 if (EXISTS "${CYPHERENGINE_ROOT_DIR}/tools/CMakeLists.txt")
