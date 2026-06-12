@@ -74,6 +74,8 @@ error_code_t CypherFileSystem_ResolvePath(
     char *out_resolved_path,
     common::u32 out_resolved_path_size );
 
+error_code_t CypherFileSystem_NormalizeVirtualPath( const char *virtual_path, char *out_path, common::u32 out_path_size );
+
 bool CypherFileSystem_Exists( const char *virtual_path );
 
 bool CypherFileSystem_IsInitialized();
