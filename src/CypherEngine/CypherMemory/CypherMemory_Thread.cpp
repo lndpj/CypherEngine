@@ -23,7 +23,7 @@ namespace {
 
 void *CypherMemory_ThreadSafeAllocFail( const char *allocator_name, const error_code_t error, const char *reason )
 {
-    CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+    LOG_ERROR( log::channel_t::MEMORY,
                       "thread-safe allocator '%s' allocation failed: %s.",
                       allocator_name ? allocator_name : "<unnamed>",
                       reason ? reason : CypherMemory_ErrorDesc( error ) );
