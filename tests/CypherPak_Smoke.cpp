@@ -57,6 +57,50 @@ bool WritePhysicalTextFile( const std::filesystem::path &path, const char *text 
     return WritePhysicalFile( path, text, std::strlen( text ) );
 }
 
+bool WriteMinimalArchiveHeader(
+    const std::filesystem::path &path,
+    const bool valid_magic,
+    const cypher::engine::common::u32 version )
+{
+    unsigned char header_bytes[pak::CYPHER_PAK_HEADER_SIZE]{};
+    std::size_t offset = 0u;
+
+    if ( valid_magic ) {
+        std::memcpy( header_bytes + offset, pak::CYPHER_PAK_MAGIC, pak::CYPHER_PAK_MAGIC_SIZE );
+    } else {
+        std::memcpy( header_bytes + offset, "NOTCYPACKAGE", 12u );
+    }
+    offset += pak::CYPHER_PAK_MAGIC_SIZE;
+
+    pak::CypherPak_StoreU32LE( header_bytes + offset, version );
+    offset += sizeof( cypher::engine::common::u32 );
+    pak::CypherPak_StoreU32LE( header_bytes + offset, pak::CYPHER_PAK_HEADER_SIZE );
+    offset += sizeof( cypher::engine::common::u32 );
+    pak::CypherPak_StoreU32LE( header_bytes + offset, pak::CYPHER_PAK_ENDIAN_TAG );
+    offset += sizeof( cypher::engine::common::u32 );
+    pak::CypherPak_StoreU32LE( header_bytes + offset, pak::CYPHER_PAK_FORMAT_NONE );
+    offset += sizeof( cypher::engine::common::u32 );
+
+    pak::CypherPak_StoreU64LE( header_bytes + offset, pak::CYPHER_PAK_HEADER_SIZE );
+    offset += sizeof( cypher::engine::common::u64 );
+    pak::CypherPak_StoreU64LE( header_bytes + offset, 0u );
+    offset += sizeof( cypher::engine::common::u64 );
+
+    pak::CypherPak_StoreU64LE( header_bytes + offset, pak::CYPHER_PAK_HEADER_SIZE );
+    offset += sizeof( cypher::engine::common::u64 );
+    pak::CypherPak_StoreU64LE( header_bytes + offset, 0u );
+    offset += sizeof( cypher::engine::common::u64 );
+    pak::CypherPak_StoreU64LE( header_bytes + offset, pak::CYPHER_PAK_HEADER_SIZE );
+    offset += sizeof( cypher::engine::common::u64 );
+    pak::CypherPak_StoreU64LE( header_bytes + offset, 0u );
+    offset += sizeof( cypher::engine::common::u64 );
+    pak::CypherPak_StoreU64LE( header_bytes + offset, pak::CYPHER_PAK_HEADER_SIZE );
+    offset += sizeof( cypher::engine::common::u64 );
+    pak::CypherPak_StoreU64LE( header_bytes + offset, 0u );
+
+    return WritePhysicalFile( path, header_bytes, sizeof( header_bytes ) );
+}
+
 }       // namespace
 
 int main()
@@ -79,6 +123,9 @@ int main()
     const std::filesystem::path archive_path = root_path / "game.cypak";
     const std::filesystem::path archive_path_2 = root_path / "game_incremental.cypak";
     const std::filesystem::path duplicate_archive_path = root_path / "duplicate.cypak";
+    const std::filesystem::path bad_magic_archive_path = root_path / "bad_magic.cypak";
+    const std::filesystem::path wrong_version_archive_path = root_path / "wrong_version.cypak";
+    const std::filesystem::path truncated_archive_path = root_path / "truncated.cypak";
 
     const std::string player_cfg_path_string = player_cfg_path.string();
     const std::string wall_path_string = wall_path.string();
@@ -86,6 +133,9 @@ int main()
     const std::string archive_path_string = archive_path.string();
     const std::string archive_path_2_string = archive_path_2.string();
     const std::string duplicate_archive_path_string = duplicate_archive_path.string();
+    const std::string bad_magic_archive_path_string = bad_magic_archive_path.string();
+    const std::string wrong_version_archive_path_string = wrong_version_archive_path.string();
+    const std::string truncated_archive_path_string = truncated_archive_path.string();
 
     const char player_cfg[] = "name player1\nrate 1\n";
     const unsigned char wall_data[] = { 0x13u, 0x37u, 0xC0u, 0xDEu, 0x00u, 0x42u };
@@ -97,6 +147,17 @@ int main()
         return 1;
     }
     if ( !Check( WritePhysicalFile( empty_path, "", 0u ), "write empty source" ) ) {
+        return 1;
+    }
+
+    if ( !Check( WriteMinimalArchiveHeader( bad_magic_archive_path, false, pak::CYPHER_PAK_FORMAT_VERSION ), "write bad magic archive" ) ) {
+        return 1;
+    }
+    if ( !Check( WriteMinimalArchiveHeader( wrong_version_archive_path, true, pak::CYPHER_PAK_FORMAT_VERSION + 1u ), "write wrong version archive" ) ) {
+        return 1;
+    }
+    const unsigned char truncated_bytes[] = { 'C', 'Y', 'P', 'A' };
+    if ( !Check( WritePhysicalFile( truncated_archive_path, truncated_bytes, sizeof( truncated_bytes ) ), "write truncated archive" ) ) {
         return 1;
     }
 
@@ -116,6 +177,39 @@ int main()
     }
 
     pak::pak_reader_t reader{};
+    if ( !CheckError( pak::CypherPak_OpenReader( bad_magic_archive_path_string.c_str(), pak::CYPHER_PAK_OPEN_NONE, reader ), pak::pak_error_t::ERR_BAD_MAGIC, "open bad magic archive" ) ) {
+        return 1;
+    }
+    if ( !CheckError( pak::CypherPak_OpenReader( wrong_version_archive_path_string.c_str(), pak::CYPHER_PAK_OPEN_NONE, reader ), pak::pak_error_t::ERR_UNSUPPORTED_VERSION, "open wrong version archive" ) ) {
+        return 1;
+    }
+    if ( !CheckError( pak::CypherPak_OpenReader( truncated_archive_path_string.c_str(), pak::CYPHER_PAK_OPEN_NONE, reader ), pak::pak_error_t::ERR_FILE_READ_FAILED, "open truncated archive" ) ) {
+        return 1;
+    }
+
+    cypher::engine::common::u32 unopened_file_count = 99u;
+    if ( !CheckError( pak::CypherPak_GetFileCount( reader, unopened_file_count ), pak::pak_error_t::ERR_INVALID_HANDLE, "unopened reader file count" ) ) {
+        return 1;
+    }
+    if ( !Check( unopened_file_count == 0u, "unopened reader file count reset" ) ) {
+        return 1;
+    }
+    pak::pak_file_index_t unopened_index = 0u;
+    if ( !CheckError( pak::CypherPak_FindFile( reader, "scripts/player.cfg", unopened_index ), pak::pak_error_t::ERR_INVALID_HANDLE, "unopened reader find" ) ) {
+        return 1;
+    }
+    if ( !Check( unopened_index == pak::CYPHER_PAK_INVALID_FILE_INDEX, "unopened reader find index reset" ) ) {
+        return 1;
+    }
+    char unopened_buffer[8]{};
+    cypher::engine::common::u64 unopened_bytes_read = 99u;
+    if ( !CheckError( pak::CypherPak_ReadFile( reader, "scripts/player.cfg", unopened_buffer, sizeof( unopened_buffer ), unopened_bytes_read ), pak::pak_error_t::ERR_INVALID_HANDLE, "unopened reader read" ) ) {
+        return 1;
+    }
+    if ( !Check( unopened_bytes_read == 0u, "unopened reader read byte count reset" ) ) {
+        return 1;
+    }
+
     if ( !CheckError( pak::CypherPak_OpenReader( archive_path_string.c_str(), pak::CYPHER_PAK_OPEN_VERIFY_FILE_HASHES, reader ), pak::pak_error_t::OK, "open reader" ) ) {
         return 1;
     }
