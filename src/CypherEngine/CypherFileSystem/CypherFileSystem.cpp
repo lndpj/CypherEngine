@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-26 15:53:16
    Last Modified by: ksiric
-   Last Modified: 2026-06-12 10:28:06
+   Last Modified: 2026-06-12 14:10:53
    ---------------------------------------------------------------------
    Description:
 
@@ -16,34 +16,15 @@
 																	   */
 
 #include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
-#include "CypherEngine/CypherCommon/CypherCommon_Print.h"
+#include "CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.h"
 #include "CypherEngine/CypherLog/CypherLog.h"
 
 #include <cstdio>           // stdio file handles and read/write operations.
 #include <cstring>          // strcmp / strncpy for fixed path buffers.
 #include <filesystem>       // Path probing and directory creation.
 #include <system_error>     // std::error_code for non-throwing filesystem calls.
-#include <cctype>           // isalpha and etc...
 
 namespace cypher::engine::fs {
-
-namespace {
-/*
-================
-Filesystem Runtime State
-================
-*/
-
-struct runtime_state_t {
-	bool initialized{ false };
-	mount_t mounts[CYPHER_FILESYSTEM_MAX_MOUNTS]{};
-	common::u32 mount_count{ 0u };
-	char write_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-};
-
-runtime_state_t g_fs_runtime_state{};
-
-} // namespace
 
 /*
 ================
@@ -51,13 +32,14 @@ CypherFileSystem_Init
 ================
 */
 fs_error_t CypherFileSystem_Init() {
-	if ( g_fs_runtime_state.initialized ) {
+	runtime_state_t &state = CypherFileSystem_RuntimeState();
+	if ( state.initialized ) {
 		LOG_WARNING( log::channel_t::FS, "filesystem init requested while already initialized." );
 		return fs_error_t::ERR_IS_INIT;
 	}
 
-	g_fs_runtime_state = {};
-	g_fs_runtime_state.initialized = true;
+	state = {};
+	state.initialized = true;
 
 	LOG_INFO( log::channel_t::FS, "filesystem initialized." );
 
@@ -70,23 +52,15 @@ CypherFileSystem_Shutdown
 ================
 */
 fs_error_t CypherFileSystem_Shutdown() {
-	if ( !g_fs_runtime_state.initialized ) {
+	runtime_state_t &state = CypherFileSystem_RuntimeState();
+	if ( !state.initialized ) {
 		LOG_WARNING( log::channel_t::FS, "filesystem shutdown requested while not initialized." );
 		return fs_error_t::ERR_NOT_INIT;
 	}
-	LOG_INFO( log::channel_t::FS, "filesystem shutdown: mounts=%u.", g_fs_runtime_state.mount_count );
-	g_fs_runtime_state = {};
-	g_fs_runtime_state.initialized = false;
+	LOG_INFO( log::channel_t::FS, "filesystem shutdown: mounts=%u.", state.mount_count );
+	state = {};
+	state.initialized = false;
 	return fs_error_t::OK;
-}
-
-/*
-================
-CypherFileSystem_MountCount
-================
-*/
-common::u32 CypherFileSystem_MountCount() {
-	return g_fs_runtime_state.mount_count;
 }
 
 /*
@@ -95,84 +69,7 @@ CypherFileSystem_IsInitialized
 ================
 */
 bool CypherFileSystem_IsInitialized() {
-	return g_fs_runtime_state.initialized;
-}
-
-/*
-================
-CypherFileSystem_MountDirectory
-
-Adds a physical directory to the virtual search path list.
-================
-*/
-fs_error_t CypherFileSystem_MountDirectory( const char *virtual_root, const char *physical_path, common::u32 flags, common::u32 priority ) {
-	if ( !g_fs_runtime_state.initialized ) {
-		LOG_ERROR( log::channel_t::FS, "mount failed: filesystem is not initialized." );
-		return fs_error_t::ERR_NOT_INIT;
-	}
-	if ( virtual_root == nullptr ) {
-		LOG_ERROR( log::channel_t::FS, "mount failed: virtual root is null." );
-		return fs_error_t::ERR_INVALID_PATH;
-	}
-	if ( physical_path == nullptr || physical_path[0] == '\0' ) {
-		LOG_ERROR( log::channel_t::FS, "mount failed: physical path is invalid." );
-		return fs_error_t::ERR_INVALID_PATH;
-	}
-	const common::u32 allowed_flags = CYPHER_FILESYSTEM_MOUNT_READ_ONLY | CYPHER_FILESYSTEM_MOUNT_WRITABLE;
-	if ( ( flags & ~allowed_flags ) != 0u ) {
-		LOG_ERROR( log::channel_t::FS, "mount failed for '%s': invalid flags 0x%x.", physical_path, flags );
-		return fs_error_t::ERR_INVALID_ARGUMENT;
-	}
-	if ( ( flags & allowed_flags ) == 0u ) {
-		LOG_ERROR( log::channel_t::FS, "mount failed for '%s': no mount access flags set.", physical_path );
-		return fs_error_t::ERR_INVALID_ARGUMENT;
-	}
-
-	if ( g_fs_runtime_state.mount_count >= CYPHER_FILESYSTEM_MAX_MOUNTS ) {
-		LOG_ERROR( log::channel_t::FS, "mount failed for '%s': mount table full (%u).", physical_path, CYPHER_FILESYSTEM_MAX_MOUNTS );
-		return fs_error_t::ERR_TOO_MANY_MOUNTS;
-	}
-
-	mount_t &mount = g_fs_runtime_state.mounts[g_fs_runtime_state.mount_count];
-
-	mount.type = mount_type_t::CYPHER_FILESYSTEM_DIRECTORY;
-
-	std::strncpy( mount.virtual_root, virtual_root, sizeof( mount.virtual_root ) - 1u );
-	mount.virtual_root[sizeof( mount.virtual_root ) - 1u] = '\0';
-
-	std::strncpy( mount.physical_root, physical_path, sizeof( mount.physical_root ) - 1u );
-	mount.physical_root[sizeof( mount.physical_root ) - 1u] = '\0';
-	mount.flags = flags;
-	mount.priority = priority;
-	++g_fs_runtime_state.mount_count;
-	LOG_INFO( log::channel_t::FS, "mounted '%s' -> '%s' flags=0x%x priority=%u.", virtual_root[0] ? virtual_root : "<root>", physical_path, flags, priority );
-	return fs_error_t::OK;
-}
-
-/*
-================
-CypherFileSystem_UnmountDirectory
-================
-*/
-fs_error_t CypherFileSystem_UnmountDirectory( const char *virtual_root ) {
-	if ( !g_fs_runtime_state.initialized ) {
-		return fs_error_t::ERR_NOT_INIT;
-	}
-	if ( virtual_root == nullptr ) {
-		return fs_error_t::ERR_INVALID_PATH;
-	}
-	for ( common::u32 i = 0u; i < g_fs_runtime_state.mount_count; ++i ) {
-		if ( std::strcmp( g_fs_runtime_state.mounts[i].virtual_root, virtual_root ) == 0 ) {
-			for ( common::u32 j = i; j + 1u < g_fs_runtime_state.mount_count; ++j ) {
-				g_fs_runtime_state.mounts[j] = g_fs_runtime_state.mounts[j + 1u];
-			}
-			--g_fs_runtime_state.mount_count;
-			g_fs_runtime_state.mounts[g_fs_runtime_state.mount_count] = {};
-
-			return fs_error_t::OK;
-		}
-	}
-	return fs_error_t::ERR_MOUNT_NOT_FOUND;
+	return CypherFileSystem_RuntimeState().initialized;
 }
 
 /*
@@ -181,7 +78,8 @@ CypherFileSystem_SetWritePath
 ================
 */
 fs_error_t CypherFileSystem_SetWritePath( const char *physical_path ) {
-	if ( !g_fs_runtime_state.initialized ) {
+	runtime_state_t &state = CypherFileSystem_RuntimeState();
+	if ( !state.initialized ) {
 		LOG_ERROR( log::channel_t::FS, "set write path failed: filesystem is not initialized." );
 		return fs_error_t::ERR_NOT_INIT;
 	}
@@ -189,12 +87,25 @@ fs_error_t CypherFileSystem_SetWritePath( const char *physical_path ) {
 		LOG_ERROR( log::channel_t::FS, "set write path failed: invalid physical path." );
 		return fs_error_t::ERR_INVALID_PATH;
 	}
-	std::strncpy(
-		g_fs_runtime_state.write_path,
-		physical_path,
-		sizeof( g_fs_runtime_state.write_path ) - 1u );
-	g_fs_runtime_state.write_path[sizeof( g_fs_runtime_state.write_path ) - 1u] = '\0';
-	LOG_INFO( log::channel_t::FS, "write path set to '%s'.", g_fs_runtime_state.write_path );
+	const common::u32 physical_path_length = static_cast<common::u32>( std::strlen( physical_path ) );
+	if ( physical_path_length + 1u > sizeof( state.write_path ) ) {
+		LOG_ERROR( log::channel_t::FS, "set write path failed for '%s': path is too long.", physical_path );
+		return fs_error_t::ERR_BUFFER_TOO_SMALL;
+	}
+
+	std::error_code ec{};
+	std::filesystem::create_directories( physical_path, ec );
+	if ( ec ) {
+		LOG_ERROR( log::channel_t::FS, "set write path failed for '%s': create directories failed.", physical_path );
+		return fs_error_t::ERR_IO_ERROR;
+	}
+	if ( !std::filesystem::is_directory( physical_path, ec ) || ec ) {
+		LOG_ERROR( log::channel_t::FS, "set write path failed for '%s': path is not a directory.", physical_path );
+		return ec ? fs_error_t::ERR_IO_ERROR : fs_error_t::ERR_NOT_DIRECTORY;
+	}
+
+	std::memcpy( state.write_path, physical_path, physical_path_length + 1u );
+	LOG_INFO( log::channel_t::FS, "write path set to '%s'.", state.write_path );
 	return fs_error_t::OK;
 }
 
@@ -204,127 +115,14 @@ CypherFileSystem_GetWritePath
 ================
 */
 const char *CypherFileSystem_GetWritePath() {
-	if ( !g_fs_runtime_state.initialized ) {
+	const runtime_state_t &state = CypherFileSystem_RuntimeState();
+	if ( !state.initialized ) {
 		return nullptr;
 	}
-	if ( g_fs_runtime_state.write_path[0] == '\0' ) {
+	if ( state.write_path[0] == '\0' ) {
 		return nullptr;
 	}
-	return g_fs_runtime_state.write_path;
-}
-
-/*
-================
-CypherFileSystem_ResolvePath
-
-Finds the first mounted physical path matching a virtual engine path.
-================
-*/
-fs_error_t CypherFileSystem_ResolvePath( const char *virtual_path, char *out_resolved_path, common::u32 out_resolved_path_size ) {
-	if ( !g_fs_runtime_state.initialized ) {
-		return fs_error_t::ERR_NOT_INIT;
-	}
-	if ( virtual_path == nullptr || virtual_path[0] == '\0' ) {
-		return fs_error_t::ERR_INVALID_PATH;
-	}
-	if ( out_resolved_path == nullptr || out_resolved_path_size == 0u ) {
-		return fs_error_t::ERR_INVALID_ARGUMENT;
-	}
-	out_resolved_path[0] = '\0';
-	char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-	const fs_error_t normalize_result = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
-	if ( normalize_result != fs_error_t::OK ) {
-		return normalize_result;
-	}
-	for ( common::u32 i = 0u; i < g_fs_runtime_state.mount_count; ++i ) {
-		const mount_t &mount = g_fs_runtime_state.mounts[i];
-		// Package backends will plug in here later.
-		if ( mount.type != mount_type_t::CYPHER_FILESYSTEM_DIRECTORY ) {
-			continue;
-		}
-		char candidate_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-		const char *relative_path = nullptr;
-		if ( !CypherFileSystem_VirtualPathStartsWithRoot( normalized_path, mount.virtual_root, &relative_path ) ) {
-			continue;
-		}
-		const fs_error_t build_path_result = CypherFileSystem_BuildPhysicalPath( mount.physical_root, relative_path, candidate_path, sizeof( candidate_path ) );
-		if ( build_path_result != fs_error_t::OK ) {
-			out_resolved_path[0] = '\0';
-			return build_path_result;
-		}
-
-		std::error_code ec{};
-		if ( !std::filesystem::exists( candidate_path, ec ) ) {
-			continue;
-		}
-		if ( ec ) {
-			return fs_error_t::ERR_IO_ERROR;
-		}
-
-		const common::u32 candidate_path_length = static_cast<common::u32>( std::strlen( candidate_path ) );
-		if ( candidate_path_length + 1u > out_resolved_path_size ) {
-			out_resolved_path[0] = '\0';
-			return fs_error_t::ERR_BUFFER_TOO_SMALL;
-		}
-		std::memcpy( out_resolved_path, candidate_path, candidate_path_length + 1u );
-		return fs_error_t::OK;
-	}
-	return fs_error_t::ERR_PATH_NOT_FOUND;
-}
-
-/*
-================
-CypherFileSystem_Exists
-================
-*/
-bool CypherFileSystem_Exists( const char *virtual_path ) {
-	if ( !g_fs_runtime_state.initialized ) {
-		return false;
-	}
-	char resolved_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-
-	fs_error_t err = CypherFileSystem_ResolvePath( virtual_path, resolved_path, sizeof( resolved_path ) );
-
-	return err == fs_error_t::OK;
-}
-
-/*
-================
-CypherFileSystem_GetFileInfo
-================
-*/
-fs_error_t CypherFileSystem_GetFileInfo( const char *virtual_path, file_info_t &out_info ) {
-	if ( !g_fs_runtime_state.initialized ) {
-		return fs_error_t::ERR_NOT_INIT;
-	}
-	out_info = {};
-	if ( virtual_path == nullptr || virtual_path[0] == '\0' ) {
-		return fs_error_t::ERR_INVALID_PATH;
-	}
-	fs_error_t err = CypherFileSystem_ResolvePath( virtual_path, out_info.resolved_path, sizeof( out_info.resolved_path ) );
-	if ( err != fs_error_t::OK ) {
-		return err;
-	}
-	std::error_code ec{};
-	out_info.exists = std::filesystem::exists( out_info.resolved_path, ec );
-	if ( ec ) {
-		out_info = {};
-		return fs_error_t::ERR_IO_ERROR;
-	}
-	out_info.is_directory = std::filesystem::is_directory( out_info.resolved_path, ec );
-	if ( ec ) {
-		out_info = {};
-		return fs_error_t::ERR_IO_ERROR;
-	}
-	if ( !out_info.is_directory ) {
-		out_info.file_size = static_cast<common::u64>( std::filesystem::file_size( out_info.resolved_path, ec ) );
-
-		if ( ec ) {
-			out_info = {};
-			return fs_error_t::ERR_IO_ERROR;
-		}
-	}
-	return fs_error_t::OK;
+	return state.write_path;
 }
 
 /*
@@ -359,7 +157,7 @@ Opens an OS-backed file resolved through the virtual filesystem.
 ================
 */
 fs_error_t CypherFileSystem_Open( const char *virtual_path, open_mode_t mode, file_t &file ) {
-	if ( !g_fs_runtime_state.initialized ) {
+	if ( !CypherFileSystem_RuntimeState().initialized ) {
 		return fs_error_t::ERR_NOT_INIT;
 	}
 	file = {};
@@ -380,17 +178,9 @@ fs_error_t CypherFileSystem_Open( const char *virtual_path, open_mode_t mode, fi
 			return err;
 		}
 	} else if ( write_mode || append_mode ) {
-		if ( g_fs_runtime_state.write_path[0] == '\0' ) {
-			return fs_error_t::ERR_PERMISSION_DENIED;
-		}
-		char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-		const fs_error_t normalize_result = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
-		if ( normalize_result != fs_error_t::OK ) {
-			return normalize_result;
-		}
-		const int written = std::snprintf( resolved_path, sizeof( resolved_path ), "%s/%s", g_fs_runtime_state.write_path, normalized_path );
-		if ( written < 0 || static_cast<common::u32>( written ) >= sizeof( resolved_path ) ) {
-			return fs_error_t::ERR_BUFFER_TOO_SMALL;
+		const fs_error_t build_path_result = CypherFileSystem_BuildWritePath( virtual_path, resolved_path, sizeof( resolved_path ) );
+		if ( build_path_result != fs_error_t::OK ) {
+			return build_path_result;
 		}
 		std::error_code ec{};
 		const std::filesystem::path parent_path = std::filesystem::path( resolved_path ).parent_path();
@@ -435,7 +225,7 @@ CypherFileSystem_Close
 ================
 */
 fs_error_t CypherFileSystem_Close( file_t &file ) {
-	if ( !g_fs_runtime_state.initialized ) {
+	if ( !CypherFileSystem_RuntimeState().initialized ) {
 		return fs_error_t::ERR_NOT_INIT;
 	}
 
@@ -467,7 +257,7 @@ CypherFileSystem_Read
 fs_error_t CypherFileSystem_Read( file_t &file, void *buffer, common::u64 bytes_to_read, common::u64 &bytes_read_out ) {
 	bytes_read_out = 0u;
 
-	if ( !g_fs_runtime_state.initialized ) {
+	if ( !CypherFileSystem_RuntimeState().initialized ) {
 		return fs_error_t::ERR_NOT_INIT;
 	}
 
@@ -518,7 +308,7 @@ CypherFileSystem_Write
 fs_error_t CypherFileSystem_Write( file_t &file, const void *buffer, common::u64 bytes_to_write, common::u64 &bytes_written_out ) {
 	bytes_written_out = 0u;
 
-	if ( !g_fs_runtime_state.initialized ) {
+	if ( !CypherFileSystem_RuntimeState().initialized ) {
 		return fs_error_t::ERR_NOT_INIT;
 	}
 	if ( file.backend != file_backend_t::OS_FILE ) {
@@ -564,7 +354,7 @@ CypherFileSystem_Seek
 ================
 */
 fs_error_t CypherFileSystem_Seek( file_t &file, common::i64 offset, seek_origin_t origin ) {
-	if ( !g_fs_runtime_state.initialized ) {
+	if ( !CypherFileSystem_RuntimeState().initialized ) {
 		return fs_error_t::ERR_NOT_INIT;
 	}
 	if ( file.backend != file_backend_t::OS_FILE ) {
@@ -616,7 +406,7 @@ CypherFileSystem_Tell
 fs_error_t CypherFileSystem_Tell( file_t &file, common::u64 &out_position ) {
 	out_position = 0u;
 
-	if ( !g_fs_runtime_state.initialized ) {
+	if ( !CypherFileSystem_RuntimeState().initialized ) {
 		return fs_error_t::ERR_NOT_INIT;
 	}
 
@@ -649,7 +439,7 @@ CypherFileSystem_ReadEntireFile
 fs_error_t CypherFileSystem_ReadEntireFile( const char *virtual_path, void *buffer, common::u64 bytes_to_read, common::u64 &bytes_read_out ) {
 	bytes_read_out = 0u;
 
-	if ( !g_fs_runtime_state.initialized ) {
+	if ( !CypherFileSystem_RuntimeState().initialized ) {
 		LOG_ERROR( log::channel_t::FS, "read entire file failed for '%s': filesystem is not initialized.", virtual_path ? virtual_path : "<null>" );
 		return fs_error_t::ERR_NOT_INIT;
 	}
