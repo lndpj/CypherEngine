@@ -29,7 +29,7 @@ CypherRender_MeshCreate
 Validates CPU mesh data, calculates simple bounds, then uploads to OpenGL.
 ================
 */
-error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
+render_error_t CypherRender_MeshCreate( const vertex_t *vertices,
                              const common::u32 vertex_count,
                              const common::u32 *indices,
                              const common::u32 index_count,
@@ -37,12 +37,12 @@ error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
 {
     if ( vertices == nullptr || vertex_count == 0u ) {
         LOG_ERROR( log::channel_t::RENDER, "mesh create failed: invalid vertices pointer/count=%u.", vertex_count );
-        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     if ( indices == nullptr || index_count == 0u ) {
         LOG_ERROR( log::channel_t::RENDER, "mesh create failed: invalid indices pointer/count=%u.", index_count );
-        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     mesh_out = {};
@@ -81,7 +81,7 @@ error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
         index_count,
         mesh_out );
 
-    if ( result != error_code_t::OK ) {
+    if ( result != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "mesh create failed: GL upload failed: %s.", CypherRender_ErrorDesc( result ) );
         mesh_out = {};
     } else {
@@ -104,11 +104,11 @@ void CypherRender_MeshDestroy( mesh_t &mesh )
     return ;
 }
 
-error_code_t CypherRender_MeshDraw( const mesh_t &mesh )
+render_error_t CypherRender_MeshDraw( const mesh_t &mesh )
 {
     if ( !mesh.loaded ) {
         LOG_ERROR( log::channel_t::RENDER, "mesh draw failed: mesh is not loaded." );
-        return error_code_t::ERR_INVALID_FUNC_PARAMETER;
+        return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
     return CypherRenderGL_MeshDraw( mesh );
