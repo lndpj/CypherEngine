@@ -21,7 +21,7 @@ const char *CypherPak_CompressionName( const pak_compression_t method )
 
 bool CypherPak_CompressionSupported( const pak_compression_t method )
 {
-    return method == pak_compression_t::NONE;
+    return ( method == pak_compression_t::NONE );
 }
 
 pak_error_t CypherPak_CompressBound(
