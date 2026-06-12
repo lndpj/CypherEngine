@@ -53,7 +53,7 @@ bool CypherLog_FormatTimestamp( const record_t &record, char *out_buffer, const 
 CypherLog_FormatCompact
 ================
 */
-error_code_t CypherLog_FormatCompact(
+log_error_t CypherLog_FormatCompact(
     const record_t &record,
     const sink_config_t &sink_config,
     char *out_buffer,
@@ -73,7 +73,7 @@ error_code_t CypherLog_FormatCompact(
         color_end
     );
 
-    return ( written < 0 ) ? error_code_t::ERR_FORMAT_FAILED : error_code_t::OK;
+    return ( written < 0 ) ? log_error_t::ERR_FORMAT_FAILED : log_error_t::OK;
 }
 
 /*
@@ -81,7 +81,7 @@ error_code_t CypherLog_FormatCompact(
 CypherLog_FormatDetailed
 ================
 */
-error_code_t CypherLog_FormatDetailed(
+log_error_t CypherLog_FormatDetailed(
     const record_t &record,
     const sink_config_t &sink_config,
     const config_t &config,
@@ -178,7 +178,7 @@ error_code_t CypherLog_FormatDetailed(
         );
     }
 
-    return ( written < 0 ) ? error_code_t::ERR_FORMAT_FAILED : error_code_t::OK;
+    return ( written < 0 ) ? log_error_t::ERR_FORMAT_FAILED : log_error_t::OK;
 }
 
 /*
@@ -186,7 +186,7 @@ error_code_t CypherLog_FormatDetailed(
 CypherLog_FormatRecord
 ================
 */
-error_code_t CypherLog_FormatRecord(
+log_error_t CypherLog_FormatRecord(
     const record_t &record,
     const sink_config_t &sink_config,
     const config_t &config,
@@ -194,13 +194,13 @@ error_code_t CypherLog_FormatRecord(
     const common::usize out_buffer_size )
 {
     if ( out_buffer == nullptr || out_buffer_size == 0u ) {
-        return error_code_t::ERR_FORMAT_FAILED;
+        return log_error_t::ERR_FORMAT_FAILED;
     }
 
     out_buffer[0] = '\0';
 
     if ( record.message[0] == '\0' ) {
-        return error_code_t::ERR_FORMAT_FAILED;
+        return log_error_t::ERR_FORMAT_FAILED;
     }
 
     switch ( sink_config.format ) {
@@ -209,7 +209,7 @@ error_code_t CypherLog_FormatRecord(
         case format_mode_t::DETAILED:
             return CypherLog_FormatDetailed( record, sink_config, config, out_buffer, out_buffer_size );
         default:
-            return error_code_t::ERR_FORMAT_FAILED;
+            return log_error_t::ERR_FORMAT_FAILED;
     }
 }
 
