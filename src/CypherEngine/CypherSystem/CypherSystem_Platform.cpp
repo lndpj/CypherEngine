@@ -96,15 +96,15 @@ CypherSystem_Init
 Copies startup info and builds platform paths.
 ================
 */
-error_code_t CypherSystem_Init( const init_info_t &info_init ) {
+sys_error_t CypherSystem_Init( const init_info_t &info_init ) {
     if ( g_sys_runtime_state.initialized ) {
-        return error_code_t::ERR_IS_INIT;
+        return sys_error_t::ERR_IS_INIT;
     }
     if ( info_init.app_name == nullptr || info_init.app_name[0] == '\0' ) {
-        return error_code_t::ERR_INVALID_ARGUMENT;
+        return sys_error_t::ERR_INVALID_ARGUMENT;
     }
     if ( info_init.organization_name == nullptr || info_init.organization_name[0] == '\0' ) {
-        return error_code_t::ERR_INVALID_ARGUMENT;
+        return sys_error_t::ERR_INVALID_ARGUMENT;
     }
     g_sys_runtime_state = {};
     
@@ -123,16 +123,16 @@ error_code_t CypherSystem_Init( const init_info_t &info_init ) {
     g_sys_runtime_state.argc = info_init.argc;
     g_sys_runtime_state.argv = info_init.argv;
     
-    error_code_t paths_result = CypherSystem_PlatformBuildPaths( info_init, g_sys_runtime_state.sys_paths );
+    sys_error_t paths_result = CypherSystem_PlatformBuildPaths( info_init, g_sys_runtime_state.sys_paths );
     
-    if ( paths_result != error_code_t::OK ) {
+    if ( paths_result != sys_error_t::OK ) {
         g_sys_runtime_state = {};
         return paths_result;
     }
     
     g_sys_runtime_state.initialized = true;
     
-    return error_code_t::OK;
+    return sys_error_t::OK;
 }
 
 /*
@@ -140,16 +140,16 @@ error_code_t CypherSystem_Init( const init_info_t &info_init ) {
 CypherSystem_Shutdown
 ================
 */
-error_code_t CypherSystem_Shutdown() {
+sys_error_t CypherSystem_Shutdown() {
     if ( !g_sys_runtime_state.initialized ) {
-        return error_code_t::ERR_NOT_INIT;
+        return sys_error_t::ERR_NOT_INIT;
     }
     
     g_sys_runtime_state = {};
     
     g_sys_runtime_state.initialized = false;
     
-    return error_code_t::OK;
+    return sys_error_t::OK;
 }
 
 /*
@@ -250,14 +250,14 @@ const paths_t &CypherSystem_Paths() {
 CypherSystem_GetPaths
 ================
 */
-error_code_t CypherSystem_GetPaths( paths_t &out_paths ) {
+sys_error_t CypherSystem_GetPaths( paths_t &out_paths ) {
     if ( !g_sys_runtime_state.initialized ) {
-        return error_code_t::ERR_NOT_INIT;
+        return sys_error_t::ERR_NOT_INIT;
     }   
     
     out_paths = g_sys_runtime_state.sys_paths;
     
-    return error_code_t::OK;
+    return sys_error_t::OK;
 }
  
 /*
@@ -295,13 +295,13 @@ void *CypherSystem_VirtualReserve( const common::usize size )
 CypherSystem_VirtualCommit
 ================
 */
-error_code_t CypherSystem_VirtualCommit( void *memory, common::usize size )
+sys_error_t CypherSystem_VirtualCommit( void *memory, common::usize size )
 {
     if ( CypherSystem_PlatformVirtualCommit( memory, CypherSystem_AlignVirtualMemorySize( size ) ) ) {
-        return error_code_t::OK;
+        return sys_error_t::OK;
     }
 
-    return error_code_t::ERR_INTERNAL_ERROR;
+    return sys_error_t::ERR_INTERNAL_ERROR;
 }
 
 /*
@@ -309,13 +309,13 @@ error_code_t CypherSystem_VirtualCommit( void *memory, common::usize size )
 CypherSystem_VirtualDecommit
 ================
 */
-error_code_t CypherSystem_VirtualDecommit( void *memory, common::usize size )
+sys_error_t CypherSystem_VirtualDecommit( void *memory, common::usize size )
 {
     if ( CypherSystem_PlatformVirtualDecommit( memory, CypherSystem_AlignVirtualMemorySize( size ) ) ) {
-        return error_code_t::OK;
+        return sys_error_t::OK;
     }
 
-    return error_code_t::ERR_INTERNAL_ERROR;
+    return sys_error_t::ERR_INTERNAL_ERROR;
 }
 
 /*
@@ -323,13 +323,13 @@ error_code_t CypherSystem_VirtualDecommit( void *memory, common::usize size )
 CypherSystem_VirtualRelease
 ================
 */
-error_code_t CypherSystem_VirtualRelease( void *memory, common::usize size )
+sys_error_t CypherSystem_VirtualRelease( void *memory, common::usize size )
 {
     if ( CypherSystem_PlatformVirtualRelease( memory, CypherSystem_AlignVirtualMemorySize( size ) ) ) {
-        return error_code_t::OK;
+        return sys_error_t::OK;
     }
 
-    return error_code_t::ERR_INTERNAL_ERROR;
+    return sys_error_t::ERR_INTERNAL_ERROR;
 }
 
 }       // namespace cypher::engine::sys
