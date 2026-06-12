@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-06-12 10:24:36
    Last Modified by: ksiric
-   Last Modified: 2026-06-12 15:16:02
+   Last Modified: 2026-06-12 15:49:48
    ---------------------------------------------------------------------
    Description:
        
@@ -67,6 +67,32 @@ bool IsInvalidVirtualPathChar( char c )
         return true;
     }
     return false;
+}
+
+char ToLowerAscii( const char c )
+{
+    if ( c >= 'A' && c <= 'Z' ) {
+        return static_cast<char>( c - 'A' + 'a' );
+    }
+    return c;
+}
+
+const char *FindLastVirtualPathSeparator( const char *path )
+{
+    if ( path == nullptr ) {
+        return nullptr;
+    }
+
+    const char *last_sep = nullptr;
+    const char *cursor = path;
+    while ( *cursor != '\0' ) {
+        if ( *cursor == '/' || *cursor == '\\' ) {
+            last_sep = cursor;
+        }
+        ++cursor;
+    }
+
+    return last_sep;
 }
 
 }       // namespace
@@ -138,9 +164,7 @@ fs_error_t CypherFileSystem_NormalizeVirtualPath( const char *virtual_path, char
                 out_path[0] = '\0';
                 return fs_error_t::ERR_INVALID_PATH;
             }
-            if ( c >= 'A' && c <= 'Z' ) {
-                c = static_cast<char>( c - 'A' + 'a' );
-            }
+            c = ToLowerAscii( c );
             if ( write_index + 1u >= out_path_size ) {
                 out_path[0] = '\0';
                 return fs_error_t::ERR_BUFFER_TOO_SMALL;
@@ -314,6 +338,148 @@ fs_error_t CypherFileSystem_PathJoin(
     std::memcpy( out_path + left_len + 1, normalized_right, right_len + 1 );
 
     return fs_error_t::OK;
+}
+
+const char *CypherFileSystem_PathBasename( const char *virtual_path )
+{
+    if ( virtual_path == nullptr ) {
+        return nullptr;
+    }
+    const char *last_separator = FindLastVirtualPathSeparator( virtual_path );
+    if ( last_separator != nullptr ) {
+        return last_separator + 1;
+    }
+
+    return virtual_path;
+}
+
+fs_error_t CypherFileSystem_PathDirname(
+    const char *virtual_path,
+    char *out_path,
+    common::u32 out_path_size )
+{
+    if ( out_path == nullptr || out_path_size == 0u ) {
+        return fs_error_t::ERR_INVALID_ARGUMENT;
+    }
+    out_path[0] = '\0';
+    if ( virtual_path == nullptr || virtual_path[0] == '\0' ) {
+        return fs_error_t::ERR_INVALID_PATH;
+    }
+    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    fs_error_t err = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
+    if ( err != fs_error_t::OK ) {
+        return err;
+    }
+    const char *last_slash = FindLastVirtualPathSeparator( normalized_path );
+    if ( last_slash == nullptr ) {
+        out_path[0] = '\0';
+        return fs_error_t::OK;
+    }
+    const common::usize dirname_len = static_cast<common::usize>( last_slash - normalized_path );
+    if ( dirname_len + 1u > out_path_size ) {
+        return fs_error_t::ERR_BUFFER_TOO_SMALL;
+    }
+    std::memcpy( out_path, normalized_path, dirname_len );
+    out_path[dirname_len] = '\0';
+
+    return fs_error_t::OK;
+}
+
+const char *CypherFileSystem_PathExtension( const char *virtual_path )
+{
+    if ( virtual_path == nullptr ) {
+        return nullptr;
+    }
+
+    const char *basename = CypherFileSystem_PathBasename( virtual_path );
+    const char *cursor = basename;
+    const char *last_dot = nullptr;
+
+    while ( *cursor != '\0' ) {
+        if ( *cursor == '.' ) {
+            last_dot = cursor;
+        }
+        ++cursor;
+    }
+
+    if ( last_dot == nullptr || last_dot == basename ) {
+        return cursor;
+    }
+
+    return last_dot;
+}
+
+fs_error_t CypherFileSystem_PathWithoutExtension(
+    const char *virtual_path,
+    char *out_path,
+    common::u32 out_path_size )
+{
+    if ( out_path == nullptr || out_path_size == 0u ) {
+        return fs_error_t::ERR_INVALID_ARGUMENT;
+    }
+
+    out_path[0] = '\0';
+
+    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    const fs_error_t err = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
+    if ( err != fs_error_t::OK ) {
+        return err;
+    }
+
+    const char *extension = CypherFileSystem_PathExtension( normalized_path );
+    const common::usize copy_len = ( extension != nullptr && extension[0] != '\0' )
+        ? static_cast<common::usize>( extension - normalized_path )
+        : std::strlen( normalized_path );
+
+    if ( copy_len + 1u > out_path_size ) {
+        return fs_error_t::ERR_BUFFER_TOO_SMALL;
+    }
+
+    std::memcpy( out_path, normalized_path, copy_len );
+    out_path[copy_len] = '\0';
+    return fs_error_t::OK;
+}
+
+bool CypherFileSystem_PathHasExtension( const char *virtual_path, const char *extension )
+{
+    if ( virtual_path == nullptr || extension == nullptr || extension[0] == '\0' ) {
+        return false;
+    }
+
+    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    if ( CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) ) != fs_error_t::OK ) {
+        return false;
+    }
+
+    char normalized_extension[CYPHER_FILESYSTEM_MAX_EXTENSION_LENGTH]{};
+    common::u32 write_index = 0u;
+
+    if ( extension[0] != '.' ) {
+        normalized_extension[write_index++] = '.';
+    }
+
+    const char *cursor = extension;
+    if ( cursor[0] == '.' ) {
+        normalized_extension[write_index++] = '.';
+        ++cursor;
+    }
+
+    while ( *cursor != '\0' ) {
+        const char c = *cursor;
+        if ( c == '/' || c == '\\' || IsInvalidVirtualPathChar( c ) ) {
+            return false;
+        }
+        if ( write_index + 1u >= sizeof( normalized_extension ) ) {
+            return false;
+        }
+        normalized_extension[write_index++] = ToLowerAscii( c );
+        ++cursor;
+    }
+
+    normalized_extension[write_index] = '\0';
+
+    const char *path_extension = CypherFileSystem_PathExtension( normalized_path );
+    return path_extension != nullptr && std::strcmp( path_extension, normalized_extension ) == 0;
 }
 
 }       // namespace cypher::engine::fs
