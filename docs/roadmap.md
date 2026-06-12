@@ -1,6 +1,7 @@
 # CypherEngine Roadmap
 
 This roadmap is the high-level summary version of [development_phases.md](development_phases.md).
+For the full dated schedule, LOC ranges, subsystem acceptance criteria, and editor/toolchain plan, read [master_plan.md](master_plan.md).
 
 `CypherEngine` is the engine runtime inside the CypherEngine project.
 
