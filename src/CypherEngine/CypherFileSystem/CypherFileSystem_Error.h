@@ -39,7 +39,9 @@ enum class fs_error_t : common::u8 {
     ERR_FILE_TELL_FAILED,
 
     ERR_BUFFER_TOO_SMALL,
+    ERR_OUT_OF_MEMORY,
     ERR_UNSUPPORTED_BACKEND,
+    ERR_NOT_IMPLEMENTED,
     ERR_PERMISSION_DENIED,
     ERR_IO_ERROR
 };
@@ -97,8 +99,12 @@ constexpr inline const char *CypherFileSystem_ErrorName( const fs_error_t error 
         return "ERR_FILE_TELL_FAILED";
     case fs_error_t::ERR_BUFFER_TOO_SMALL:
         return "ERR_BUFFER_TOO_SMALL";
+    case fs_error_t::ERR_OUT_OF_MEMORY:
+        return "ERR_OUT_OF_MEMORY";
     case fs_error_t::ERR_UNSUPPORTED_BACKEND:
         return "ERR_UNSUPPORTED_BACKEND";
+    case fs_error_t::ERR_NOT_IMPLEMENTED:
+        return "ERR_NOT_IMPLEMENTED";
     case fs_error_t::ERR_PERMISSION_DENIED:
         return "ERR_PERMISSION_DENIED";
     case fs_error_t::ERR_IO_ERROR:
@@ -156,8 +162,12 @@ constexpr inline const char *CypherFileSystem_ErrorDesc( const fs_error_t error 
         return "file tell failed";
     case fs_error_t::ERR_BUFFER_TOO_SMALL:
         return "provided filesystem buffer is too small";
+    case fs_error_t::ERR_OUT_OF_MEMORY:
+        return "filesystem memory allocation failed";
     case fs_error_t::ERR_UNSUPPORTED_BACKEND:
         return "filesystem backend is unsupported for this operation";
+    case fs_error_t::ERR_NOT_IMPLEMENTED:
+        return "filesystem operation is declared but not implemented yet";
     case fs_error_t::ERR_PERMISSION_DENIED:
         return "filesystem permission denied";
     case fs_error_t::ERR_IO_ERROR:
