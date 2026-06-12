@@ -96,7 +96,7 @@ error_code_t CypherMemory_PoolFailInit( pool_t &pool, const pool_desc_t &pool_de
     pool.name = pool_desc.name;
     pool.last_error = error;
 
-    CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+    LOG_ERROR( log::channel_t::MEMORY,
                       "pool '%s' init failed: %s.",
                       pool.name ? pool.name : "<unnamed>",
                       reason ? reason : CypherMemory_ErrorDesc( error ) );
@@ -287,7 +287,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
         pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "pool allocation failed: pool is not initialized." );
+        LOG_ERROR( log::channel_t::MEMORY, "pool allocation failed: pool is not initialized." );
         return nullptr;
     }
 
@@ -295,7 +295,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
         pool.last_error = error_code_t::ERR_INVALID_ARGUMENT;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: requested size is zero.", pool.name ? pool.name : "<unnamed>" );
+        LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: requested size is zero.", pool.name ? pool.name : "<unnamed>" );
         return nullptr;
     }
 
@@ -303,7 +303,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
         pool.last_error = error_code_t::ERR_INVALID_ALIGNMENT;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: invalid alignment %zu.", pool.name ? pool.name : "<unnamed>", requested_alignment );
+        LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: invalid alignment %zu.", pool.name ? pool.name : "<unnamed>", requested_alignment );
         return nullptr;
     }
 
@@ -311,7 +311,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
         pool.last_error = error_code_t::ERR_BUFFER_TOO_SMALL;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+        LOG_ERROR( log::channel_t::MEMORY,
                           "pool '%s' allocation failed: requested=%zu, slot_size=%zu.",
                           pool.name ? pool.name : "<unnamed>",
                           requested_size,
@@ -323,7 +323,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
         pool.last_error = error_code_t::ERR_INVALID_ALIGNMENT;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+        LOG_ERROR( log::channel_t::MEMORY,
                           "pool '%s' allocation failed: requested alignment=%zu exceeds pool alignment=%zu.",
                           pool.name ? pool.name : "<unnamed>",
                           requested_alignment,
@@ -335,7 +335,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
         pool.last_error = error_code_t::ERR_OUT_OF_MEMORY;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: pool is full.", pool.name ? pool.name : "<unnamed>" );
+        LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: pool is full.", pool.name ? pool.name : "<unnamed>" );
         return nullptr;
     }
 
@@ -372,7 +372,7 @@ error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
 {
     if ( pool.initialized ) {
         pool.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
-        CYPHER_LOG_WARNING( log::channel_t::MEMORY, "pool '%s' is already initialized.", pool.name ? pool.name : "<unnamed>" );
+        LOG_WARNING( log::channel_t::MEMORY, "pool '%s' is already initialized.", pool.name ? pool.name : "<unnamed>" );
         return error_code_t::ERR_ALREADY_INITIALIZED;
     }
 
@@ -467,7 +467,7 @@ error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
     CypherMemory_PoolClearAllocationBits( pool );
     CypherMemory_PoolBuildFreeList( pool );
 
-    CYPHER_LOG_INFO( log::channel_t::MEMORY,
+    LOG_INFO( log::channel_t::MEMORY,
                      "pool '%s' initialized: slot_size=%zu, slot_stride=%zu, slot_count=%zu, backing_bytes=%zu.",
                      pool.name ? pool.name : "<unnamed>",
                      pool.slot_size,
@@ -484,7 +484,7 @@ void CypherMemory_PoolShutdown( pool_t &pool )
         return;
     }
 
-    CYPHER_LOG_INFO( log::channel_t::MEMORY,
+    LOG_INFO( log::channel_t::MEMORY,
                      "pool '%s' shutdown: used=%zu, peak=%zu, allocations=%llu, frees=%llu, failed_alloc=%llu, failed_free=%llu.",
                      pool.name ? pool.name : "<unnamed>",
                      pool.used_count,
@@ -617,7 +617,7 @@ error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *fi
         pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
         ++pool.failed_free_count;
         CypherMemory_PoolRecordOperationTrace( pool, ptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "pool free failed: pool is not initialized." );
+        LOG_ERROR( log::channel_t::MEMORY, "pool free failed: pool is not initialized." );
         return pool.last_error;
     }
 
@@ -625,7 +625,7 @@ error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *fi
         pool.last_error = error_code_t::ERR_INVALID_POINTER;
         ++pool.failed_free_count;
         CypherMemory_PoolRecordOperationTrace( pool, ptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: pointer is null.", pool.name ? pool.name : "<unnamed>" );
+        LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: pointer is null.", pool.name ? pool.name : "<unnamed>" );
         return pool.last_error;
     }
 
@@ -633,7 +633,7 @@ error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *fi
         pool.last_error = error_code_t::ERR_INVALID_POINTER;
         ++pool.failed_free_count;
         CypherMemory_PoolRecordOperationTrace( pool, ptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: pointer does not belong to a pool slot.", pool.name ? pool.name : "<unnamed>" );
+        LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: pointer does not belong to a pool slot.", pool.name ? pool.name : "<unnamed>" );
         return pool.last_error;
     }
 
@@ -643,7 +643,7 @@ error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *fi
         pool.last_error = error_code_t::ERR_DOUBLE_FREE;
         ++pool.failed_free_count;
         CypherMemory_PoolRecordOperationTrace( pool, ptr, slot_index, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, true, file, function, line );
-        CYPHER_LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: slot %zu is already free.", pool.name ? pool.name : "<unnamed>", slot_index );
+        LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: slot %zu is already free.", pool.name ? pool.name : "<unnamed>", slot_index );
         return pool.last_error;
     }
 
