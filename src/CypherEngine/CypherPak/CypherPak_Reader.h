@@ -1,0 +1,67 @@
+#pragma once
+
+#include "CypherEngine/CypherPak/CypherPak_Types.h"
+
+namespace cypher::engine::pak
+{
+
+pak_error_t CypherPak_OpenReader(
+    const char *archive_path,
+    common::u32 flags,
+    pak_reader_t &reader );
+
+pak_error_t CypherPak_CloseReader( pak_reader_t &reader );
+
+bool CypherPak_IsOpen( const pak_reader_t &reader );
+
+pak_error_t CypherPak_ValidateHeader( const pak_header_t &header );
+
+pak_error_t CypherPak_GetStats(
+    const pak_reader_t &reader,
+    pak_stats_t &out_stats );
+
+pak_error_t CypherPak_GetFileCount(
+    const pak_reader_t &reader,
+    common::u32 &out_file_count );
+
+pak_error_t CypherPak_FindFile(
+    const pak_reader_t &reader,
+    const char *virtual_path,
+    pak_file_index_t &out_index );
+
+pak_error_t CypherPak_GetFileInfo(
+    const pak_reader_t &reader,
+    pak_file_index_t index,
+    pak_file_info_t &out_info );
+
+pak_error_t CypherPak_GetFileInfoByPath(
+    const pak_reader_t &reader,
+    const char *virtual_path,
+    pak_file_info_t &out_info );
+
+pak_error_t CypherPak_ReadFile(
+    pak_reader_t &reader,
+    const char *virtual_path,
+    void *buffer,
+    common::u64 buffer_size,
+    common::u64 &out_bytes_read );
+
+pak_error_t CypherPak_ReadFileByIndex(
+    pak_reader_t &reader,
+    pak_file_index_t index,
+    void *buffer,
+    common::u64 buffer_size,
+    common::u64 &out_bytes_read );
+
+pak_error_t CypherPak_ReadRawFileByIndex(
+    pak_reader_t &reader,
+    pak_file_index_t index,
+    void *buffer,
+    common::u64 buffer_size,
+    common::u64 &out_bytes_read );
+
+pak_error_t CypherPak_Verify(
+    pak_reader_t &reader,
+    common::u32 flags );
+
+}       // namespace cypher::engine::pak
