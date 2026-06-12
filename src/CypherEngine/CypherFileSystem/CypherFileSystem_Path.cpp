@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-06-12 10:24:36
    Last Modified by: ksiric
-   Last Modified: 2026-06-12 11:37:11
+   Last Modified: 2026-06-12 15:16:02
    ---------------------------------------------------------------------
    Description:
        
@@ -20,6 +20,56 @@
 #include <cctype>           // for isalpha and other isFuncs
 #include <cstdio>           // for IO
 #include <cstring>          // for string manipulations
+
+/*
+ * @Note: Internal helpers usually put them in anonymous namespaces as they are file-local.
+ *        So we treat them that way as well, this goes for all internal helper functions.
+ *        You can see that I do not put the Prefixed namings for them and that is how I can
+ *        distinguish them from being helpers or core funcs.
+ */
+namespace {
+
+bool IsInvalidVirtualPathChar( char c )
+{
+    unsigned char u = static_cast<unsigned char>( c );
+    if ( u < 32 ) {
+        return true;
+    }
+    if ( u == 127 ) {
+        return true;
+    }
+    // @note: I am rejecting unicode characters for now as well.
+    if ( u >= 128 ) {
+        return true;
+    }
+    if ( c == ':' ) {
+        return true;
+    }
+    if ( c == '*' ) {
+        return true;
+    }
+    if ( c == '?' ) {
+        return true;
+    }
+    if ( c == '"' ) {
+        return true;
+    }
+    if ( c == '<' ) {
+        return true;
+    }
+    if ( c == '>' ) {
+        return true;
+    }
+    if ( c == '|' ) {
+        return true;
+    }
+    if ( c == ' ' ) {
+        return true;
+    }
+    return false;
+}
+
+}       // namespace
 
 namespace cypher::engine::fs
 {
@@ -81,13 +131,21 @@ fs_error_t CypherFileSystem_NormalizeVirtualPath( const char *virtual_path, char
             out_path[write_index] = '/';
             ++write_index;
         }
-
+        // @copying - we are copying the segment characters into this out buffer
         for ( common::u32 i = 0u; i < segment_length; ++i ) {
+            char c = segment_start[i];
+            if ( IsInvalidVirtualPathChar( c ) ) {
+                out_path[0] = '\0';
+                return fs_error_t::ERR_INVALID_PATH;
+            }
+            if ( c >= 'A' && c <= 'Z' ) {
+                c = static_cast<char>( c - 'A' + 'a' );
+            }
             if ( write_index + 1u >= out_path_size ) {
                 out_path[0] = '\0';
                 return fs_error_t::ERR_BUFFER_TOO_SMALL;
             }
-            out_path[write_index] = segment_start[i];
+            out_path[write_index] = c;
             ++write_index;
         }
 
@@ -208,5 +266,54 @@ fs_error_t CypherFileSystem_BuildPhysicalPath( const char *physical_root, const 
     
     return fs_error_t::OK;
 }
-    
+
+bool CypherFileSystem_IsValidVirtualPath( const char *virtual_path )
+{
+    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    fs_error_t result = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
+    return ( result == fs_error_t::OK );
+}
+
+fs_error_t CypherFileSystem_PathJoin(
+    const char *left,
+    const char *right,
+    char *out_path,
+    common::u32 out_path_size )
+{
+    if ( out_path == nullptr || out_path_size == 0u ) {
+        return fs_error_t::ERR_INVALID_ARGUMENT;
+    }
+    out_path[0] = '\0';
+    if ( left == nullptr || left[0] == '\0' ) {
+        return fs_error_t::ERR_INVALID_PATH;
+    }
+    if ( right == nullptr || right[0] == '\0' ) {
+        return fs_error_t::ERR_INVALID_PATH;
+    }
+    char normalized_left[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char normalized_right[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+
+    fs_error_t err = CypherFileSystem_NormalizeVirtualPath( left, normalized_left, sizeof( normalized_left ) );
+    if ( err != fs_error_t::OK ) {
+        return err;
+    }
+    err = CypherFileSystem_NormalizeVirtualPath( right, normalized_right, sizeof( normalized_right ) );
+    if ( err != fs_error_t::OK ) {
+        return err;
+    }
+    const common::usize left_len = std::strlen( normalized_left );
+    const common::usize right_len = std::strlen( normalized_right );
+
+    const common::usize required = left_len + 1u + right_len + 1u;
+    if ( required > out_path_size ) {
+        return fs_error_t::ERR_BUFFER_TOO_SMALL;
+    }
+    // @safetyFirst! safe now we can safely copy things
+    std::memcpy( out_path, normalized_left, left_len );
+    out_path[left_len] = '/';
+    std::memcpy( out_path + left_len + 1, normalized_right, right_len + 1 );
+
+    return fs_error_t::OK;
+}
+
 }       // namespace cypher::engine::fs
