@@ -71,8 +71,8 @@ extern runtime_state_t g_sys_runtime_state;
 System API
 ================
 */
-error_code_t CypherSystem_Init( const init_info_t &init_info );
-error_code_t CypherSystem_Shutdown();
+sys_error_t CypherSystem_Init( const init_info_t &init_info );
+sys_error_t CypherSystem_Shutdown();
 
 bool CypherSystem_IsInitialized();
 
@@ -83,7 +83,7 @@ const char *CypherSystem_PlatformName( platform_t type );
 const char *CypherSystem_CompilerName( compiler_t type );
 
 const paths_t &CypherSystem_Paths();
-error_code_t CypherSystem_GetPaths( paths_t &out_paths );
+sys_error_t CypherSystem_GetPaths( paths_t &out_paths );
 
 const char *CypherSystem_PathBasename( const char *path );
 
@@ -96,11 +96,11 @@ common::usize CypherSystem_VirtualPageSize();
 
 void *CypherSystem_VirtualReserve( const common::usize size );
 
-error_code_t CypherSystem_VirtualCommit( void *memory, common::usize size );
+sys_error_t CypherSystem_VirtualCommit( void *memory, common::usize size );
 
-error_code_t CypherSystem_VirtualDecommit( void *memory, common::usize size );
+sys_error_t CypherSystem_VirtualDecommit( void *memory, common::usize size );
 
-error_code_t CypherSystem_VirtualRelease( void *memory, common::usize size );
+sys_error_t CypherSystem_VirtualRelease( void *memory, common::usize size );
 
 /*
 ================
