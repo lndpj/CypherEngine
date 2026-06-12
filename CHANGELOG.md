@@ -2,6 +2,14 @@
 
 All notable changes to CypherEngine and the REAP game/runtime direction are tracked here.
 
+## [0.1.0] - 2026-06-13
+
+### Added
+- Added the CypherPak package subsystem for package-backed asset storage.
+- Added package-backed VFS support for mounting packages and reading, listing, finding, and copying files through the virtual filesystem.
+- Added tests covering CypherPak package behavior and VFS package integration.
+- Added GitHub Actions CI coverage for automated build and test verification.
+
 ## [0.1.0] - 2026-06-07
 
 ### Added
