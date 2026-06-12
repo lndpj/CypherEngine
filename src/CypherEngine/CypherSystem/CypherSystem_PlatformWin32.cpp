@@ -198,7 +198,7 @@ common::usize CypherSystem_PlatformVirtualPageSize() {
 	GetSystemInfo( &info );
 
 	if ( info.dwPageSize == 0 ) {
-		CYPHER_LOG_WARNING( log::channel_t::PLATFORM, "GetSystemInfo page size query failed; using default page size %zu.", DEFAULT_PAGE_SIZE );
+		LOG_WARNING( log::channel_t::PLATFORM, "GetSystemInfo page size query failed; using default page size %zu.", DEFAULT_PAGE_SIZE );
 		return DEFAULT_PAGE_SIZE;
 	}
 
@@ -207,7 +207,7 @@ common::usize CypherSystem_PlatformVirtualPageSize() {
 
 void *CypherSystem_PlatformVirtualReserve( common::usize size ) {
 	if ( size == 0u ) {
-		CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: requested size is zero." );
+		LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: requested size is zero." );
 		return nullptr;
 	}
 
@@ -215,7 +215,7 @@ void *CypherSystem_PlatformVirtualReserve( common::usize size ) {
 
 	if ( memory == nullptr ) {
 		const DWORD error = GetLastError();
-		CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: size=%zu, win32_error=%lu.", size, static_cast<unsigned long>( error ) );
+		LOG_ERROR( log::channel_t::PLATFORM, "virtual reserve failed: size=%zu, win32_error=%lu.", size, static_cast<unsigned long>( error ) );
 		return nullptr;
 	}
 	return memory;
@@ -223,13 +223,13 @@ void *CypherSystem_PlatformVirtualReserve( common::usize size ) {
 
 bool CypherSystem_PlatformVirtualCommit( void *memory, common::usize size ) {
 	if ( memory == nullptr || size == 0u ) {
-		CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu.", memory, size );
+		LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu.", memory, size );
 		return false;
 	}
 	void *result = VirtualAlloc( memory, size, MEM_COMMIT, PAGE_READWRITE );
 	if ( result == nullptr ) {
 		const DWORD error = GetLastError();
-		CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu, win32_error=%lu.", memory, size, static_cast<unsigned long>( error ) );
+		LOG_ERROR( log::channel_t::PLATFORM, "virtual commit failed: memory=%p, size=%zu, win32_error=%lu.", memory, size, static_cast<unsigned long>( error ) );
 		return false;
 	}
 	return true;
@@ -237,14 +237,14 @@ bool CypherSystem_PlatformVirtualCommit( void *memory, common::usize size ) {
 
 bool CypherSystem_PlatformVirtualDecommit( void *memory, common::usize size ) {
 	if ( memory == nullptr || size == 0u ) {
-		CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu.", memory, size );
+		LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu.", memory, size );
 		return false;
 	}
 
 	BOOL result = VirtualFree( memory, size, MEM_DECOMMIT );
 	if ( result == 0 ) {
 		const DWORD error = GetLastError();
-		CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu, win32_error=%lu.", memory, size, static_cast<unsigned long>( error ) );
+		LOG_ERROR( log::channel_t::PLATFORM, "virtual decommit failed: memory=%p, size=%zu, win32_error=%lu.", memory, size, static_cast<unsigned long>( error ) );
 		return false;
 	}
 	return true;
@@ -252,7 +252,7 @@ bool CypherSystem_PlatformVirtualDecommit( void *memory, common::usize size ) {
 
 bool CypherSystem_PlatformVirtualRelease( void *memory, common::usize size ) {
 	if ( memory == nullptr || size == 0u ) {
-		CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu.", memory, size );
+		LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu.", memory, size );
 		return false;
 	}
 	/*
@@ -261,7 +261,7 @@ bool CypherSystem_PlatformVirtualRelease( void *memory, common::usize size ) {
 	BOOL result = VirtualFree( memory, 0, MEM_RELEASE );
 	if ( result == 0 ) {
 		const DWORD error = GetLastError();
-		CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu, win32_error=%lu.", memory, size, static_cast<unsigned long>( error ) );
+		LOG_ERROR( log::channel_t::PLATFORM, "virtual release failed: memory=%p, size=%zu, win32_error=%lu.", memory, size, static_cast<unsigned long>( error ) );
 		return false;
 	}
 	return true;
