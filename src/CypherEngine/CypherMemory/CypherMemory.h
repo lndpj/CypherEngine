@@ -95,7 +95,7 @@ struct memory_state_t {
 
 memory_config_t CypherMemory_DefaultConfig();
 
-error_code_t CypherMemory_Init( const memory_config_t &config );
+mem_error_t CypherMemory_Init( const memory_config_t &config );
 
 void CypherMemory_Shutdown();
 
