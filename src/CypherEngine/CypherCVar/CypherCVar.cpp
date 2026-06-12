@@ -1,10 +1,10 @@
 /*======================================================================
-   File: cvar_main.cpp
+   File: CypherCVar.cpp
    Project: CypherEngine
    Author: ksiric <email@example.com>
    Created: 2026-04-22 21:04:15
    Last Modified by: ksiric
-   Last Modified: 2026-05-05 00:16:30
+   Last Modified: 2026-06-12 13:35:20
    ---------------------------------------------------------------------
    Description:
 
@@ -16,7 +16,6 @@
 																	   */
 #include "CypherEngine/CypherCVar/CypherCVar.h"
 #include "CypherEngine/CypherCVar/CypherCVar_Error.h"
-#include "CypherEngine/CypherCommon/CypherCommon_Print.h"
 #include "CypherEngine/CypherLog/CypherLog.h"
 
 #include <cctype>      // std::tolower for bool parsing.
