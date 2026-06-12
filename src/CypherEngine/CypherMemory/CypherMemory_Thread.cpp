@@ -21,7 +21,7 @@ namespace cypher::engine::memory
 
 namespace {
 
-void *CypherMemory_ThreadSafeAllocFail( const char *allocator_name, const error_code_t error, const char *reason )
+void *CypherMemory_ThreadSafeAllocFail( const char *allocator_name, const mem_error_t error, const char *reason )
 {
     LOG_ERROR( log::channel_t::MEMORY,
                       "thread-safe allocator '%s' allocation failed: %s.",
@@ -42,20 +42,20 @@ void CypherMemory_MutexUnlock( memory_mutex_t &mutex )
     mutex.native_mutex.unlock();
 }
 
-error_code_t CypherMemory_ThreadSafeArenaBind( thread_safe_arena_t &thread_safe_arena, arena_t &arena )
+mem_error_t CypherMemory_ThreadSafeArenaBind( thread_safe_arena_t &thread_safe_arena, arena_t &arena )
 {
     if ( thread_safe_arena.initialized ) {
-        thread_safe_arena.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
+        thread_safe_arena.last_error = mem_error_t::ERR_ALREADY_INITIALIZED;
         return thread_safe_arena.last_error;
     }
 
     if ( !CypherMemory_ArenaIsInitialized( arena ) ) {
-        thread_safe_arena.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_arena.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return thread_safe_arena.last_error;
     }
 
     thread_safe_arena.arena = &arena;
-    thread_safe_arena.last_error = error_code_t::OK;
+    thread_safe_arena.last_error = mem_error_t::OK;
     thread_safe_arena.initialized = true;
 
     return thread_safe_arena.last_error;
@@ -65,7 +65,7 @@ void CypherMemory_ThreadSafeArenaUnbind( thread_safe_arena_t &thread_safe_arena 
 {
     CypherMemory_MutexLock( thread_safe_arena.mutex );
     thread_safe_arena.arena = nullptr;
-    thread_safe_arena.last_error = error_code_t::OK;
+    thread_safe_arena.last_error = mem_error_t::OK;
     thread_safe_arena.initialized = false;
     CypherMemory_MutexUnlock( thread_safe_arena.mutex );
 }
@@ -85,7 +85,7 @@ void *CypherMemory_ThreadSafeArenaAllocDebug( thread_safe_arena_t &thread_safe_a
                                               common::i32 line )
 {
     if ( !thread_safe_arena.initialized || thread_safe_arena.arena == nullptr ) {
-        thread_safe_arena.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_arena.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return CypherMemory_ThreadSafeAllocFail( nullptr, thread_safe_arena.last_error, "arena wrapper is not initialized" );
     }
 
@@ -112,7 +112,7 @@ void *CypherMemory_ThreadSafeArenaAllocZeroDebug( thread_safe_arena_t &thread_sa
                                                   common::i32 line )
 {
     if ( !thread_safe_arena.initialized || thread_safe_arena.arena == nullptr ) {
-        thread_safe_arena.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_arena.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return CypherMemory_ThreadSafeAllocFail( nullptr, thread_safe_arena.last_error, "arena wrapper is not initialized" );
     }
 
@@ -127,7 +127,7 @@ void *CypherMemory_ThreadSafeArenaAllocZeroDebug( thread_safe_arena_t &thread_sa
 void CypherMemory_ThreadSafeArenaReset( thread_safe_arena_t &thread_safe_arena )
 {
     if ( !thread_safe_arena.initialized || thread_safe_arena.arena == nullptr ) {
-        thread_safe_arena.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_arena.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return;
     }
 
@@ -142,7 +142,7 @@ arena_stats_t CypherMemory_ThreadSafeArenaStats( thread_safe_arena_t &thread_saf
     arena_stats_t stats{};
 
     if ( !thread_safe_arena.initialized || thread_safe_arena.arena == nullptr ) {
-        thread_safe_arena.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_arena.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return stats;
     }
 
@@ -154,25 +154,25 @@ arena_stats_t CypherMemory_ThreadSafeArenaStats( thread_safe_arena_t &thread_saf
     return stats;
 }
 
-error_code_t CypherMemory_ThreadSafeArenaLastError( const thread_safe_arena_t &thread_safe_arena )
+mem_error_t CypherMemory_ThreadSafeArenaLastError( const thread_safe_arena_t &thread_safe_arena )
 {
     return thread_safe_arena.last_error;
 }
 
-error_code_t CypherMemory_ThreadSafePoolBind( thread_safe_pool_t &thread_safe_pool, pool_t &pool )
+mem_error_t CypherMemory_ThreadSafePoolBind( thread_safe_pool_t &thread_safe_pool, pool_t &pool )
 {
     if ( thread_safe_pool.initialized ) {
-        thread_safe_pool.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
+        thread_safe_pool.last_error = mem_error_t::ERR_ALREADY_INITIALIZED;
         return thread_safe_pool.last_error;
     }
 
     if ( !CypherMemory_PoolIsInitialized( pool ) ) {
-        thread_safe_pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_pool.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return thread_safe_pool.last_error;
     }
 
     thread_safe_pool.pool = &pool;
-    thread_safe_pool.last_error = error_code_t::OK;
+    thread_safe_pool.last_error = mem_error_t::OK;
     thread_safe_pool.initialized = true;
 
     return thread_safe_pool.last_error;
@@ -182,7 +182,7 @@ void CypherMemory_ThreadSafePoolUnbind( thread_safe_pool_t &thread_safe_pool )
 {
     CypherMemory_MutexLock( thread_safe_pool.mutex );
     thread_safe_pool.pool = nullptr;
-    thread_safe_pool.last_error = error_code_t::OK;
+    thread_safe_pool.last_error = mem_error_t::OK;
     thread_safe_pool.initialized = false;
     CypherMemory_MutexUnlock( thread_safe_pool.mutex );
 }
@@ -198,7 +198,7 @@ void *CypherMemory_ThreadSafePoolAllocDebug( thread_safe_pool_t &thread_safe_poo
                                              common::i32 line )
 {
     if ( !thread_safe_pool.initialized || thread_safe_pool.pool == nullptr ) {
-        thread_safe_pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_pool.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return CypherMemory_ThreadSafeAllocFail( nullptr, thread_safe_pool.last_error, "pool wrapper is not initialized" );
     }
 
@@ -221,7 +221,7 @@ void *CypherMemory_ThreadSafePoolAllocZeroDebug( thread_safe_pool_t &thread_safe
                                                  common::i32 line )
 {
     if ( !thread_safe_pool.initialized || thread_safe_pool.pool == nullptr ) {
-        thread_safe_pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_pool.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return CypherMemory_ThreadSafeAllocFail( nullptr, thread_safe_pool.last_error, "pool wrapper is not initialized" );
     }
 
@@ -233,19 +233,19 @@ void *CypherMemory_ThreadSafePoolAllocZeroDebug( thread_safe_pool_t &thread_safe
     return memory;
 }
 
-error_code_t CypherMemory_ThreadSafePoolFree( thread_safe_pool_t &thread_safe_pool, void *ptr )
+mem_error_t CypherMemory_ThreadSafePoolFree( thread_safe_pool_t &thread_safe_pool, void *ptr )
 {
     return CypherMemory_ThreadSafePoolFreeDebug( thread_safe_pool, ptr, nullptr, nullptr, 0 );
 }
 
-error_code_t CypherMemory_ThreadSafePoolFreeDebug( thread_safe_pool_t &thread_safe_pool,
+mem_error_t CypherMemory_ThreadSafePoolFreeDebug( thread_safe_pool_t &thread_safe_pool,
                                                    void *ptr,
                                                    const char *file,
                                                    const char *function,
                                                    common::i32 line )
 {
     if ( !thread_safe_pool.initialized || thread_safe_pool.pool == nullptr ) {
-        thread_safe_pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_pool.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return thread_safe_pool.last_error;
     }
 
@@ -259,7 +259,7 @@ error_code_t CypherMemory_ThreadSafePoolFreeDebug( thread_safe_pool_t &thread_sa
 void CypherMemory_ThreadSafePoolReset( thread_safe_pool_t &thread_safe_pool )
 {
     if ( !thread_safe_pool.initialized || thread_safe_pool.pool == nullptr ) {
-        thread_safe_pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_pool.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return;
     }
 
@@ -274,7 +274,7 @@ pool_stats_t CypherMemory_ThreadSafePoolStats( thread_safe_pool_t &thread_safe_p
     pool_stats_t stats{};
 
     if ( !thread_safe_pool.initialized || thread_safe_pool.pool == nullptr ) {
-        thread_safe_pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_pool.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return stats;
     }
 
@@ -286,25 +286,25 @@ pool_stats_t CypherMemory_ThreadSafePoolStats( thread_safe_pool_t &thread_safe_p
     return stats;
 }
 
-error_code_t CypherMemory_ThreadSafePoolLastError( const thread_safe_pool_t &thread_safe_pool )
+mem_error_t CypherMemory_ThreadSafePoolLastError( const thread_safe_pool_t &thread_safe_pool )
 {
     return thread_safe_pool.last_error;
 }
 
-error_code_t CypherMemory_ThreadSafeBucketBind( thread_safe_bucket_t &thread_safe_bucket, bucket_t &bucket )
+mem_error_t CypherMemory_ThreadSafeBucketBind( thread_safe_bucket_t &thread_safe_bucket, bucket_t &bucket )
 {
     if ( thread_safe_bucket.initialized ) {
-        thread_safe_bucket.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
+        thread_safe_bucket.last_error = mem_error_t::ERR_ALREADY_INITIALIZED;
         return thread_safe_bucket.last_error;
     }
 
     if ( !CypherMemory_BucketIsInitialized( bucket ) ) {
-        thread_safe_bucket.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_bucket.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return thread_safe_bucket.last_error;
     }
 
     thread_safe_bucket.bucket = &bucket;
-    thread_safe_bucket.last_error = error_code_t::OK;
+    thread_safe_bucket.last_error = mem_error_t::OK;
     thread_safe_bucket.initialized = true;
 
     return thread_safe_bucket.last_error;
@@ -314,7 +314,7 @@ void CypherMemory_ThreadSafeBucketUnbind( thread_safe_bucket_t &thread_safe_buck
 {
     CypherMemory_MutexLock( thread_safe_bucket.mutex );
     thread_safe_bucket.bucket = nullptr;
-    thread_safe_bucket.last_error = error_code_t::OK;
+    thread_safe_bucket.last_error = mem_error_t::OK;
     thread_safe_bucket.initialized = false;
     CypherMemory_MutexUnlock( thread_safe_bucket.mutex );
 }
@@ -334,7 +334,7 @@ void *CypherMemory_ThreadSafeBucketAllocDebug( thread_safe_bucket_t &thread_safe
                                                common::i32 line )
 {
     if ( !thread_safe_bucket.initialized || thread_safe_bucket.bucket == nullptr ) {
-        thread_safe_bucket.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_bucket.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return CypherMemory_ThreadSafeAllocFail( nullptr, thread_safe_bucket.last_error, "bucket wrapper is not initialized" );
     }
 
@@ -361,7 +361,7 @@ void *CypherMemory_ThreadSafeBucketAllocZeroDebug( thread_safe_bucket_t &thread_
                                                    common::i32 line )
 {
     if ( !thread_safe_bucket.initialized || thread_safe_bucket.bucket == nullptr ) {
-        thread_safe_bucket.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_bucket.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return CypherMemory_ThreadSafeAllocFail( nullptr, thread_safe_bucket.last_error, "bucket wrapper is not initialized" );
     }
 
@@ -373,19 +373,19 @@ void *CypherMemory_ThreadSafeBucketAllocZeroDebug( thread_safe_bucket_t &thread_
     return memory;
 }
 
-error_code_t CypherMemory_ThreadSafeBucketFree( thread_safe_bucket_t &thread_safe_bucket, void *ptr )
+mem_error_t CypherMemory_ThreadSafeBucketFree( thread_safe_bucket_t &thread_safe_bucket, void *ptr )
 {
     return CypherMemory_ThreadSafeBucketFreeDebug( thread_safe_bucket, ptr, nullptr, nullptr, 0 );
 }
 
-error_code_t CypherMemory_ThreadSafeBucketFreeDebug( thread_safe_bucket_t &thread_safe_bucket,
+mem_error_t CypherMemory_ThreadSafeBucketFreeDebug( thread_safe_bucket_t &thread_safe_bucket,
                                                      void *ptr,
                                                      const char *file,
                                                      const char *function,
                                                      common::i32 line )
 {
     if ( !thread_safe_bucket.initialized || thread_safe_bucket.bucket == nullptr ) {
-        thread_safe_bucket.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_bucket.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return thread_safe_bucket.last_error;
     }
 
@@ -399,7 +399,7 @@ error_code_t CypherMemory_ThreadSafeBucketFreeDebug( thread_safe_bucket_t &threa
 void CypherMemory_ThreadSafeBucketReset( thread_safe_bucket_t &thread_safe_bucket )
 {
     if ( !thread_safe_bucket.initialized || thread_safe_bucket.bucket == nullptr ) {
-        thread_safe_bucket.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_bucket.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return;
     }
 
@@ -414,7 +414,7 @@ bucket_stats_t CypherMemory_ThreadSafeBucketStats( thread_safe_bucket_t &thread_
     bucket_stats_t stats{};
 
     if ( !thread_safe_bucket.initialized || thread_safe_bucket.bucket == nullptr ) {
-        thread_safe_bucket.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        thread_safe_bucket.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return stats;
     }
 
@@ -426,7 +426,7 @@ bucket_stats_t CypherMemory_ThreadSafeBucketStats( thread_safe_bucket_t &thread_
     return stats;
 }
 
-error_code_t CypherMemory_ThreadSafeBucketLastError( const thread_safe_bucket_t &thread_safe_bucket )
+mem_error_t CypherMemory_ThreadSafeBucketLastError( const thread_safe_bucket_t &thread_safe_bucket )
 {
     return thread_safe_bucket.last_error;
 }
