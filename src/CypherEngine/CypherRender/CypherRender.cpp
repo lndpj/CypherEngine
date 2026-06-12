@@ -39,17 +39,17 @@ Validates host/window config, starts the GL backend and initializes renderer sta
 */
 error_code_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &window_config ) {
 	if ( CypherRender_IsInitialized() ) {
-		CYPHER_LOG_WARNING( log::channel_t::RENDER, "renderer already initialized." );
+		LOG_WARNING( log::channel_t::RENDER, "renderer already initialized." );
 		return error_code_t::ERR_IS_INIT;
 	}
 
 	if ( !window.valid || window.native_window == nullptr ) {
-		CYPHER_LOG_ERROR( log::channel_t::RENDER, "invalid sys window." );
+		LOG_ERROR( log::channel_t::RENDER, "invalid sys window." );
 		return error_code_t::ERR_INVALID_WINDOW_CFG;
 	}
 
 	if ( window_config.viewport.width == 0u || window_config.viewport.height == 0u ) {
-		CYPHER_LOG_ERROR(
+		LOG_ERROR(
 			log::channel_t::RENDER,
 			"invalid viewport %ux%u (both dimensions must be > 0).",
 			window_config.viewport.width,
@@ -69,7 +69,7 @@ error_code_t CypherRender_Init( const sys::window_t &window, const host::window_
         g_main_draw_items,
         CYPHER_RENDER_DRAW_ITEMS_LIST_MAX );
 
-	CYPHER_LOG_INFO(
+	LOG_INFO(
 		log::channel_t::RENDER,
 		"renderer initialized with viewport %ux%u.",
 		g_render_runtime_state.viewport_width,
@@ -77,7 +77,7 @@ error_code_t CypherRender_Init( const sys::window_t &window, const host::window_
 
 	const auto gl_result = CypherRenderGL_Init( window, window_config.vsync, g_render_runtime_state.gl_state );
 	if ( gl_result != error_code_t::OK ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "renderer backend initialization failed: %s.", CypherRender_ErrorDesc( gl_result ) );
+        LOG_ERROR( log::channel_t::RENDER, "renderer backend initialization failed: %s.", CypherRender_ErrorDesc( gl_result ) );
 		g_render_runtime_state = {};
 		return gl_result;
 	}
@@ -105,7 +105,7 @@ CypherRender_Shutdown
 */
 void CypherRender_Shutdown() {
 	if ( !CypherRender_IsInitialized() ) {
-		CYPHER_LOG_INFO( log::channel_t::RENDER, "renderer was not initialized; nothing to shutdown." );
+		LOG_INFO( log::channel_t::RENDER, "renderer was not initialized; nothing to shutdown." );
 		return;
 	}
 
@@ -114,7 +114,7 @@ void CypherRender_Shutdown() {
 
 	g_render_runtime_state = {};
 
-	CYPHER_LOG_INFO( log::channel_t::RENDER, "renderer shutdown complete." );
+	LOG_INFO( log::channel_t::RENDER, "renderer shutdown complete." );
 }
 
 /*
@@ -126,18 +126,18 @@ Opens a render frame and prepares the backend for drawing.
 */
 error_code_t CypherRender_BeginFrame( const common::com_f32 delta_time_seconds ) {
 	if ( !CypherRender_IsInitialized() ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "begin frame failed: renderer is not initialized." );
+        LOG_ERROR( log::channel_t::RENDER, "begin frame failed: renderer is not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( g_render_runtime_state.in_frame ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "begin frame failed: frame is already active." );
+        LOG_ERROR( log::channel_t::RENDER, "begin frame failed: frame is already active." );
 		return error_code_t::ERR_FRAME_ALREADY_ACTIVE;
 	}
 
 	const auto gl_result = CypherRenderGL_BeginFrame( *g_render_runtime_state.window );
 	if ( gl_result != error_code_t::OK ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "begin frame failed: GL begin failed: %s.", CypherRender_ErrorDesc( gl_result ) );
+        LOG_ERROR( log::channel_t::RENDER, "begin frame failed: GL begin failed: %s.", CypherRender_ErrorDesc( gl_result ) );
 		return error_code_t::ERR_BEGIN_DRAW;
 	}
 
@@ -158,12 +158,12 @@ Draws the items submitted by world/game/editor systems for the active frame.
 */
 error_code_t CypherRender_RenderFrame() {
 	if ( !CypherRender_IsInitialized() ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "render frame failed: renderer is not initialized." );
+        LOG_ERROR( log::channel_t::RENDER, "render frame failed: renderer is not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( !g_render_runtime_state.in_frame ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "render frame failed: frame is not active." );
+        LOG_ERROR( log::channel_t::RENDER, "render frame failed: frame is not active." );
 		return error_code_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
@@ -181,18 +181,18 @@ Closes the render frame and presents the back buffer.
 */
 error_code_t CypherRender_EndFrame() {
 	if ( !CypherRender_IsInitialized() ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "end frame failed: renderer is not initialized." );
+        LOG_ERROR( log::channel_t::RENDER, "end frame failed: renderer is not initialized." );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( !g_render_runtime_state.in_frame ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "end frame failed: frame is not active." );
+        LOG_ERROR( log::channel_t::RENDER, "end frame failed: frame is not active." );
 		return error_code_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
 	const auto gl_result = CypherRenderGL_EndFrame( *g_render_runtime_state.window );
 	if ( gl_result != error_code_t::OK ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "end frame failed: GL end failed: %s.", CypherRender_ErrorDesc( gl_result ) );
+        LOG_ERROR( log::channel_t::RENDER, "end frame failed: GL end failed: %s.", CypherRender_ErrorDesc( gl_result ) );
 		return error_code_t::ERR_END_DRAW;
 	}
 
@@ -212,12 +212,12 @@ this as the public doorway into the renderer draw list.
 error_code_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item )
 {
     if ( !CypherRender_IsInitialized() ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: renderer is not initialized." );
+        LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: renderer is not initialized." );
         return error_code_t::ERR_NOT_INIT;
     }
     
     if ( !g_render_runtime_state.in_frame ) {
-        CYPHER_LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: frame is not active." );
+        LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: frame is not active." );
         return error_code_t::ERR_FRAME_NOT_ACTIVE;
     }
     
