@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
     host_state.config.argc = argc;
     host_state.config.argv = argv;
     
-    if ( host::CypherHost_Init( host_state ) != host::error_code_t::OK ) {
+    if ( host::CypherHost_Init( host_state ) != host::host_error_t::OK ) {
         return ( EXIT_FAILURE );
     }
     
