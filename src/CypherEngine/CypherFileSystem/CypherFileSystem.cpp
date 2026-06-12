@@ -231,12 +231,11 @@ error_code_t CypherFileSystem_ResolvePath( const char *virtual_path, char *out_r
 		return error_code_t::ERR_INVALID_ARGUMENT;
 	}
 	out_resolved_path[0] = '\0';
-    // @NormalizationOfPaths -> Added normalization of paths for better safety of virtual pathing.
-    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    error_code_t normalize_result = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
-    if ( normalize_result != error_code_t::OK ) {
-        return normalize_result;
-    }
+	char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+	const error_code_t normalize_result = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
+	if ( normalize_result != error_code_t::OK ) {
+		return normalize_result;
+	}
 	for ( common::u32 i = 0u; i < g_fs_runtime_state.mount_count; ++i ) {
 		const mount_t &mount = g_fs_runtime_state.mounts[i];
 		// Package backends will plug in here later.
@@ -281,8 +280,12 @@ error_code_t CypherFileSystem_ResolvePath( const char *virtual_path, char *out_r
 			return error_code_t::ERR_IO_ERROR;
 		}
 
-		std::strncpy( out_resolved_path, candidate_path, out_resolved_path_size - 1u );
-		out_resolved_path[out_resolved_path_size - 1u] = '\0';
+		const common::u32 candidate_path_length = static_cast<common::u32>( std::strlen( candidate_path ) );
+		if ( candidate_path_length + 1u > out_resolved_path_size ) {
+			out_resolved_path[0] = '\0';
+			return error_code_t::ERR_BUFFER_TOO_SMALL;
+		}
+		std::memcpy( out_resolved_path, candidate_path, candidate_path_length + 1u );
 		return error_code_t::OK;
 	}
 	return error_code_t::ERR_PATH_NOT_FOUND;
