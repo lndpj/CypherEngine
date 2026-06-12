@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-06-10 11:16:54
    Last Modified by: ksiric
-   Last Modified: 2026-06-10 17:22:48
+   Last Modified: 2026-06-12 01:43:27
    ---------------------------------------------------------------------
    Description:
        
@@ -156,7 +156,7 @@ memory_config_t CypherMemory_DefaultConfig()
 error_code_t CypherMemory_Init( const memory_config_t &config )
 {
     if ( g_memory.initialized ) {
-        CYPHER_LOG_WARNING( log::channel_t::MEMORY, "memory system is already initialized." );
+        LOG_WARNING( log::channel_t::MEMORY, "memory system is already initialized." );
         return error_code_t::ERR_ALREADY_INITIALIZED;
     }
 
@@ -215,7 +215,7 @@ error_code_t CypherMemory_Init( const memory_config_t &config )
     g_memory.initialized = true;
 
     const memory_stats_t stats = CypherMemory_Stats();
-    CYPHER_LOG_INFO( log::channel_t::MEMORY,
+    LOG_INFO( log::channel_t::MEMORY,
                      "memory system initialized: capacity=%zu bytes, committed=%zu bytes.",
                      stats.total_capacity,
                      stats.total_committed );
@@ -230,7 +230,7 @@ void CypherMemory_Shutdown()
     }
 
     const memory_stats_t stats = CypherMemory_Stats();
-    CYPHER_LOG_INFO( log::channel_t::MEMORY,
+    LOG_INFO( log::channel_t::MEMORY,
                      "memory system shutdown: used=%zu bytes, peak=%zu bytes.",
                      stats.total_used,
                      stats.peak_used );
