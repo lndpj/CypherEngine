@@ -36,22 +36,22 @@ error_code_t CypherSystem_CreateWindow( const window_desc_t &window_description,
     SDL_Window *sdl_window{ nullptr };
     
     if ( window_description.title == nullptr || window_description.title[0] == '\0' ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "window creation failed: invalid title." );
+        LOG_ERROR( log::channel_t::PLATFORM, "window creation failed: invalid title." );
         return error_code_t::ERR_INVALID_ARGUMENT;
     } 
     
     if ( window_description.width == 0u || window_description.height == 0u ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "window creation failed: invalid dimensions %ux%u.", window_description.width, window_description.height );
+        LOG_ERROR( log::channel_t::PLATFORM, "window creation failed: invalid dimensions %ux%u.", window_description.width, window_description.height );
         return error_code_t::ERR_INVALID_ARGUMENT;
     }
     
     if ( out_window.native_window != nullptr ) {
-        CYPHER_LOG_WARNING( log::channel_t::PLATFORM, "window creation requested while output window is already initialized." );
+        LOG_WARNING( log::channel_t::PLATFORM, "window creation requested while output window is already initialized." );
         return error_code_t::ERR_IS_INIT;
     }
     
     if ( !SDL_InitSubSystem( SDL_INIT_VIDEO ) ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "SDL video subsystem init failed: %s.", SDL_GetError() );
+        LOG_ERROR( log::channel_t::PLATFORM, "SDL video subsystem init failed: %s.", SDL_GetError() );
         return error_code_t::ERR_INTERNAL_ERROR;
     }
     
@@ -64,7 +64,7 @@ error_code_t CypherSystem_CreateWindow( const window_desc_t &window_description,
     sdl_window = SDL_CreateWindow( window_description.title, static_cast<int>( window_description.width ), static_cast<int>( window_description.height ), flags );
     
     if ( sdl_window == nullptr ) {
-        CYPHER_LOG_ERROR( log::channel_t::PLATFORM, "SDL window creation failed: title='%s', size=%ux%u, fullscreen=%u: %s.", window_description.title, window_description.width, window_description.height, window_description.fullscreen ? 1u : 0u, SDL_GetError() );
+        LOG_ERROR( log::channel_t::PLATFORM, "SDL window creation failed: title='%s', size=%ux%u, fullscreen=%u: %s.", window_description.title, window_description.width, window_description.height, window_description.fullscreen ? 1u : 0u, SDL_GetError() );
         SDL_QuitSubSystem( SDL_INIT_VIDEO );
         return error_code_t::ERR_INTERNAL_ERROR;
     } 
@@ -77,7 +77,7 @@ error_code_t CypherSystem_CreateWindow( const window_desc_t &window_description,
     out_window.should_close = false;
     out_window.valid = true;
 
-    CYPHER_LOG_INFO( log::channel_t::PLATFORM, "window created: title='%s', size=%ux%u, fullscreen=%u, vsync=%u.", window_description.title, out_window.width, out_window.height, out_window.fullscreen ? 1u : 0u, out_window.vsync ? 1u : 0u );
+    LOG_INFO( log::channel_t::PLATFORM, "window created: title='%s', size=%ux%u, fullscreen=%u, vsync=%u.", window_description.title, out_window.width, out_window.height, out_window.fullscreen ? 1u : 0u, out_window.vsync ? 1u : 0u );
     
     return error_code_t::OK;   
 }
@@ -91,7 +91,7 @@ void CypherSystem_DestroyWindow( window_t &window ) {
     SDL_Window *sdl_window{ nullptr };
     
     if ( window.native_window == nullptr ) {
-        CYPHER_LOG_DEBUG( log::channel_t::PLATFORM, "destroy window skipped: no native window." );
+        LOG_DEBUG( log::channel_t::PLATFORM, "destroy window skipped: no native window." );
         return ;
     }  
     
@@ -100,7 +100,7 @@ void CypherSystem_DestroyWindow( window_t &window ) {
     SDL_DestroyWindow( sdl_window );
     SDL_QuitSubSystem( SDL_INIT_VIDEO ); 
 
-    CYPHER_LOG_INFO( log::channel_t::PLATFORM, "window destroyed." );
+    LOG_INFO( log::channel_t::PLATFORM, "window destroyed." );
     
     window = {};
    
@@ -125,17 +125,17 @@ void CypherSystem_PollWindowEvents( window_t &window ) {
         switch( event.type ) {
             case SDL_EVENT_QUIT:
                 window.should_close = true;
-                CYPHER_LOG_INFO( log::channel_t::PLATFORM, "SDL quit event received." );
+                LOG_INFO( log::channel_t::PLATFORM, "SDL quit event received." );
                 break;
             case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
                 window.should_close = true;
-                CYPHER_LOG_INFO( log::channel_t::PLATFORM, "window close requested." );
+                LOG_INFO( log::channel_t::PLATFORM, "window close requested." );
                 break;
             case SDL_EVENT_WINDOW_RESIZED:
                 if ( event.window.data1 > 0 && event.window.data2 > 0 ) {
                     window.width = static_cast<common::u32>( event.window.data1 );
                     window.height = static_cast<common::u32>( event.window.data2 );
-                    CYPHER_LOG_DEBUG( log::channel_t::PLATFORM, "window resized: %ux%u.", window.width, window.height );
+                    LOG_DEBUG( log::channel_t::PLATFORM, "window resized: %ux%u.", window.width, window.height );
                 }
                 break;
             default:
