@@ -38,7 +38,7 @@ CypherRender_MeshCreate
 Uploads vertex/index data into the active renderer backend.
 ================
 */
-error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
+render_error_t CypherRender_MeshCreate( const vertex_t *vertices,
                              const common::u32 vertex_count,
                              const common::u32 *indices,
                              const common::u32 index_count,
@@ -46,6 +46,6 @@ error_code_t CypherRender_MeshCreate( const vertex_t *vertices,
 
 void CypherRender_MeshDestroy( mesh_t &mesh );
 
-error_code_t CypherRender_MeshDraw( const mesh_t &mesh );
+render_error_t CypherRender_MeshDraw( const mesh_t &mesh );
 
 }       // namespace cypher::engine::render
