@@ -13,6 +13,7 @@ constexpr common::u32 CYPHER_FILESYSTEM_MAX_PATH_LENGTH               = 260u;
 constexpr common::u32 CYPHER_FILESYSTEM_MAX_VIRTUAL_ROOT_LENGTH       = 64u;
 constexpr common::u32 CYPHER_FILESYSTEM_MAX_EXTENSION_LENGTH          = 32u;
 constexpr common::u32 CYPHER_FILESYSTEM_MAX_PATTERN_LENGTH            = 128u;
+constexpr common::u32 CYPHER_FILESYSTEM_INVALID_MOUNT                 = 0u;
 constexpr common::u32 CYPHER_FILESYSTEM_INVALID_ASYNC_REQUEST         = 0u;
 constexpr common::u32 CYPHER_FILESYSTEM_INVALID_WATCH                 = 0u;
 
@@ -92,6 +93,7 @@ enum class watch_event_type_t : common::u8 {
 
 using async_request_t = common::u32;
 using watch_handle_t = common::u32;
+using mount_handle_t = common::u32;
 
 /*
 ================
@@ -99,9 +101,11 @@ Filesystem Records
 ================
 */
 struct mount_t {
+    mount_handle_t handle{ CYPHER_FILESYSTEM_INVALID_MOUNT };
     mount_type_t type{ mount_type_t::CYPHER_FILESYSTEM_DIRECTORY };
     char virtual_root[CYPHER_FILESYSTEM_MAX_VIRTUAL_ROOT_LENGTH]{};
     char physical_root[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    void *package_reader{ nullptr };
     common::u32 flags{ CYPHER_FILESYSTEM_MOUNT_READ_ONLY };
     common::u32 priority{ 0u };
 };
@@ -136,6 +140,7 @@ struct directory_entry_t {
 };
 
 struct mount_info_t {
+    mount_handle_t handle{ CYPHER_FILESYSTEM_INVALID_MOUNT };
     mount_type_t type{ mount_type_t::CYPHER_FILESYSTEM_DIRECTORY };
     char virtual_root[CYPHER_FILESYSTEM_MAX_VIRTUAL_ROOT_LENGTH]{};
     char physical_root[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
@@ -171,6 +176,25 @@ struct stats_t {
     common::u64 bytes_read{ 0u };
     common::u64 bytes_written{ 0u };
     common::u64 failed_lookup_count{ 0u };
+};
+
+struct resolve_trace_entry_t {
+    mount_handle_t mount{ CYPHER_FILESYSTEM_INVALID_MOUNT };
+    mount_type_t type{ mount_type_t::CYPHER_FILESYSTEM_DIRECTORY };
+    bool root_matched{ false };
+    bool path_exists{ false };
+    char virtual_root[CYPHER_FILESYSTEM_MAX_VIRTUAL_ROOT_LENGTH]{};
+    char physical_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+};
+
+struct resolve_trace_t {
+    fs_error_t result{ fs_error_t::ERR_PATH_NOT_FOUND };
+    bool resolved{ false };
+    common::u32 checked_mount_count{ 0u };
+    char requested_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char resolved_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    resolve_trace_entry_t entries[CYPHER_FILESYSTEM_MAX_MOUNTS]{};
 };
 
 }
