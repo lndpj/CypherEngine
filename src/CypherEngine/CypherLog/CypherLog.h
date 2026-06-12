@@ -98,3 +98,28 @@ Capture source file, function and line while keeping call sites compact.
             CYPHER_LOG_ERROR( ( LOG_CHANNEL ), ( LOG_FORMAT ) __VA_OPT__( , ) __VA_ARGS__ );                                         \
         }                                                                                                                           \
     } while ( false );
+
+/*
+================
+Short Log Aliases
+
+Preferred call-site names. The CYPHER_LOG_* macros remain the canonical backing
+layer so older code and external users do not break while engine code stays compact.
+================
+*/
+#define LOG_IF_ENABLED( ... )           CYPHER_LOG_IF_ENABLED( __VA_ARGS__ )
+#define LOG( ... )                      CYPHER_LOG( __VA_ARGS__ )
+#define LOGF( ... )                     CYPHER_LOGF( __VA_ARGS__ )
+#define LOGF_IF( ... )                  CYPHER_LOGF_IF( __VA_ARGS__ )
+
+#define LOG_TRACE( ... )                CYPHER_LOG_TRACE( __VA_ARGS__ )
+#define LOG_DEBUG( ... )                CYPHER_LOG_DEBUG( __VA_ARGS__ )
+#define LOG_INFO( ... )                 CYPHER_LOG_INFO( __VA_ARGS__ )
+#define LOG_WARNING( ... )              CYPHER_LOG_WARNING( __VA_ARGS__ )
+#define LOG_ERROR( ... )                CYPHER_LOG_ERROR( __VA_ARGS__ )
+#define LOG_FATAL( ... )                CYPHER_LOG_FATAL( __VA_ARGS__ )
+
+#define LOG_INFO_MESSAGE( ... )         CYPHER_LOG_INFO_MESSAGE( __VA_ARGS__ )
+#define LOG_WARNING_MESSAGE( ... )      CYPHER_LOG_WARNING_MESSAGE( __VA_ARGS__ )
+#define LOG_ERROR_MESSAGE( ... )        CYPHER_LOG_ERROR_MESSAGE( __VA_ARGS__ )
+#define LOG_CHECK( ... )                CYPHER_LOG_CHECK( __VA_ARGS__ )
