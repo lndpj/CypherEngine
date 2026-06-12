@@ -90,14 +90,14 @@ CypherSystem_PlatformBuildPaths
 Builds Win32 executable, base and user paths.
 ================
 */
-error_code_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, paths_t &out_paths ) {
+sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, paths_t &out_paths ) {
 	out_paths = {};
 
 	std::error_code ec{};
 
 	const std::filesystem::path working_dir = std::filesystem::current_path( ec );
 	if ( ec ) {
-		return error_code_t::ERR_PATH_QUERY_FAILED;
+		return sys_error_t::ERR_PATH_QUERY_FAILED;
 	}
 
 	char executable_buffer[SYS_MAX_PATH_LENGTH]{};
@@ -108,11 +108,11 @@ error_code_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, path
 		static_cast<DWORD>( sizeof( executable_buffer ) ) );
 
 	if ( executable_length == 0u ) {
-		return error_code_t::ERR_PATH_QUERY_FAILED;
+		return sys_error_t::ERR_PATH_QUERY_FAILED;
 	}
 
 	if ( executable_length >= sizeof( executable_buffer ) ) {
-		return error_code_t::ERR_PATH_TOO_LONG;
+		return sys_error_t::ERR_PATH_TOO_LONG;
 	}
 
 	executable_buffer[executable_length] = '\0';
@@ -143,11 +143,11 @@ error_code_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, path
 			appdata_buffer,
 			static_cast<DWORD>( sizeof( appdata_buffer ) ) );
 		if ( appdata_length == 0u ) {
-			return error_code_t::ERR_PATH_QUERY_FAILED;
+			return sys_error_t::ERR_PATH_QUERY_FAILED;
 		}
 
 		if ( appdata_length >= sizeof( appdata_buffer ) ) {
-			return error_code_t::ERR_PATH_TOO_LONG;
+			return sys_error_t::ERR_PATH_TOO_LONG;
 		}
 
 		appdata_buffer[appdata_length] = '\0';
@@ -157,30 +157,30 @@ error_code_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, path
 
 	std::filesystem::create_directories( user_path, ec );
 	if ( ec ) {
-		return error_code_t::ERR_DIRECTORY_CREATE_FAILED;
+		return sys_error_t::ERR_DIRECTORY_CREATE_FAILED;
 	}
 
 	if ( !CypherSystem_CopyPath( out_paths.executable_path, sizeof( out_paths.executable_path ), executable_path ) ) {
-		return error_code_t::ERR_PATH_TOO_LONG;
+		return sys_error_t::ERR_PATH_TOO_LONG;
 	}
 
 	if ( !CypherSystem_CopyPath( out_paths.executable_dir, sizeof( out_paths.executable_dir ), executable_dir ) ) {
-		return error_code_t::ERR_PATH_TOO_LONG;
+		return sys_error_t::ERR_PATH_TOO_LONG;
 	}
 
 	if ( !CypherSystem_CopyPath( out_paths.working_dir, sizeof( out_paths.working_dir ), working_dir ) ) {
-		return error_code_t::ERR_PATH_TOO_LONG;
+		return sys_error_t::ERR_PATH_TOO_LONG;
 	}
 
 	if ( !CypherSystem_CopyPath( out_paths.base_path, sizeof( out_paths.base_path ), base_path ) ) {
-		return error_code_t::ERR_PATH_TOO_LONG;
+		return sys_error_t::ERR_PATH_TOO_LONG;
 	}
 
 	if ( !CypherSystem_CopyPath( out_paths.user_path, sizeof( out_paths.user_path ), user_path ) ) {
-		return error_code_t::ERR_PATH_TOO_LONG;
+		return sys_error_t::ERR_PATH_TOO_LONG;
 	}
 
-	return error_code_t::OK;
+	return sys_error_t::OK;
 }
 
 /*
