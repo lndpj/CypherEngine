@@ -17,6 +17,7 @@
 # Ignoring unnecessary MD files
 CLAUDE.md
 CODEX.md
+AGENTS.md
 
 # Compiler and linker artifacts
 *.o
