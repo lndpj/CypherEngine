@@ -34,7 +34,7 @@ cypher::engine::memory::arena_desc_t CypherMemory_MakeArenaDesc( const cypher::e
     return desc;
 }
 
-cypher::engine::memory::error_code_t CypherMemory_InitArena(
+cypher::engine::memory::mem_error_t CypherMemory_InitArena(
     cypher::engine::memory::arena_t &arena,
     const cypher::engine::memory::memory_arena_config_t &arena_config )
 {
@@ -153,60 +153,60 @@ memory_config_t CypherMemory_DefaultConfig()
     return config;
 }
 
-error_code_t CypherMemory_Init( const memory_config_t &config )
+mem_error_t CypherMemory_Init( const memory_config_t &config )
 {
     if ( g_memory.initialized ) {
         LOG_WARNING( log::channel_t::MEMORY, "memory system is already initialized." );
-        return error_code_t::ERR_ALREADY_INITIALIZED;
+        return mem_error_t::ERR_ALREADY_INITIALIZED;
     }
 
     g_memory = {};
     g_memory.config = config;
 
-    error_code_t result = CypherMemory_InitArena( g_memory.permanent_arena, config.permanent_arena );
-    if ( result != error_code_t::OK ) {
+    mem_error_t result = CypherMemory_InitArena( g_memory.permanent_arena, config.permanent_arena );
+    if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
         g_memory = {};
         return result;
     }
 
     result = CypherMemory_InitArena( g_memory.frame_arena, config.frame_arena );
-    if ( result != error_code_t::OK ) {
+    if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
         g_memory = {};
         return result;
     }
 
     result = CypherMemory_InitArena( g_memory.scratch_arena, config.scratch_arena );
-    if ( result != error_code_t::OK ) {
+    if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
         g_memory = {};
         return result;
     }
 
     result = CypherMemory_InitArena( g_memory.resource_arena, config.resource_arena );
-    if ( result != error_code_t::OK ) {
+    if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
         g_memory = {};
         return result;
     }
 
     result = CypherMemory_InitArena( g_memory.world_arena, config.world_arena );
-    if ( result != error_code_t::OK ) {
+    if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
         g_memory = {};
         return result;
     }
 
     result = CypherMemory_InitArena( g_memory.render_arena, config.render_arena );
-    if ( result != error_code_t::OK ) {
+    if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
         g_memory = {};
         return result;
     }
 
     result = CypherMemory_InitArena( g_memory.editor_arena, config.editor_arena );
-    if ( result != error_code_t::OK ) {
+    if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
         g_memory = {};
         return result;
@@ -220,7 +220,7 @@ error_code_t CypherMemory_Init( const memory_config_t &config )
                      stats.total_capacity,
                      stats.total_committed );
 
-    return error_code_t::OK;
+    return mem_error_t::OK;
 }
 
 void CypherMemory_Shutdown()
