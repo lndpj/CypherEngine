@@ -57,7 +57,7 @@ error_code_t CypherMemory_BucketFailInit( bucket_t &bucket,
     bucket.name = bucket_desc.name;
     bucket.last_error = error;
 
-    CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+    LOG_ERROR( log::channel_t::MEMORY,
                       "bucket '%s' init failed: %s.",
                       bucket.name ? bucket.name : "<unnamed>",
                       reason ? reason : CypherMemory_ErrorDesc( error ) );
@@ -120,7 +120,7 @@ void *CypherMemory_BucketFailAlloc( bucket_t &bucket,
     bucket.last_error = error;
     ++bucket.failed_allocation_count;
 
-    CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+    LOG_ERROR( log::channel_t::MEMORY,
                       "bucket '%s' allocation failed: %s.",
                       bucket.name ? bucket.name : "<unnamed>",
                       reason ? reason : CypherMemory_ErrorDesc( error ) );
@@ -158,7 +158,7 @@ error_code_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buc
 {
     if ( bucket.initialized ) {
         bucket.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
-        CYPHER_LOG_WARNING( log::channel_t::MEMORY, "bucket '%s' is already initialized.", bucket.name ? bucket.name : "<unnamed>" );
+        LOG_WARNING( log::channel_t::MEMORY, "bucket '%s' is already initialized.", bucket.name ? bucket.name : "<unnamed>" );
         return bucket.last_error;
     }
 
@@ -228,7 +228,7 @@ error_code_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buc
     bucket.initialized = true;
     bucket.last_error = error_code_t::OK;
 
-    CYPHER_LOG_INFO( log::channel_t::MEMORY,
+    LOG_INFO( log::channel_t::MEMORY,
                      "bucket '%s' initialized: classes=%zu, alignment=%zu, backing_bytes=%zu.",
                      bucket.name ? bucket.name : "<unnamed>",
                      bucket.class_count,
@@ -244,7 +244,7 @@ void CypherMemory_BucketShutdown( bucket_t &bucket )
         return;
     }
 
-    CYPHER_LOG_INFO( log::channel_t::MEMORY,
+    LOG_INFO( log::channel_t::MEMORY,
                      "bucket '%s' shutdown: used=%zu, peak=%zu, allocations=%llu, frees=%llu, failed_alloc=%llu, failed_free=%llu.",
                      bucket.name ? bucket.name : "<unnamed>",
                      CypherMemory_BucketUsedCount( bucket ),
@@ -438,7 +438,7 @@ error_code_t CypherMemory_BucketFreeDebug( bucket_t &bucket, void *ptr, const ch
 
     bucket.last_error = error_code_t::ERR_INVALID_POINTER;
     ++bucket.failed_free_count;
-    CYPHER_LOG_ERROR( log::channel_t::MEMORY,
+    LOG_ERROR( log::channel_t::MEMORY,
                       "bucket '%s' free failed: pointer does not belong to any bucket class.",
                       bucket.name ? bucket.name : "<unnamed>" );
 
