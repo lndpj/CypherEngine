@@ -22,7 +22,7 @@ namespace cypher::engine::memory
 namespace {
 
 void *CypherMemory_ScratchFailAlloc( scratch_scope_t &scope,
-                                     const error_code_t error,
+                                     const mem_error_t error,
                                      const char *reason )
 {
     scope.last_error = error;
@@ -37,10 +37,10 @@ void *CypherMemory_ScratchFailAlloc( scratch_scope_t &scope,
 
 }       // namespace
 
-error_code_t CypherMemory_ScratchBegin( scratch_scope_t &scope, arena_t &arena, const char *name )
+mem_error_t CypherMemory_ScratchBegin( scratch_scope_t &scope, arena_t &arena, const char *name )
 {
     if ( scope.active ) {
-        scope.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
+        scope.last_error = mem_error_t::ERR_ALREADY_INITIALIZED;
         LOG_WARNING( log::channel_t::MEMORY,
                             "scratch scope '%s' begin failed: scope is already active.",
                             scope.name ? scope.name : "<unnamed>" );
@@ -51,7 +51,7 @@ error_code_t CypherMemory_ScratchBegin( scratch_scope_t &scope, arena_t &arena, 
         scope = {};
         scope.name = name;
         scope.arena = &arena;
-        scope.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        scope.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         LOG_ERROR( log::channel_t::MEMORY,
                           "scratch scope '%s' begin failed: backing arena is not initialized.",
                           name ? name : "<unnamed>" );
@@ -65,26 +65,26 @@ error_code_t CypherMemory_ScratchBegin( scratch_scope_t &scope, arena_t &arena, 
     scope.used_at_begin = arena.used;
     scope.allocation_count_at_begin = arena.allocation_count;
     scope.failed_allocation_count_at_begin = arena.failed_allocation_count;
-    scope.last_error = error_code_t::OK;
+    scope.last_error = mem_error_t::OK;
     scope.active = true;
 
-    return error_code_t::OK;
+    return mem_error_t::OK;
 }
 
-error_code_t CypherMemory_ScratchEnd( scratch_scope_t &scope )
+mem_error_t CypherMemory_ScratchEnd( scratch_scope_t &scope )
 {
     if ( !scope.active ) {
-        scope.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        scope.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         return scope.last_error;
     }
 
     if ( scope.arena == nullptr || !CypherMemory_ArenaIsInitialized( *scope.arena ) ) {
-        scope.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        scope.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         scope.active = false;
         return scope.last_error;
     }
 
-    const error_code_t rewind_result = CypherMemory_ArenaRewind( *scope.arena, scope.marker );
+    const mem_error_t rewind_result = CypherMemory_ArenaRewind( *scope.arena, scope.marker );
     scope.last_error = rewind_result;
 
     const char *name = scope.name;
@@ -132,11 +132,11 @@ void *CypherMemory_ScratchAllocDebug( scratch_scope_t &scope,
                                       common::i32 line )
 {
     if ( !scope.active ) {
-        return CypherMemory_ScratchFailAlloc( scope, error_code_t::ERR_NOT_INITIALIZED, "scope is not active" );
+        return CypherMemory_ScratchFailAlloc( scope, mem_error_t::ERR_NOT_INITIALIZED, "scope is not active" );
     }
 
     if ( scope.arena == nullptr || !CypherMemory_ArenaIsInitialized( *scope.arena ) ) {
-        return CypherMemory_ScratchFailAlloc( scope, error_code_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
+        return CypherMemory_ScratchFailAlloc( scope, mem_error_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
     }
 
     void *memory = CypherMemory_ArenaAllocDebug( *scope.arena, size, alignment, file, function, line );
@@ -158,11 +158,11 @@ void *CypherMemory_ScratchAllocZeroDebug( scratch_scope_t &scope,
                                           common::i32 line )
 {
     if ( !scope.active ) {
-        return CypherMemory_ScratchFailAlloc( scope, error_code_t::ERR_NOT_INITIALIZED, "scope is not active" );
+        return CypherMemory_ScratchFailAlloc( scope, mem_error_t::ERR_NOT_INITIALIZED, "scope is not active" );
     }
 
     if ( scope.arena == nullptr || !CypherMemory_ArenaIsInitialized( *scope.arena ) ) {
-        return CypherMemory_ScratchFailAlloc( scope, error_code_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
+        return CypherMemory_ScratchFailAlloc( scope, mem_error_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
     }
 
     void *memory = CypherMemory_ArenaAllocZeroDebug( *scope.arena, size, alignment, file, function, line );
@@ -176,7 +176,7 @@ bool CypherMemory_ScratchIsActive( const scratch_scope_t &scope )
     return scope.active;
 }
 
-error_code_t CypherMemory_ScratchLastError( const scratch_scope_t &scope )
+mem_error_t CypherMemory_ScratchLastError( const scratch_scope_t &scope )
 {
     return scope.last_error;
 }
