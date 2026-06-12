@@ -120,8 +120,22 @@ int main()
     if ( !Check( fs::CypherFileSystem_IsValidVirtualPath( "textures/walls/stone.dds" ), "valid virtual path" ) ) {
         return 1;
     }
-    if ( !Check( !fs::CypherFileSystem_IsValidVirtualPath( "../secret.txt" ), "invalid virtual path" ) ) {
-        return 1;
+    struct invalid_virtual_path_case_t {
+        const char *path;
+        const char *message;
+    };
+    const invalid_virtual_path_case_t invalid_virtual_paths[] = {
+        { "/absolute/path.cfg", "invalid absolute virtual path" },
+        { "C:/absolute/path.cfg", "invalid drive-letter virtual path" },
+        { "profiles/../secret.txt", "invalid parent traversal virtual path" }
+    };
+    for ( const invalid_virtual_path_case_t &invalid_path : invalid_virtual_paths ) {
+        if ( !Check( !fs::CypherFileSystem_IsValidVirtualPath( invalid_path.path ), invalid_path.message ) ) {
+            return 1;
+        }
+        if ( !CheckError( fs::CypherFileSystem_NormalizeVirtualPath( invalid_path.path, path_buffer, sizeof( path_buffer ) ), fs::fs_error_t::ERR_INVALID_PATH, invalid_path.message ) ) {
+            return 1;
+        }
     }
     if ( !CheckError( fs::CypherFileSystem_PathJoin( "profiles", "Player1\\CONFIG.CFG", path_buffer, sizeof( path_buffer ) ), fs::fs_error_t::OK, "path join" ) ) {
         return 1;
@@ -173,6 +187,16 @@ int main()
     }
 
     fs::mount_handle_t read_mount = fs::CYPHER_FILESYSTEM_INVALID_MOUNT;
+    fs::mount_handle_t writable_mount = 123u;
+    if ( !CheckError( fs::CypherFileSystem_MountDirectoryWithHandle( "writable", write_path.c_str(), fs::CYPHER_FILESYSTEM_MOUNT_WRITABLE, 0u, writable_mount ), fs::fs_error_t::ERR_NOT_IMPLEMENTED, "writable directory mount not implemented" ) ) {
+        return 1;
+    }
+    if ( !Check( writable_mount == fs::CYPHER_FILESYSTEM_INVALID_MOUNT, "writable directory mount leaves handle invalid" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_MountDirectory( "mixed", write_path.c_str(), fs::CYPHER_FILESYSTEM_MOUNT_READ_ONLY | fs::CYPHER_FILESYSTEM_MOUNT_WRITABLE, 0u ), fs::fs_error_t::ERR_NOT_IMPLEMENTED, "mixed writable directory mount not implemented" ) ) {
+        return 1;
+    }
     if ( !CheckError( fs::CypherFileSystem_MountDirectoryWithHandle( "", write_path.c_str(), fs::CYPHER_FILESYSTEM_MOUNT_READ_ONLY, 0u, read_mount ), fs::fs_error_t::OK, "mount write path for read view" ) ) {
         return 1;
     }
@@ -215,6 +239,9 @@ int main()
         return 1;
     }
     if ( !Check( std::filesystem::equivalent( std::filesystem::path( path_buffer ), mod_content_path / "shared.cfg", ec ), "overlay priority chooses highest mount" ) ) {
+        return 1;
+    }
+    if ( !Check( path_buffer[0] != '\0', "resolve loose overlay returns physical path" ) ) {
         return 1;
     }
 
@@ -298,12 +325,88 @@ int main()
         return 1;
     }
 
+    if ( !CheckError( fs::CypherFileSystem_ResolvePath( "game/shared.cfg", path_buffer, sizeof( path_buffer ) ), fs::fs_error_t::ERR_UNSUPPORTED_BACKEND, "resolve package overlay unsupported" ) ) {
+        return 1;
+    }
+    if ( !Check( path_buffer[0] == '\0', "resolve package overlay has no physical path" ) ) {
+        return 1;
+    }
+
     char package_read_buffer[64]{};
     cypher::engine::common::u64 package_bytes_read = 0u;
     if ( !CheckError( fs::CypherFileSystem_ReadEntireFile( "game/shared.cfg", package_read_buffer, sizeof( package_read_buffer ), package_bytes_read ), fs::fs_error_t::OK, "read package overlay file" ) ) {
         return 1;
     }
     if ( !Check( package_bytes_read == std::strlen( package_shared_text ) && std::memcmp( package_read_buffer, package_shared_text, std::strlen( package_shared_text ) ) == 0, "package overlay wins read" ) ) {
+        return 1;
+    }
+
+    fs::file_t package_file{};
+    if ( !CheckError( fs::CypherFileSystem_Open( "game/shared.cfg", fs::open_mode_t::READ_BINARY, package_file ), fs::fs_error_t::OK, "open package file" ) ) {
+        return 1;
+    }
+    if ( !Check( package_file.backend == fs::file_backend_t::PACKAGE_FILE && package_file.readable && !package_file.writable && package_file.size == std::strlen( package_shared_text ), "package file handle values" ) ) {
+        return 1;
+    }
+    cypher::engine::common::u64 package_position = 1u;
+    if ( !CheckError( fs::CypherFileSystem_Tell( package_file, package_position ), fs::fs_error_t::OK, "tell package file start" ) ) {
+        return 1;
+    }
+    if ( !Check( package_position == 0u, "package file starts at zero" ) ) {
+        return 1;
+    }
+    char package_handle_buffer[16]{};
+    if ( !CheckError( fs::CypherFileSystem_Read( package_file, package_handle_buffer, 4u, package_bytes_read ), fs::fs_error_t::OK, "read package file prefix" ) ) {
+        return 1;
+    }
+    if ( !Check( package_bytes_read == 4u && std::memcmp( package_handle_buffer, "pack", 4u ) == 0, "package file prefix bytes" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_Tell( package_file, package_position ), fs::fs_error_t::OK, "tell package file after read" ) ) {
+        return 1;
+    }
+    if ( !Check( package_position == 4u, "package file cursor advances" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_Seek( package_file, 5, fs::seek_origin_t::CYPHER_FILESYSTEM_SEEK_START ), fs::fs_error_t::OK, "seek package file near end" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_Read( package_file, package_handle_buffer, sizeof( package_handle_buffer ), package_bytes_read ), fs::fs_error_t::OK, "read package file short at eof" ) ) {
+        return 1;
+    }
+    if ( !Check( package_bytes_read == std::strlen( package_shared_text ) - 5u && std::memcmp( package_handle_buffer, package_shared_text + 5u, static_cast<std::size_t>( package_bytes_read ) ) == 0, "package file short eof read" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_Tell( package_file, package_position ), fs::fs_error_t::OK, "tell package file eof" ) ) {
+        return 1;
+    }
+    if ( !Check( package_position == std::strlen( package_shared_text ), "package file cursor reaches eof" ) ) {
+        return 1;
+    }
+    package_handle_buffer[0] = 'x';
+    if ( !CheckError( fs::CypherFileSystem_Read( package_file, package_handle_buffer, sizeof( package_handle_buffer ), package_bytes_read ), fs::fs_error_t::OK, "read package file at eof" ) ) {
+        return 1;
+    }
+    if ( !Check( package_bytes_read == 0u && package_handle_buffer[0] == 'x', "package file eof read returns zero bytes" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_Read( package_file, nullptr, 0u, package_bytes_read ), fs::fs_error_t::OK, "zero read package file" ) ) {
+        return 1;
+    }
+    if ( !Check( package_bytes_read == 0u, "package file zero read count" ) ) {
+        return 1;
+    }
+    cypher::engine::common::u64 package_bytes_written = 1u;
+    if ( !CheckError( fs::CypherFileSystem_Write( package_file, "x", 1u, package_bytes_written ), fs::fs_error_t::ERR_PERMISSION_DENIED, "write package file denied" ) ) {
+        return 1;
+    }
+    if ( !Check( package_bytes_written == 0u, "package file denied write count" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_Flush( package_file ), fs::fs_error_t::ERR_PERMISSION_DENIED, "flush package file denied" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_Close( package_file ), fs::fs_error_t::OK, "close package file" ) ) {
         return 1;
     }
 
@@ -476,7 +579,7 @@ int main()
         return 1;
     }
     fs::watch_event_t events[4]{};
-    if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 4u, entry_count ), fs::fs_error_t::OK, "poll changes" ) ) {
+    if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 4u, entry_count ), fs::fs_error_t::ERR_NOT_IMPLEMENTED, "poll changes not implemented" ) ) {
         return 1;
     }
     if ( !CheckError( fs::CypherFileSystem_MountPackage( "", "pak0.pak", fs::CYPHER_FILESYSTEM_MOUNT_READ_ONLY | fs::CYPHER_FILESYSTEM_MOUNT_OPTIONAL, 0u ), fs::fs_error_t::OK, "optional missing package mount" ) ) {
