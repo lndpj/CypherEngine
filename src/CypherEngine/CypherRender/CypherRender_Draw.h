@@ -23,14 +23,14 @@ struct draw_list_t {
     common::u32 item_capacity{ 0u };
 };
 
-error_code_t CypherRender_DrawItem( const draw_item_t &item, const camera_t &camera );
+render_error_t CypherRender_DrawItem( const draw_item_t &item, const camera_t &camera );
 
 void CypherRender_DrawListInit( draw_list_t &draw_list, draw_item_t *items, common::u32 item_capacity );
 
 void CypherRender_DrawListClear( draw_list_t &draw_list );
 
-error_code_t CypherRender_DrawListSubmit( draw_list_t &draw_list, const draw_item_t &item );
+render_error_t CypherRender_DrawListSubmit( draw_list_t &draw_list, const draw_item_t &item );
 
-error_code_t CypherRender_DrawListDraw( const draw_list_t &draw_list, const camera_t &camera );
+render_error_t CypherRender_DrawListDraw( const draw_list_t &draw_list, const camera_t &camera );
 
 }       // namespace cypher::engine::render
