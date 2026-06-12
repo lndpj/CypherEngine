@@ -91,7 +91,7 @@ bool CypherMemory_PoolAlignForwardChecked( const common::usize value,
     return true;
 }
 
-error_code_t CypherMemory_PoolFailInit( pool_t &pool, const pool_desc_t &pool_desc, const error_code_t error, const char *reason )
+mem_error_t CypherMemory_PoolFailInit( pool_t &pool, const pool_desc_t &pool_desc, const mem_error_t error, const char *reason )
 {
     pool.name = pool_desc.name;
     pool.last_error = error;
@@ -104,23 +104,23 @@ error_code_t CypherMemory_PoolFailInit( pool_t &pool, const pool_desc_t &pool_de
     return error;
 }
 
-bool CypherMemory_PoolComputeLayout( const pool_desc_t &pool_desc, pool_layout_t &out_layout, error_code_t &out_error )
+bool CypherMemory_PoolComputeLayout( const pool_desc_t &pool_desc, pool_layout_t &out_layout, mem_error_t &out_error )
 {
     out_layout = {};
-    out_error = error_code_t::OK;
+    out_error = mem_error_t::OK;
 
     if ( pool_desc.slot_size == 0u ) {
-        out_error = error_code_t::ERR_INVALID_ARGUMENT;
+        out_error = mem_error_t::ERR_INVALID_ARGUMENT;
         return false;
     }
 
     if ( pool_desc.slot_count == 0u ) {
-        out_error = error_code_t::ERR_INVALID_CAPACITY;
+        out_error = mem_error_t::ERR_INVALID_CAPACITY;
         return false;
     }
 
     if ( !CypherMemory_IsPowerOfTwo( pool_desc.alignment ) ) {
-        out_error = error_code_t::ERR_INVALID_ALIGNMENT;
+        out_error = mem_error_t::ERR_INVALID_ALIGNMENT;
         return false;
     }
 
@@ -131,20 +131,20 @@ bool CypherMemory_PoolComputeLayout( const pool_desc_t &pool_desc, pool_layout_t
 
     common::usize slot_stride = 0u;
     if ( !CypherMemory_PoolAlignForwardChecked( slot_payload_size, alignment, slot_stride ) ) {
-        out_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        out_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         return false;
     }
 
     common::usize slot_bytes = 0u;
     if ( !CypherMemory_PoolMulChecked( slot_stride, pool_desc.slot_count, slot_bytes ) ) {
-        out_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        out_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         return false;
     }
 
     const common::usize bits_rounding = CYPHER_MEMORY_POOL_ALLOCATION_BITS_PER_WORD - 1u;
     common::usize rounded_slot_count = 0u;
     if ( !CypherMemory_PoolAddChecked( pool_desc.slot_count, bits_rounding, rounded_slot_count ) ) {
-        out_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        out_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         return false;
     }
 
@@ -152,19 +152,19 @@ bool CypherMemory_PoolComputeLayout( const pool_desc_t &pool_desc, pool_layout_t
 
     common::usize metadata_bytes = 0u;
     if ( !CypherMemory_PoolMulChecked( allocation_word_count, sizeof( common::u64 ), metadata_bytes ) ) {
-        out_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        out_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         return false;
     }
 
     common::usize metadata_offset = 0u;
     if ( !CypherMemory_PoolAlignForwardChecked( slot_bytes, alignof( common::u64 ), metadata_offset ) ) {
-        out_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        out_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         return false;
     }
 
     common::usize backing_bytes = 0u;
     if ( !CypherMemory_PoolAddChecked( metadata_offset, metadata_bytes, backing_bytes ) ) {
-        out_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        out_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         return false;
     }
 
@@ -185,7 +185,7 @@ void CypherMemory_PoolRecordOperationTrace( pool_t &pool,
                                             void *ptr,
                                             const common::usize slot_index,
                                             const pool_operation_t operation,
-                                            const error_code_t error,
+                                            const mem_error_t error,
                                             const bool failed,
                                             const char *file,
                                             const char *function,
@@ -284,7 +284,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
                                       const common::i32 line )
 {
     if ( !pool.initialized ) {
-        pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        pool.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY, "pool allocation failed: pool is not initialized." );
@@ -292,7 +292,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
     }
 
     if ( requested_size == 0u ) {
-        pool.last_error = error_code_t::ERR_INVALID_ARGUMENT;
+        pool.last_error = mem_error_t::ERR_INVALID_ARGUMENT;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: requested size is zero.", pool.name ? pool.name : "<unnamed>" );
@@ -300,7 +300,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
     }
 
     if ( !CypherMemory_IsPowerOfTwo( requested_alignment ) ) {
-        pool.last_error = error_code_t::ERR_INVALID_ALIGNMENT;
+        pool.last_error = mem_error_t::ERR_INVALID_ALIGNMENT;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: invalid alignment %zu.", pool.name ? pool.name : "<unnamed>", requested_alignment );
@@ -308,7 +308,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
     }
 
     if ( requested_size > pool.slot_size ) {
-        pool.last_error = error_code_t::ERR_BUFFER_TOO_SMALL;
+        pool.last_error = mem_error_t::ERR_BUFFER_TOO_SMALL;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY,
@@ -320,7 +320,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
     }
 
     if ( requested_alignment > pool.alignment ) {
-        pool.last_error = error_code_t::ERR_INVALID_ALIGNMENT;
+        pool.last_error = mem_error_t::ERR_INVALID_ALIGNMENT;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY,
@@ -332,7 +332,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
     }
 
     if ( pool.free_list == nullptr || pool.free_count == 0u ) {
-        pool.last_error = error_code_t::ERR_OUT_OF_MEMORY;
+        pool.last_error = mem_error_t::ERR_OUT_OF_MEMORY;
         ++pool.failed_allocation_count;
         CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_ALLOC, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY, "pool '%s' allocation failed: pool is full.", pool.name ? pool.name : "<unnamed>" );
@@ -355,7 +355,7 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
     }
 
     ++pool.allocation_count;
-    pool.last_error = error_code_t::OK;
+    pool.last_error = mem_error_t::OK;
 
     if ( zero_memory || ( pool.flags & CYPHER_MEMORY_POOL_FLAG_ZERO_ON_ALLOC ) != 0u ) {
         std::memset( result, 0, pool.slot_stride );
@@ -368,16 +368,16 @@ void *CypherMemory_PoolAllocInternal( pool_t &pool,
 
 }       // namespace
 
-error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
+mem_error_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
 {
     if ( pool.initialized ) {
-        pool.last_error = error_code_t::ERR_ALREADY_INITIALIZED;
+        pool.last_error = mem_error_t::ERR_ALREADY_INITIALIZED;
         LOG_WARNING( log::channel_t::MEMORY, "pool '%s' is already initialized.", pool.name ? pool.name : "<unnamed>" );
-        return error_code_t::ERR_ALREADY_INITIALIZED;
+        return mem_error_t::ERR_ALREADY_INITIALIZED;
     }
 
     pool_layout_t layout{};
-    error_code_t layout_error = error_code_t::OK;
+    mem_error_t layout_error = mem_error_t::OK;
     if ( !CypherMemory_PoolComputeLayout( pool_desc, layout, layout_error ) ) {
         return CypherMemory_PoolFailInit( pool, pool_desc, layout_error, CypherMemory_ErrorDesc( layout_error ) );
     }
@@ -387,18 +387,18 @@ error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
     switch ( pool_desc.backing ) {
     case pool_backing_t::POOL_ARENA:
         if ( pool_desc.arena == nullptr ) {
-            return CypherMemory_PoolFailInit( pool, pool_desc, error_code_t::ERR_INVALID_ARGUMENT, "arena pointer is required" );
+            return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_INVALID_ARGUMENT, "arena pointer is required" );
         }
 
         if ( !CypherMemory_ArenaIsInitialized( *pool_desc.arena ) ) {
-            return CypherMemory_PoolFailInit( pool, pool_desc, error_code_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
+            return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
         }
 
         memory = CypherMemory_ArenaAlloc( *pool_desc.arena, layout.backing_bytes, layout.alignment );
         if ( memory == nullptr ) {
-            error_code_t arena_error = CypherMemory_ArenaLastError( *pool_desc.arena );
-            if ( arena_error == error_code_t::OK ) {
-                arena_error = error_code_t::ERR_OUT_OF_MEMORY;
+            mem_error_t arena_error = CypherMemory_ArenaLastError( *pool_desc.arena );
+            if ( arena_error == mem_error_t::OK ) {
+                arena_error = mem_error_t::ERR_OUT_OF_MEMORY;
             }
             return CypherMemory_PoolFailInit( pool, pool_desc, arena_error, CypherMemory_ErrorDesc( arena_error ) );
         }
@@ -406,11 +406,11 @@ error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
 
     case pool_backing_t::POOL_EXTERNAL_BUFFER:
         if ( pool_desc.external_buffer == nullptr ) {
-            return CypherMemory_PoolFailInit( pool, pool_desc, error_code_t::ERR_EXTERNAL_BUFFER_REQUIRED, "external buffer is required" );
+            return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_EXTERNAL_BUFFER_REQUIRED, "external buffer is required" );
         }
 
         if ( pool_desc.external_buffer_size == 0u ) {
-            return CypherMemory_PoolFailInit( pool, pool_desc, error_code_t::ERR_BUFFER_TOO_SMALL, "external buffer size is zero" );
+            return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_BUFFER_TOO_SMALL, "external buffer size is zero" );
         }
 
         {
@@ -418,17 +418,17 @@ error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
             common::usize aligned_address = 0u;
 
             if ( !CypherMemory_PoolAlignForwardChecked( external_address, layout.alignment, aligned_address ) ) {
-                return CypherMemory_PoolFailInit( pool, pool_desc, error_code_t::ERR_INTEGER_OVERFLOW, "external buffer alignment overflow" );
+                return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_INTEGER_OVERFLOW, "external buffer alignment overflow" );
             }
 
             const common::usize padding = aligned_address - external_address;
             if ( padding > pool_desc.external_buffer_size ) {
-                return CypherMemory_PoolFailInit( pool, pool_desc, error_code_t::ERR_BUFFER_TOO_SMALL, "external buffer is too small after alignment padding" );
+                return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_BUFFER_TOO_SMALL, "external buffer is too small after alignment padding" );
             }
 
             const common::usize available_size = pool_desc.external_buffer_size - padding;
             if ( available_size < layout.backing_bytes ) {
-                return CypherMemory_PoolFailInit( pool, pool_desc, error_code_t::ERR_BUFFER_TOO_SMALL, "external buffer cannot fit pool slots and metadata" );
+                return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_BUFFER_TOO_SMALL, "external buffer cannot fit pool slots and metadata" );
             }
 
             memory = reinterpret_cast<void *>( aligned_address );
@@ -436,7 +436,7 @@ error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
         break;
 
     default:
-        return CypherMemory_PoolFailInit( pool, pool_desc, error_code_t::ERR_INVALID_ARGUMENT, "invalid backing type" );
+        return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_INVALID_ARGUMENT, "invalid backing type" );
     }
 
     pool = {};
@@ -461,7 +461,7 @@ error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
 
     pool.flags = pool_desc.flags;
     pool.backing = pool_desc.backing;
-    pool.last_error = error_code_t::OK;
+    pool.last_error = mem_error_t::OK;
     pool.initialized = true;
 
     CypherMemory_PoolClearAllocationBits( pool );
@@ -475,7 +475,7 @@ error_code_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
                      pool.slot_count,
                      pool.backing_bytes );
 
-    return error_code_t::OK;
+    return mem_error_t::OK;
 }
 
 void CypherMemory_PoolShutdown( pool_t &pool )
@@ -536,7 +536,7 @@ void CypherMemory_PoolResetCounters( pool_t &pool )
     pool.failed_free_count = 0u;
     pool.operation_trace_index = 0u;
     pool.operation_trace_count = 0u;
-    pool.last_error = error_code_t::OK;
+    pool.last_error = mem_error_t::OK;
 }
 
 void CypherMemory_PoolReset( pool_t &pool )
@@ -552,7 +552,7 @@ void CypherMemory_PoolReset( pool_t &pool )
     CypherMemory_PoolClearAllocationBits( pool );
     CypherMemory_PoolBuildFreeList( pool );
 
-    pool.last_error = error_code_t::OK;
+    pool.last_error = mem_error_t::OK;
     CypherMemory_PoolRecordOperationTrace( pool, nullptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_RESET, pool.last_error, false, nullptr, nullptr, 0 );
 }
 
@@ -606,15 +606,15 @@ void *CypherMemory_PoolAllocSizeZeroDebug( pool_t &pool,
     return CypherMemory_PoolAllocInternal( pool, size, alignment, true, file, function, line );
 }
 
-error_code_t CypherMemory_PoolFree( pool_t &pool, void *ptr )
+mem_error_t CypherMemory_PoolFree( pool_t &pool, void *ptr )
 {
     return CypherMemory_PoolFreeDebug( pool, ptr, nullptr, nullptr, 0 );
 }
 
-error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *file, const char *function, common::i32 line )
+mem_error_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *file, const char *function, common::i32 line )
 {
     if ( !pool.initialized ) {
-        pool.last_error = error_code_t::ERR_NOT_INITIALIZED;
+        pool.last_error = mem_error_t::ERR_NOT_INITIALIZED;
         ++pool.failed_free_count;
         CypherMemory_PoolRecordOperationTrace( pool, ptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY, "pool free failed: pool is not initialized." );
@@ -622,7 +622,7 @@ error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *fi
     }
 
     if ( ptr == nullptr ) {
-        pool.last_error = error_code_t::ERR_INVALID_POINTER;
+        pool.last_error = mem_error_t::ERR_INVALID_POINTER;
         ++pool.failed_free_count;
         CypherMemory_PoolRecordOperationTrace( pool, ptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: pointer is null.", pool.name ? pool.name : "<unnamed>" );
@@ -630,7 +630,7 @@ error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *fi
     }
 
     if ( !CypherMemory_PoolOwnsSlot( pool, ptr ) ) {
-        pool.last_error = error_code_t::ERR_INVALID_POINTER;
+        pool.last_error = mem_error_t::ERR_INVALID_POINTER;
         ++pool.failed_free_count;
         CypherMemory_PoolRecordOperationTrace( pool, ptr, CYPHER_MEMORY_POOL_INVALID_SLOT_INDEX, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: pointer does not belong to a pool slot.", pool.name ? pool.name : "<unnamed>" );
@@ -640,7 +640,7 @@ error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *fi
     const common::usize slot_index = CypherMemory_PoolIndexUnchecked( pool, ptr );
 
     if ( !CypherMemory_PoolIsSlotAllocated( pool, slot_index ) ) {
-        pool.last_error = error_code_t::ERR_DOUBLE_FREE;
+        pool.last_error = mem_error_t::ERR_DOUBLE_FREE;
         ++pool.failed_free_count;
         CypherMemory_PoolRecordOperationTrace( pool, ptr, slot_index, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, true, file, function, line );
         LOG_ERROR( log::channel_t::MEMORY, "pool '%s' free failed: slot %zu is already free.", pool.name ? pool.name : "<unnamed>", slot_index );
@@ -660,7 +660,7 @@ error_code_t CypherMemory_PoolFreeDebug( pool_t &pool, void *ptr, const char *fi
     --pool.used_count;
     ++pool.free_count;
     ++pool.free_operation_count;
-    pool.last_error = error_code_t::OK;
+    pool.last_error = mem_error_t::OK;
 
     CypherMemory_PoolRecordOperationTrace( pool, ptr, slot_index, pool_operation_t::POOL_OPERATION_FREE, pool.last_error, false, file, function, line );
 
@@ -701,7 +701,7 @@ bool CypherMemory_PoolIsInitialized( const pool_t &pool )
     return pool.initialized;
 }
 
-error_code_t CypherMemory_PoolLastError( const pool_t &pool )
+mem_error_t CypherMemory_PoolLastError( const pool_t &pool )
 {
     return pool.last_error;
 }
