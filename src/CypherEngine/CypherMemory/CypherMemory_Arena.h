@@ -164,7 +164,7 @@ struct arena_allocation_trace_t {
     common::usize used_after{ 0u };
 
     common::u64 allocation_index{ 0u };
-    error_code_t error{ error_code_t::OK };
+    mem_error_t error{ mem_error_t::OK };
     bool failed{ false };
 };
 
@@ -216,7 +216,7 @@ struct arena_t {
     
     common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
     
-    error_code_t last_error{ error_code_t::OK };
+    mem_error_t last_error{ mem_error_t::OK };
 
     arena_allocation_trace_t allocation_traces[CYPHER_MEMORY_ARENA_ALLOCATION_TRACE_COUNT]{};
     common::usize allocation_trace_index{ 0u };
@@ -236,7 +236,7 @@ List of functions necessary to use for creating arena memory layouts.
 ================
 */
 
-error_code_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_desc );
+mem_error_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_desc );
 
 void CypherMemory_ArenaShutdown( arena_t &arena );
 
@@ -266,11 +266,11 @@ void *CypherMemory_ArenaAllocZeroDebug( arena_t &arena,
 
 arena_marker_t CypherMemory_ArenaGetMarker( const arena_t &arena );
 
-error_code_t CypherMemory_ArenaRewind( arena_t &arena, arena_marker_t marker );
+mem_error_t CypherMemory_ArenaRewind( arena_t &arena, arena_marker_t marker );
 
 bool CypherMemory_ArenaContains( const arena_t &arena, const void *ptr );
 
-error_code_t CypherMemory_ArenaLastError( const arena_t &arena );
+mem_error_t CypherMemory_ArenaLastError( const arena_t &arena );
 
 bool CypherMemory_ArenaIsInitialized( const arena_t &arena );
 
@@ -319,7 +319,7 @@ T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count )
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        arena.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         ++arena.failed_allocation_count;
         return nullptr;
     }
@@ -336,7 +336,7 @@ T *CypherMemory_ArenaAllocArrayDebug( arena_t &arena, const common::usize count,
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        arena.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         ++arena.failed_allocation_count;
         return nullptr;
     }
@@ -356,7 +356,7 @@ T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count )
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        arena.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         ++arena.failed_allocation_count;
         return nullptr;
     }
@@ -373,7 +373,7 @@ T *CypherMemory_ArenaAllocArrayZeroDebug( arena_t &arena, const common::usize co
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        arena.last_error = error_code_t::ERR_INTEGER_OVERFLOW;
+        arena.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
         ++arena.failed_allocation_count;
         return nullptr;
     }
