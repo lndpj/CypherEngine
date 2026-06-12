@@ -34,14 +34,14 @@ CypherCVar_Init
 */
 error_code_t CypherCVar_Init() {
 	if ( g_cvar_registry.initialized ) {
-		CYPHER_LOG_WARNING( log::channel_t::CVAR, "cvar system init requested while already initialized." );
+		LOG_WARNING( log::channel_t::CVAR, "cvar system init requested while already initialized." );
 		return error_code_t::ERR_IS_INIT;
 	}
 
 	g_cvar_registry = {};
 	g_cvar_registry.initialized = true;
 
-	CYPHER_LOG_INFO( log::channel_t::CVAR, "cvar system initialized." );
+	LOG_INFO( log::channel_t::CVAR, "cvar system initialized." );
 
 	return error_code_t::OK;
 }
@@ -86,42 +86,42 @@ Adds a cvar with default string and cached numeric views.
 */
 error_code_t CypherCVar_Register( const char *name, const char *default_value, flags_t flags ) {
 	if ( !g_cvar_registry.initialized ) {
-		CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': cvar system is not initialized.", name ? name : "<null>" );
+		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': cvar system is not initialized.", name ? name : "<null>" );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( name == nullptr || name[0] == '\0' ) {
-		CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar register failed: invalid cvar name." );
+		LOG_ERROR( log::channel_t::CVAR, "cvar register failed: invalid cvar name." );
 		return error_code_t::ERR_INVALID_CVAR;
 	}
 
 	if ( default_value == nullptr || default_value[0] == '\0' ) {
-		CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': invalid default value.", name );
+		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': invalid default value.", name );
 		return error_code_t::ERR_INVALID_DEFAULT_VALUE;
 	}
 
 	common::u32 flags_bits = static_cast<common::u32>( flags );
 
 	if ( ( flags_bits & CYPHER_CVAR_MODIFIED ) != 0u ) {
-		CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': registration passed runtime modified flag.", name );
+		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': registration passed runtime modified flag.", name );
 		return error_code_t::ERR_INVALID_FLAG;
 	}
 
 	// CYPHER_CVAR_MODIFIED is runtime-owned; registration only accepts authoring flags.
 	if ( ( flags_bits & ~CYPHER_CVAR_REGISTER_ALLOWED_FLAGS ) != 0 ) {
-		CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': invalid flags 0x%x.", name, flags_bits );
+		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': invalid flags 0x%x.", name, flags_bits );
 		return error_code_t::ERR_INVALID_FLAG;
 	}
 
 	const cvar_t *cvar = CypherCVar_Find( name );
 
 	if ( cvar != nullptr ) {
-		CYPHER_LOG_WARNING( log::channel_t::CVAR, "cvar register skipped: '%s' already exists.", name );
+		LOG_WARNING( log::channel_t::CVAR, "cvar register skipped: '%s' already exists.", name );
 		return error_code_t::ERR_CVAR_ALREADY_EXISTS;
 	}
 
 	if ( g_cvar_registry.cvar_count >= CYPHER_CVAR_MAX_CVARS ) {
-		CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': registry full (%u).", name, CYPHER_CVAR_MAX_CVARS );
+		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': registry full (%u).", name, CYPHER_CVAR_MAX_CVARS );
 		return error_code_t::ERR_REGISTRY_FULL;
 	}
 
@@ -138,7 +138,7 @@ error_code_t CypherCVar_Register( const char *name, const char *default_value, f
 	entry.value_bool = CypherCVar_ParseBool( entry.value_string );
 	g_cvar_registry.cvar_count++;
 
-	CYPHER_LOG_DEBUG( log::channel_t::CVAR, "registered cvar '%s' default='%s' flags=0x%x.", name, default_value, flags_bits );
+	LOG_DEBUG( log::channel_t::CVAR, "registered cvar '%s' default='%s' flags=0x%x.", name, default_value, flags_bits );
 
 	return error_code_t::OK;
 }
@@ -152,17 +152,17 @@ Changes a cvar string and updates its cached int/float/bool values.
 */
 error_code_t CypherCVar_Set( const char *name, const char *value ) {
 	if ( !g_cvar_registry.initialized ) {
-		CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar set failed for '%s': cvar system is not initialized.", name ? name : "<null>" );
+		LOG_ERROR( log::channel_t::CVAR, "cvar set failed for '%s': cvar system is not initialized.", name ? name : "<null>" );
 		return error_code_t::ERR_NOT_INIT;
 	}
 
 	if ( name == nullptr || name[0] == '\0' ) {
-        CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar set failed: invalid cvar name." );
+        LOG_ERROR( log::channel_t::CVAR, "cvar set failed: invalid cvar name." );
         return error_code_t::ERR_INVALID_CVAR;
 	}
     
     if ( value == nullptr ) {
-        CYPHER_LOG_ERROR( log::channel_t::CVAR, "cvar set failed for '%s': value is null.", name );
+        LOG_ERROR( log::channel_t::CVAR, "cvar set failed for '%s': value is null.", name );
         return error_code_t::ERR_INVALID_CVAR;
         
     }
@@ -177,18 +177,18 @@ error_code_t CypherCVar_Set( const char *name, const char *value ) {
         }
     }
     if ( target == nullptr ) {
-        CYPHER_LOG_WARNING( log::channel_t::CVAR, "cvar set failed: '%s' not found.", name );
+        LOG_WARNING( log::channel_t::CVAR, "cvar set failed: '%s' not found.", name );
         return error_code_t::ERR_CVAR_NOT_FOUND;
     } 
     if ( ( static_cast<common::u32>( target->flags ) & CYPHER_CVAR_READONLY ) != 0 ) {
-        CYPHER_LOG_WARNING( log::channel_t::CVAR, "cvar set blocked: '%s' is read-only.", name );
+        LOG_WARNING( log::channel_t::CVAR, "cvar set blocked: '%s' is read-only.", name );
         return error_code_t::ERR_READONLY;
     }
     
     // Cheat protection will later be controlled by server/game authority.
     const bool cheats_enabled = false;
     if ( ( static_cast<common::u32>( target->flags ) & CYPHER_CVAR_CHEAT ) != 0 && !cheats_enabled ) {
-        CYPHER_LOG_WARNING( log::channel_t::CVAR, "cvar set blocked: '%s' is cheat-protected.", name );
+        LOG_WARNING( log::channel_t::CVAR, "cvar set blocked: '%s' is cheat-protected.", name );
         return error_code_t::ERR_CHEAT_PROTECTED;
     }
     
@@ -201,7 +201,7 @@ error_code_t CypherCVar_Set( const char *name, const char *value ) {
     
     target->flags = static_cast<flags_t>( static_cast<common::u32>( target->flags ) | CYPHER_CVAR_MODIFIED );
 
-    CYPHER_LOG_DEBUG( log::channel_t::CVAR, "cvar '%s' set to '%s'.", name, target->value_string );
+    LOG_DEBUG( log::channel_t::CVAR, "cvar '%s' set to '%s'.", name, target->value_string );
     
     return error_code_t::OK;
 }
@@ -213,10 +213,10 @@ CypherCVar_Shutdown
 */
 error_code_t CypherCVar_Shutdown() {
     if ( !g_cvar_registry.initialized ) {
-        CYPHER_LOG_WARNING( log::channel_t::CVAR, "cvar system shutdown requested while not initialized." );
+        LOG_WARNING( log::channel_t::CVAR, "cvar system shutdown requested while not initialized." );
         return error_code_t::ERR_NOT_INIT;
     }
-    CYPHER_LOG_INFO( log::channel_t::CVAR, "cvar system shutdown: cvars=%u.", g_cvar_registry.cvar_count );
+    LOG_INFO( log::channel_t::CVAR, "cvar system shutdown: cvars=%u.", g_cvar_registry.cvar_count );
     g_cvar_registry = {};
     
     return error_code_t::OK;
