@@ -40,17 +40,17 @@ struct render_runtime_state_t {
 Renderer API
 ================
 */
-error_code_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &window_config );
+render_error_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &window_config );
 
 void CypherRender_Shutdown();
 
-error_code_t CypherRender_BeginFrame( const common::f32 delta_time_seconds );
+render_error_t CypherRender_BeginFrame( const common::f32 delta_time_seconds );
 
-error_code_t CypherRender_RenderFrame();
+render_error_t CypherRender_RenderFrame();
 
-error_code_t CypherRender_EndFrame();
+render_error_t CypherRender_EndFrame();
 
-error_code_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item );
+render_error_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item );
 
 bool CypherRender_IsInitialized();
 
