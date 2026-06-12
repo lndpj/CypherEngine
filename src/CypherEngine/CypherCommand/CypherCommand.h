@@ -36,16 +36,16 @@ struct registry_t {
 Command API
 ================
 */
-error_code_t CypherCommand_Init( );
+cmd_error_t CypherCommand_Init( );
 
 void CypherCommand_Shutdown();
 
-error_code_t CypherCommand_Register( const char *cmd_name, command_fn_t callback_fn, void *extra_data, const char *cmd_description );
+cmd_error_t CypherCommand_Register( const char *cmd_name, command_fn_t callback_fn, void *extra_data, const char *cmd_description );
 
 const cmd_t *CypherCommand_Find( const char *cmd_name );
 
-error_code_t CypherCommand_Parse( char *command_line, common::u32 &argc, char **argv );
+cmd_error_t CypherCommand_Parse( char *command_line, common::u32 &argc, char **argv );
 
-error_code_t CypherCommand_Execute( const char *command_line );
+cmd_error_t CypherCommand_Execute( const char *command_line );
 
 }
