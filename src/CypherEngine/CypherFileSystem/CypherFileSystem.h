@@ -40,7 +40,16 @@ fs_error_t CypherFileSystem_MountDirectory(
     common::u32 flags,
     common::u32 priority );
 
+fs_error_t CypherFileSystem_MountDirectoryWithHandle(
+    const char *virtual_root,
+    const char *physical_path,
+    common::u32 flags,
+    common::u32 priority,
+    mount_handle_t &out_handle );
+
 fs_error_t CypherFileSystem_UnmountDirectory( const char *virtual_root );
+
+fs_error_t CypherFileSystem_Unmount( mount_handle_t mount );
 
 fs_error_t CypherFileSystem_MountPackage(
     const char *virtual_root,
@@ -54,6 +63,10 @@ common::u32 CypherFileSystem_MountCount();
 
 fs_error_t CypherFileSystem_GetMountInfo(
     common::u32 mount_index,
+    mount_info_t &out_info );
+
+fs_error_t CypherFileSystem_GetMountInfoByHandle(
+    mount_handle_t mount,
     mount_info_t &out_info );
 
 /*
@@ -92,6 +105,10 @@ fs_error_t CypherFileSystem_ResolvePath(
     const char *virtual_path,
     char *out_resolved_path,
     common::u32 out_resolved_path_size );
+
+fs_error_t CypherFileSystem_TraceResolve(
+    const char *virtual_path,
+    resolve_trace_t &out_trace );
 
 fs_error_t CypherFileSystem_PathJoin(
     const char *left,
