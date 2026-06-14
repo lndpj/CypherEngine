@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MATH_PLANE_H
+#define CYPHER_ENGINE_MATH_PLANE_H
+
 #pragma once
 
 #include "CypherEngine/CypherMath/CypherMath_Types.h"
@@ -18,3 +21,5 @@ bool CypherMath_PlanePointBack( const plane_t &plane, const vec3_t &v );
 bool CypherMath_PlanePointOn( const plane_t &plane, const vec3_t &v, common::f32 epsilon );
     
 }       // namespace cypher::engine::math
+
+#endif // CYPHER_ENGINE_MATH_PLANE_H
