@@ -18,15 +18,6 @@ def main() -> int:
 
     native_entries = json.loads(native_db_path.read_text())
 
-    platform_files = {
-        str((src_dir / "CypherEngine/CypherSystem/CypherSystem_PlatformWin32.cpp").resolve()),
-        str((src_dir / "CypherEngine/CypherSystem/CypherSystem_PlatformLinux.cpp").resolve()),
-    }
-
-    mingw_cxx = (
-        shutil.which("x86_64-w64-mingw32-g++")
-        or "/opt/homebrew/bin/x86_64-w64-mingw32-g++"
-    )
     llvm_cxx = (
         "/opt/homebrew/opt/llvm/bin/clang++"
         if Path("/opt/homebrew/opt/llvm/bin/clang++").exists()
@@ -35,9 +26,6 @@ def main() -> int:
 
     entries = []
     for entry in native_entries:
-        if str(Path(entry["file"]).resolve()) in platform_files:
-            continue
-
         fixed_entry = dict(entry)
         if "arguments" in fixed_entry:
             arguments = list(fixed_entry["arguments"])
@@ -50,49 +38,6 @@ def main() -> int:
         fixed_entry.pop("command", None)
         fixed_entry["arguments"] = arguments
         entries.append(fixed_entry)
-
-    project_include = f"-I{src_dir}"
-
-    win32_file = str((src_dir / "CypherEngine/CypherSystem/CypherSystem_PlatformWin32.cpp").resolve())
-    linux_file = str((src_dir / "CypherEngine/CypherSystem/CypherSystem_PlatformLinux.cpp").resolve())
-
-    entries.append({
-        "directory": str(root_dir),
-        "file": win32_file,
-        "output": "clangd/sys_platform_win32.cpp.o",
-        "arguments": [
-            mingw_cxx,
-            "-std=c++20",
-            project_include,
-            "-D_WIN32=1",
-            "-DWIN32=1",
-            "-DWIN64=1",
-            "-D_WINDOWS=1",
-            "-DUNICODE=1",
-            "-D_UNICODE=1",
-            "-DWIN32_LEAN_AND_MEAN=1",
-            "-c",
-            win32_file,
-        ],
-    })
-
-    entries.append({
-        "directory": str(root_dir),
-        "file": linux_file,
-        "output": "clangd/sys_platform_linux.cpp.o",
-        "arguments": [
-            llvm_cxx,
-            "-xc++",
-            "-std=c++20",
-            project_include,
-            "-D__linux__=1",
-            "-D__unix__=1",
-            "-Dlinux=1",
-            "-Dunix=1",
-            "-c",
-            linux_file,
-        ],
-    })
 
     clangd_db_dir.mkdir(parents=True, exist_ok=True)
     clangd_db_path.write_text(json.dumps(entries, indent=2) + "\n")
