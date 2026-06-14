@@ -44,7 +44,7 @@ render_error_t CypherRenderGL_Init( const sys::window_t &window, bool vsync, gl_
     sdl_window = static_cast<SDL_Window *>( window.native_window );
 
     // macOS requires a forward-compatible core profile context.
-    #if CYPHER_PLATFORM_MACOS
+    #ifdef CYPHER_PLATFORM_MACOS
         if (
             !SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, SYS_GL_CONTEXT_MAJOR ) ||
             !SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, SYS_GL_CONTEXT_MINOR ) ||
@@ -59,7 +59,7 @@ render_error_t CypherRenderGL_Init( const sys::window_t &window, bool vsync, gl_
             return render_error_t::ERR_OPENGL_INIT;
         }
     // Windows and Linux can request the newer OpenGL profile.
-    #elif CYPHER_PLATFORM_WINDOWS || CYPHER_PLATFORM_LINUX
+    #elif defined( CYPHER_PLATFORM_WINDOWS ) || defined( CYPHER_PLATFORM_LINUX )
         if (
             !SDL_GL_SetAttribute( SDL_GL_CONTEXT_MAJOR_VERSION, SYS_GL_CONTEXT_MAJOR ) ||
             !SDL_GL_SetAttribute( SDL_GL_CONTEXT_MINOR_VERSION, SYS_GL_CONTEXT_MINOR ) ||
