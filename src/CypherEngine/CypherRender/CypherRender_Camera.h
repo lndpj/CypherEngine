@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_RENDER_CAMERA_H
+#define CYPHER_ENGINE_RENDER_CAMERA_H
+
 #pragma once
 
 #include "CypherEngine/CypherMath/CypherMath_Vec.h"
@@ -46,3 +49,5 @@ void CypherRender_CameraSetOrientation( camera_t &camera, const math::quat_t &or
 void CypherRender_CameraSetPerspectiveMode( camera_t &camera, camera_projection_mode_t &mode );
     
 }       // namespace cypher::engine::render
+
+#endif // CYPHER_ENGINE_RENDER_CAMERA_H
