@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_HOST_H
+#define CYPHER_ENGINE_HOST_H
+
 #pragma once
 
 #include "CypherEngine/CypherHost/CypherHost_Error.h"
@@ -57,3 +60,5 @@ void CypherHost_EndFrame( state_t &host_state );
 bool CypherHost_IsRunning( state_t &host_state );
 
 }
+
+#endif // CYPHER_ENGINE_HOST_H
