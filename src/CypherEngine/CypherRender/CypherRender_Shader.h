@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_RENDER_SHADER_H
+#define CYPHER_ENGINE_RENDER_SHADER_H
+
 #pragma once
 
 #include "CypherEngine/CypherMath/CypherMath_Types.h"
@@ -57,3 +60,5 @@ void CypherRender_ShaderUnload( shader_t &shader );
 render_error_t CypherRender_ShaderSetMat4( const shader_t &shader, const char *uniform_name, const math::mat4_t &matrix );
 
 }       // namespace cypher::engine::render
+
+#endif // CYPHER_ENGINE_RENDER_SHADER_H
