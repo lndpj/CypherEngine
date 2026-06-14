@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_PAK_FORMAT_H
+#define CYPHER_ENGINE_PAK_FORMAT_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -183,3 +186,5 @@ inline void CypherPak_StoreU64LE( void *data, const common::u64 value )
 }
 
 }       // namespace cypher::engine::pak
+
+#endif // CYPHER_ENGINE_PAK_FORMAT_H
