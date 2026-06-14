@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_SYSTEM_ERROR_H
+#define CYPHER_ENGINE_SYSTEM_ERROR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon_Error.h"
@@ -107,3 +110,5 @@ constexpr inline common::error_t CypherSystem_ErrorCode( sys_error_t error ) {
 }
 
 }       // namespace cypher::engine::sys
+
+#endif // CYPHER_ENGINE_SYSTEM_ERROR_H
