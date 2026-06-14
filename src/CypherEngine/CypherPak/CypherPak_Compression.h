@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_PAK_COMPRESSION_H
+#define CYPHER_ENGINE_PAK_COMPRESSION_H
+
 #pragma once
 
 #include "CypherEngine/CypherPak/CypherPak_Types.h"
@@ -45,3 +48,5 @@ pak_error_t CypherPak_Decompress(
     common::u64 &out_bytes_written );
 
 }       // namespace cypher::engine::pak
+
+#endif // CYPHER_ENGINE_PAK_COMPRESSION_H
