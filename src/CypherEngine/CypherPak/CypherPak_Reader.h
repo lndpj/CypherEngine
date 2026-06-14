@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_PAK_READER_H
+#define CYPHER_ENGINE_PAK_READER_H
+
 #pragma once
 
 #include "CypherEngine/CypherPak/CypherPak_Types.h"
@@ -65,3 +68,5 @@ pak_error_t CypherPak_Verify(
     common::u32 flags );
 
 }       // namespace cypher::engine::pak
+
+#endif // CYPHER_ENGINE_PAK_READER_H
