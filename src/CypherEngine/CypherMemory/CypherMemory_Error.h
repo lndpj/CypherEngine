@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MEMORY_ERROR_H
+#define CYPHER_ENGINE_MEMORY_ERROR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -123,3 +126,5 @@ constexpr inline common::error_t CypherMemory_ErrorCode( const mem_error_t code 
 }
 
 }       // namespace cypher::engine::memory
+
+#endif // CYPHER_ENGINE_MEMORY_ERROR_H
