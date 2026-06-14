@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_HOST_ERROR_H
+#define CYPHER_ENGINE_HOST_ERROR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon_Error.h"
@@ -58,3 +61,5 @@ constexpr inline common::error_t CypherHost_ErrorCode( host_error_t error ) {
 }
 
 }
+
+#endif // CYPHER_ENGINE_HOST_ERROR_H
