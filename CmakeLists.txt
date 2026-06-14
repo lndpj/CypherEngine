@@ -66,20 +66,6 @@ file(GLOB_RECURSE CYPHERENGINE_SOURCES CONFIGURE_DEPENDS
     "${CYPHERENGINE_SRC_DIR}/*.cc"
 )
 
-# Adding cross platform compatibility for platform independence.
-list(FILTER CYPHERENGINE_SOURCES EXCLUDE REGEX ".*/CypherEngine/CypherSystem/CypherSystem_Platform(MacOS|Linux|Win32)\\.cpp$")
-
-if(APPLE)
-    list(APPEND CYPHERENGINE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformMacOS.cpp")
-elseif(WIN32)
-    list(APPEND CYPHERENGINE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformWin32.cpp")
-elseif(UNIX)
-    list(APPEND CYPHERENGINE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformLinux.cpp")
-else()
-    message(FATAL_ERROR "Unsupported platform for CypherEngine system platform backend")
-endif()
-
-
 if (CYPHERENGINE_SOURCES)
     add_executable(CypherEngine ${CYPHERENGINE_SOURCES})
     target_include_directories(CypherEngine PRIVATE "${CYPHERENGINE_SRC_DIR}")
@@ -114,14 +100,6 @@ if (CYPHERENGINE_BUILD_TESTS)
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherLog/CypherLog_Format.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_Platform.cpp"
     )
-
-    if(APPLE)
-        list(APPEND CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformMacOS.cpp")
-    elseif(WIN32)
-        list(APPEND CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformWin32.cpp")
-    elseif(UNIX)
-        list(APPEND CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_PlatformLinux.cpp")
-    endif()
 
     add_executable(cypher_filesystem_smoke ${CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES})
     target_include_directories(cypher_filesystem_smoke PRIVATE "${CYPHERENGINE_SRC_DIR}")
