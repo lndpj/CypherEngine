@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_RENDER_ERROR_H
+#define CYPHER_ENGINE_RENDER_ERROR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon_Error.h"
@@ -143,3 +146,5 @@ constexpr inline common::error_t CypherRender_ErrorCode( render_error_t code ) {
 }
 
 }       // namespace cypher::engine::render
+
+#endif // CYPHER_ENGINE_RENDER_ERROR_H
