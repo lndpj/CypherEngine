@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_LOG_FORMAT_H
+#define CYPHER_ENGINE_LOG_FORMAT_H
+
 #pragma once
 
 #include "CypherEngine/CypherLog/CypherLog_Error.h"
@@ -38,3 +41,5 @@ bool CypherLog_FormatTimestamp( const record_t &record, char *out_buffer, const 
 const char *CypherLog_LevelColor( const level_t level );
 
 }       // namespace cypher::engine::log
+
+#endif // CYPHER_ENGINE_LOG_FORMAT_H
