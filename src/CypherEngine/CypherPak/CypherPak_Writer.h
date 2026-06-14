@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_PAK_WRITER_H
+#define CYPHER_ENGINE_PAK_WRITER_H
+
 #pragma once
 
 #include "CypherEngine/CypherPak/CypherPak_Types.h"
@@ -41,3 +44,5 @@ pak_error_t CypherPak_FinishWriter( pak_writer_t &writer );
 pak_error_t CypherPak_CancelWriter( pak_writer_t &writer );
 
 }       // namespace cypher::engine::pak
+
+#endif // CYPHER_ENGINE_PAK_WRITER_H
