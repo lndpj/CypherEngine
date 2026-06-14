@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_SYSTEM_PLATFORM_H
+#define CYPHER_ENGINE_SYSTEM_PLATFORM_H
+
 #pragma once
 
 #include "CypherEngine/CypherSystem/CypherSystem_Error.h"
@@ -108,40 +111,26 @@ Cross Platform And Compiler Detection
 ================
 */
 
-#   if  defined( _WIN32 ) || defined( __WIN32__ ) || defined( WIN32 ) || defined( MINGW32 )
+#   if defined( _WIN32 ) || defined( __WIN32__ ) || defined( WIN32 ) || defined( MINGW32 )
 #       define CYPHER_PLATFORM_WINDOWS    1
-#   else
-#       define CYPHER_PLATFORM_WINDOWS    0
-#   endif
-
-#   if  defined( __APPLE__ ) && defined( __MACH__ )
+#   elif defined( __APPLE__ ) && defined( __MACH__ )
 #       define CYPHER_PLATFORM_MACOS      1
-#   else
-#       define CYPHER_PLATFORM_MACOS      0
-#   endif
-
-#   if  defined( __linux__ ) 
+#   elif defined( __linux__ )
 #       define CYPHER_PLATFORM_LINUX      1
 #   else
-#       define CYPHER_PLATFORM_LINUX      0
+#       error "Unsupported platform for CypherSystem platform detection."
 #   endif
 
-#   if  defined( _MSC_VER ) 
+#   if defined( _MSC_VER )
 #       define CYPHER_COMPILER_MSVC       1
-#   else
-#       define CYPHER_COMPILER_MSVC       0
-#   endif
-
-#   if  defined( __clang__ ) 
+#   elif defined( __clang__ )
 #       define CYPHER_COMPILER_CLANG      1
-#   else
-#       define CYPHER_COMPILER_CLANG      0
-#   endif
-
-#   if  defined( __GNUC__ ) && !defined( __clang__ ) 
+#   elif defined( __GNUC__ )
 #       define CYPHER_COMPILER_GCC        1
 #   else
-#       define CYPHER_COMPILER_GCC        0
+#       error "Unsupported compiler for CypherSystem compiler detection."
 #   endif
 
 }       // namespace cypher::engine::sys
+
+#endif // CYPHER_ENGINE_SYSTEM_PLATFORM_H
