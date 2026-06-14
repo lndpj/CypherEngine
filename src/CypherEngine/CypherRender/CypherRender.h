@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_RENDER_H
+#define CYPHER_ENGINE_RENDER_H
+
 #pragma once
 
 #include "CypherEngine/CypherHost/CypherHost_Types.h"
@@ -55,3 +58,5 @@ render_error_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item );
 bool CypherRender_IsInitialized();
 
 }
+
+#endif // CYPHER_ENGINE_RENDER_H
