@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_SYSTEM_WINDOW_H
+#define CYPHER_ENGINE_SYSTEM_WINDOW_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -47,3 +50,5 @@ void CypherSystem_PollWindowEvents( window_t &window );
 bool CypherSystem_WindowShouldClose( const window_t &window ); 
     
 }       // namespace cypher::engine::sys
+
+#endif // CYPHER_ENGINE_SYSTEM_WINDOW_H
