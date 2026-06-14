@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_FILESYSTEM_ERROR_H
+#define CYPHER_ENGINE_FILESYSTEM_ERROR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon_Error.h"
@@ -24,6 +27,7 @@ enum class fs_error_t : common::u8 {
     ERR_WRITE_PATH_NOT_SET,
 
     ERR_TOO_MANY_MOUNTS,
+    ERR_TOO_MANY_WATCHES,
     ERR_MOUNT_NOT_FOUND,
     ERR_PATH_NOT_FOUND,
     ERR_ALREADY_EXISTS,
@@ -39,6 +43,7 @@ enum class fs_error_t : common::u8 {
     ERR_FILE_TELL_FAILED,
 
     ERR_BUFFER_TOO_SMALL,
+    ERR_WATCH_QUEUE_FULL,
     ERR_OUT_OF_MEMORY,
     ERR_UNSUPPORTED_BACKEND,
     ERR_NOT_IMPLEMENTED,
@@ -73,6 +78,8 @@ constexpr inline const char *CypherFileSystem_ErrorName( const fs_error_t error 
         return "ERR_WRITE_PATH_NOT_SET";
     case fs_error_t::ERR_TOO_MANY_MOUNTS:
         return "ERR_TOO_MANY_MOUNTS";
+    case fs_error_t::ERR_TOO_MANY_WATCHES:
+        return "ERR_TOO_MANY_WATCHES";
     case fs_error_t::ERR_MOUNT_NOT_FOUND:
         return "ERR_MOUNT_NOT_FOUND";
     case fs_error_t::ERR_PATH_NOT_FOUND:
@@ -99,6 +106,8 @@ constexpr inline const char *CypherFileSystem_ErrorName( const fs_error_t error 
         return "ERR_FILE_TELL_FAILED";
     case fs_error_t::ERR_BUFFER_TOO_SMALL:
         return "ERR_BUFFER_TOO_SMALL";
+    case fs_error_t::ERR_WATCH_QUEUE_FULL:
+        return "ERR_WATCH_QUEUE_FULL";
     case fs_error_t::ERR_OUT_OF_MEMORY:
         return "ERR_OUT_OF_MEMORY";
     case fs_error_t::ERR_UNSUPPORTED_BACKEND:
@@ -136,6 +145,8 @@ constexpr inline const char *CypherFileSystem_ErrorDesc( const fs_error_t error 
         return "filesystem write path is not set";
     case fs_error_t::ERR_TOO_MANY_MOUNTS:
         return "filesystem mount table is full";
+    case fs_error_t::ERR_TOO_MANY_WATCHES:
+        return "filesystem watch table is full";
     case fs_error_t::ERR_MOUNT_NOT_FOUND:
         return "filesystem mount was not found";
     case fs_error_t::ERR_PATH_NOT_FOUND:
@@ -162,6 +173,8 @@ constexpr inline const char *CypherFileSystem_ErrorDesc( const fs_error_t error 
         return "file tell failed";
     case fs_error_t::ERR_BUFFER_TOO_SMALL:
         return "provided filesystem buffer is too small";
+    case fs_error_t::ERR_WATCH_QUEUE_FULL:
+        return "filesystem watch event queue is full";
     case fs_error_t::ERR_OUT_OF_MEMORY:
         return "filesystem memory allocation failed";
     case fs_error_t::ERR_UNSUPPORTED_BACKEND:
@@ -182,3 +195,5 @@ constexpr inline common::error_t CypherFileSystem_ErrorCode( fs_error_t  error )
 }
 
 }       // namespace cypher::engine::fs
+
+#endif // CYPHER_ENGINE_FILESYSTEM_ERROR_H
