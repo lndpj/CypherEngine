@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_CONFIG_H
+#define CYPHER_ENGINE_CONFIG_H
+
 
 #pragma once
 
@@ -31,3 +34,5 @@ cfg_error_t CypherConfig_LoadAutoexec();
 cfg_error_t CypherConfig_ExecuteLine( const char *command_line );
 
 }
+
+#endif // CYPHER_ENGINE_CONFIG_H
