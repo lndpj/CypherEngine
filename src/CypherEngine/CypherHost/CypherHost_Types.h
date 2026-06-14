@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_HOST_TYPES_H
+#define CYPHER_ENGINE_HOST_TYPES_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -86,3 +89,5 @@ struct state_t {
 };
 
 }       // namespace cypher::engine::host
+
+#endif // CYPHER_ENGINE_HOST_TYPES_H
