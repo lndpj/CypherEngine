@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MEMORY_BUCKET_H
+#define CYPHER_ENGINE_MEMORY_BUCKET_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -175,3 +178,5 @@ T *CypherMemory_BucketAllocTypeZeroDebug( bucket_t &bucket, const char *file, co
 
 #define CYPHER_MEMORY_BUCKET_FREE( BUCKET, PTR ) \
     ::cypher::engine::memory::CypherMemory_BucketFreeDebug( ( BUCKET ), ( PTR ), __FILE__, __func__, __LINE__ )
+
+#endif // CYPHER_ENGINE_MEMORY_BUCKET_H
