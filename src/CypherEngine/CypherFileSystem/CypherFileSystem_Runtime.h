@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_FILESYSTEM_RUNTIME_H
+#define CYPHER_ENGINE_FILESYSTEM_RUNTIME_H
+
 #pragma once
 
 #include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
@@ -62,3 +65,5 @@ fs_error_t CypherFileSystem_BuildWritePath(
     common::u32 out_path_size );
 
 }       // namespace cypher::engine::fs
+
+#endif // CYPHER_ENGINE_FILESYSTEM_RUNTIME_H
