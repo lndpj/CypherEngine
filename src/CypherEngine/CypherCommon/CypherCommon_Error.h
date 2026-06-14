@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_COMMON_ERROR_H
+#define CYPHER_ENGINE_COMMON_ERROR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -138,3 +141,5 @@ constexpr inline com_u16 CypherCommon_ErrorCode( const error_t error ) {
 }
 
 }
+
+#endif // CYPHER_ENGINE_COMMON_ERROR_H
