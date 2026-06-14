@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_LOG_H
+#define CYPHER_ENGINE_LOG_H
+
 #pragma once
 
 #include "CypherEngine/CypherLog/CypherLog_Error.h"
@@ -123,3 +126,5 @@ layer so older code and external users do not break while engine code stays comp
 #define LOG_WARNING_MESSAGE( ... )      CYPHER_LOG_WARNING_MESSAGE( __VA_ARGS__ )
 #define LOG_ERROR_MESSAGE( ... )        CYPHER_LOG_ERROR_MESSAGE( __VA_ARGS__ )
 #define LOG_CHECK( ... )                CYPHER_LOG_CHECK( __VA_ARGS__ )
+
+#endif // CYPHER_ENGINE_LOG_H
