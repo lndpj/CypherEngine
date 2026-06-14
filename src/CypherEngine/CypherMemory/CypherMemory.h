@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MEMORY_H
+#define CYPHER_ENGINE_MEMORY_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -124,3 +127,5 @@ arena_t &CypherMemory_RenderArena();
 arena_t &CypherMemory_EditorArena();
 
 }       // namespace cypher::engine::memory
+
+#endif // CYPHER_ENGINE_MEMORY_H
