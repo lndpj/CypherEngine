@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_RENDER_GL_H
+#define CYPHER_ENGINE_RENDER_GL_H
+
 #pragma once
 
 #include "CypherEngine/CypherRender/CypherRender_Error.h"
@@ -61,3 +64,5 @@ render_error_t CypherRenderGL_MeshDraw( const mesh_t &mesh );
 render_error_t CypherRenderGL_SetUniformMat4( common::u32 shader_program_id, const char *uniform_name, const math::mat4_t &matrix );
 
 }       // namespace cypher::engine::render
+
+#endif // CYPHER_ENGINE_RENDER_GL_H
