@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MATH_BOUNDS_H
+#define CYPHER_ENGINE_MATH_BOUNDS_H
+
 #pragma once
 
 #include "CypherEngine/CypherMath/CypherMath_Types.h"
@@ -20,3 +23,5 @@ bool CypherMath_BoundsContainsPoint( const bounds_t &bounds, const vec3_t &point
 bool CypherMath_BoundsIntersects( const bounds_t &b1, const bounds_t &b2 );
     
 }       // namespace cypher::engine::math
+
+#endif // CYPHER_ENGINE_MATH_BOUNDS_H
