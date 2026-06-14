@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_COMMON_H
+#define CYPHER_ENGINE_COMMON_H
+
 #pragma once
 
 #include <cstddef>     // std::size_t.
@@ -165,3 +168,5 @@ constexpr product_info_t COM_ENGINE_INFO{
 };
 
 } // namespace cypher::engine::common
+
+#endif // CYPHER_ENGINE_COMMON_H
