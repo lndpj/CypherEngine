@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_FILESYSTEM_TYPES_H
+#define CYPHER_ENGINE_FILESYSTEM_TYPES_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -13,6 +16,9 @@ constexpr common::u32 CYPHER_FILESYSTEM_MAX_PATH_LENGTH               = 260u;
 constexpr common::u32 CYPHER_FILESYSTEM_MAX_VIRTUAL_ROOT_LENGTH       = 64u;
 constexpr common::u32 CYPHER_FILESYSTEM_MAX_EXTENSION_LENGTH          = 32u;
 constexpr common::u32 CYPHER_FILESYSTEM_MAX_PATTERN_LENGTH            = 128u;
+constexpr common::u32 CYPHER_FILESYSTEM_MAX_WATCHES                   = 32u;
+constexpr common::u32 CYPHER_FILESYSTEM_MAX_WATCH_SNAPSHOT_ENTRIES    = 512u;
+constexpr common::u32 CYPHER_FILESYSTEM_MAX_WATCH_EVENTS              = 256u;
 constexpr common::u32 CYPHER_FILESYSTEM_INVALID_MOUNT                 = 0u;
 constexpr common::u32 CYPHER_FILESYSTEM_INVALID_ASYNC_REQUEST         = 0u;
 constexpr common::u32 CYPHER_FILESYSTEM_INVALID_WATCH                 = 0u;
@@ -72,6 +78,13 @@ enum find_flags_t : common::u32 {
     CYPHER_FILESYSTEM_FIND_DIRECTORIES       = 1u << 2u,
     CYPHER_FILESYSTEM_FIND_INCLUDE_HIDDEN    = 1u << 3u,
     CYPHER_FILESYSTEM_FIND_SORT_BY_NAME      = 1u << 4u
+};
+
+enum watch_flags_t : common::u32 {
+    CYPHER_FILESYSTEM_WATCH_NONE             = 0u,
+    CYPHER_FILESYSTEM_WATCH_FILE             = 1u << 0u,
+    CYPHER_FILESYSTEM_WATCH_DIRECTORY        = 1u << 1u,
+    CYPHER_FILESYSTEM_WATCH_RECURSIVE        = 1u << 2u
 };
 
 enum class async_status_t : common::u8 {
@@ -198,3 +211,5 @@ struct resolve_trace_t {
 };
 
 }
+
+#endif // CYPHER_ENGINE_FILESYSTEM_TYPES_H
