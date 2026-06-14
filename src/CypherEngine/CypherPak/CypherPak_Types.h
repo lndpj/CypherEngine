@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_PAK_TYPES_H
+#define CYPHER_ENGINE_PAK_TYPES_H
+
 #pragma once
 
 #include "CypherEngine/CypherPak/CypherPak_Error.h"
@@ -91,3 +94,5 @@ struct pak_source_file_t {
 };
 
 }       // namespace cypher::engine::pak
+
+#endif // CYPHER_ENGINE_PAK_TYPES_H
