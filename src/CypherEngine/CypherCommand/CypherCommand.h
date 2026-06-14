@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_COMMAND_H
+#define CYPHER_ENGINE_COMMAND_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommand/CypherCommand_Error.h"
@@ -49,3 +52,5 @@ cmd_error_t CypherCommand_Parse( char *command_line, common::u32 &argc, char **a
 cmd_error_t CypherCommand_Execute( const char *command_line );
 
 }
+
+#endif // CYPHER_ENGINE_COMMAND_H
