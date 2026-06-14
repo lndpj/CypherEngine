@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_CONFIG_ERROR_H
+#define CYPHER_ENGINE_CONFIG_ERROR_H
+
 
 #pragma once
 
@@ -83,3 +86,5 @@ constexpr inline common::error_t CypherConfig_ErrorCode( const cfg_error_t error
 }
 
 }
+
+#endif // CYPHER_ENGINE_CONFIG_ERROR_H
