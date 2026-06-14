@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_RENDER_DRAW_H
+#define CYPHER_ENGINE_RENDER_DRAW_H
+
 #pragma once
 
 #include "CypherEngine/CypherMath/CypherMath_Types.h"
@@ -34,3 +37,5 @@ render_error_t CypherRender_DrawListSubmit( draw_list_t &draw_list, const draw_i
 render_error_t CypherRender_DrawListDraw( const draw_list_t &draw_list, const camera_t &camera );
 
 }       // namespace cypher::engine::render
+
+#endif // CYPHER_ENGINE_RENDER_DRAW_H
