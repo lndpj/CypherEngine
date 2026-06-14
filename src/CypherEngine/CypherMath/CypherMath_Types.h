@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MATH_TYPES_H
+#define CYPHER_ENGINE_MATH_TYPES_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -137,3 +140,5 @@ static_assert( sizeof( vec3_s_t ) == sizeof( common::i16 ) * 3u, "vec3_s_t must 
 static_assert( sizeof( mat4_t ) == sizeof( common::f32 ) * 16u, "mat4_t must stay tightly packed" );
 
 }       // namespace cypher::engine::math
+
+#endif // CYPHER_ENGINE_MATH_TYPES_H
