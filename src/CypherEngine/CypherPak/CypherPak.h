@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_PAK_H
+#define CYPHER_ENGINE_PAK_H
+
 #pragma once
 
 #include "CypherEngine/CypherPak/CypherPak_Compression.h"
@@ -20,3 +23,5 @@ Tools will use the writer API later to build deterministic content packages.
 */
 
 }       // namespace cypher::engine::pak
+
+#endif // CYPHER_ENGINE_PAK_H
