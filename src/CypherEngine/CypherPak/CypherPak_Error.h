@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_PAK_ERROR_H
+#define CYPHER_ENGINE_PAK_ERROR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -198,3 +201,5 @@ constexpr inline common::error_t CypherPak_ErrorCode( const pak_error_t error )
 }
 
 }       // namespace cypher::engine::pak
+
+#endif // CYPHER_ENGINE_PAK_ERROR_H
