@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_LOG_TYPES_H
+#define CYPHER_ENGINE_LOG_TYPES_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -281,3 +284,5 @@ constexpr inline common::com_u32 CypherLog_DefaultSinkMaskForLevel( level_t leve
 }
 
 }       // namespace cypher::engine::log
+
+#endif // CYPHER_ENGINE_LOG_TYPES_H
