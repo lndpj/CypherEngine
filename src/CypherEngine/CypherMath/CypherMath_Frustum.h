@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MATH_FRUSTUM_H
+#define CYPHER_ENGINE_MATH_FRUSTUM_H
+
 #pragma once
 
 #include "CypherEngine/CypherMath/CypherMath_Types.h"
@@ -12,3 +15,5 @@ bool CypherMath_FrustumContainsPoint( const frustum_t &frustum, const vec3_t &po
 bool CypherMath_FrustumIntersectsBounds( const frustum_t &frustum, const bounds_t &bounds );  
     
 }       // namespace cypher::engine::math
+
+#endif // CYPHER_ENGINE_MATH_FRUSTUM_H
