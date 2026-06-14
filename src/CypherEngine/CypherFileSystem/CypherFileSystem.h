@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_FILESYSTEM_H
+#define CYPHER_ENGINE_FILESYSTEM_H
+
 #pragma once
 
 #include "CypherEngine/CypherFileSystem/CypherFileSystem_Error.h"
@@ -330,3 +333,5 @@ fs_error_t CypherFileSystem_DumpMounts();
 fs_error_t CypherFileSystem_DumpStats();
 
 }       // namespace cypher::engine::fs
+
+#endif // CYPHER_ENGINE_FILESYSTEM_H
