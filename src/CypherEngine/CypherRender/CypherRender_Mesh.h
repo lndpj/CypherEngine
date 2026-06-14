@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_RENDER_MESH_H
+#define CYPHER_ENGINE_RENDER_MESH_H
+
 #pragma once
 
 #include "CypherEngine/CypherMath/CypherMath_Types.h"
@@ -49,3 +52,5 @@ void CypherRender_MeshDestroy( mesh_t &mesh );
 render_error_t CypherRender_MeshDraw( const mesh_t &mesh );
 
 }       // namespace cypher::engine::render
+
+#endif // CYPHER_ENGINE_RENDER_MESH_H
