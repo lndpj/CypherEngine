@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MATH_MAT_H
+#define CYPHER_ENGINE_MATH_MAT_H
+
 #pragma once
 
 #include "CypherEngine/CypherMath/CypherMath_Types.h"
@@ -71,3 +74,5 @@ mat4_t CypherMath_Mat4LookAt( const vec3_t &eye, const vec3_t &target, const vec
 mat4_t CypherMath_Mat4TranslationRotationScale( const vec3_t &position, const quat_t &orientation, const vec3_t &scale );
 
 }       // namespace cypher::engine::math
+
+#endif // CYPHER_ENGINE_MATH_MAT_H
