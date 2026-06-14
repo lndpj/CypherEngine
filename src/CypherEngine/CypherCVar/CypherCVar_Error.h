@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_CVAR_ERROR_H
+#define CYPHER_ENGINE_CVAR_ERROR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -93,3 +96,5 @@ constexpr inline common::error_t CypherCVar_ErrorCode( cvar_error_t error ) {
 }
 
 }
+
+#endif // CYPHER_ENGINE_CVAR_ERROR_H
