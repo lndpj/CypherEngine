@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_COMMON_PRINT_H
+#define CYPHER_ENGINE_COMMON_PRINT_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon_Error.h"
@@ -41,3 +44,5 @@ functions remain the real API and can still be called directly.
 #define COM_VPRINTF( MESSAGE, ARGS )        ::cypher::engine::common::CypherCommon_VPrintf( ( MESSAGE ), ( ARGS ) )
 #define COM_ERRORF( ERROR, ... )            ::cypher::engine::common::CypherCommon_Errorf( ( ERROR ), __VA_ARGS__ )
 #define COM_VERRORF( ERROR, MESSAGE, ARGS ) ::cypher::engine::common::CypherCommon_VErrorf( ( ERROR ), ( MESSAGE ), ( ARGS ) )
+
+#endif // CYPHER_ENGINE_COMMON_PRINT_H
