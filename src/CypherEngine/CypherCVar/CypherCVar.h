@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_CVAR_H
+#define CYPHER_ENGINE_CVAR_H
+
 #pragma once
 
 #include "CypherEngine/CypherCVar/CypherCVar_Error.h"
@@ -65,3 +68,5 @@ common::f32 CypherCVar_GetFloat( const char *name );
 bool CypherCVar_GetBool( const char *name );
 
 }
+
+#endif // CYPHER_ENGINE_CVAR_H
