@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MEMORY_THREAD_H
+#define CYPHER_ENGINE_MEMORY_THREAD_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -174,3 +177,5 @@ mem_error_t CypherMemory_ThreadSafeBucketLastError( const thread_safe_bucket_t &
 
 #define CYPHER_MEMORY_THREAD_SAFE_BUCKET_FREE( THREAD_SAFE_BUCKET, PTR ) \
     ::cypher::engine::memory::CypherMemory_ThreadSafeBucketFreeDebug( ( THREAD_SAFE_BUCKET ), ( PTR ), __FILE__, __func__, __LINE__ )
+
+#endif // CYPHER_ENGINE_MEMORY_THREAD_H
