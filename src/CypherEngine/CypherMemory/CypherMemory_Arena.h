@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MEMORY_ARENA_H
+#define CYPHER_ENGINE_MEMORY_ARENA_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -430,3 +433,5 @@ T *CypherMemory_ArenaAllocTypeZeroDebug( arena_t &arena, const char *file, const
 
 #define CYPHER_MEMORY_ARENA_ALLOC_ARRAY_ZERO( ARENA, TYPE, COUNT ) \
     ::cypher::engine::memory::CypherMemory_ArenaAllocArrayZeroDebug<TYPE>( ( ARENA ), ( COUNT ), __FILE__, __func__, __LINE__ )
+
+#endif // CYPHER_ENGINE_MEMORY_ARENA_H
