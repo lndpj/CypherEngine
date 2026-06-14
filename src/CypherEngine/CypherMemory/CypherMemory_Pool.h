@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MEMORY_POOL_H
+#define CYPHER_ENGINE_MEMORY_POOL_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -256,3 +259,5 @@ T *CypherMemory_PoolAllocTypeZeroDebug( pool_t &pool, const char *file, const ch
 
 #define CYPHER_MEMORY_POOL_FREE( POOL, PTR ) \
     ::cypher::engine::memory::CypherMemory_PoolFreeDebug( ( POOL ), ( PTR ), __FILE__, __func__, __LINE__ )
+
+#endif // CYPHER_ENGINE_MEMORY_POOL_H
