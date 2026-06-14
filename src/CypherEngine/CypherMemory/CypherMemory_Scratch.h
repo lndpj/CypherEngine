@@ -1,3 +1,6 @@
+#ifndef CYPHER_ENGINE_MEMORY_SCRATCH_H
+#define CYPHER_ENGINE_MEMORY_SCRATCH_H
+
 #pragma once
 
 #include "CypherEngine/CypherCommon/CypherCommon.h"
@@ -168,3 +171,5 @@ T *CypherMemory_ScratchAllocArrayZeroDebug( scratch_scope_t &scope,
 
 #define CYPHER_MEMORY_SCRATCH_ALLOC_ARRAY_ZERO( SCOPE, TYPE, COUNT ) \
     ::cypher::engine::memory::CypherMemory_ScratchAllocArrayZeroDebug<TYPE>( ( SCOPE ), ( COUNT ), __FILE__, __func__, __LINE__ )
+
+#endif // CYPHER_ENGINE_MEMORY_SCRATCH_H
