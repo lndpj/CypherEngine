@@ -24,6 +24,7 @@ enum class fs_error_t : common::u8 {
     ERR_INVALID_MODE,
     ERR_INVALID_HANDLE,
     ERR_INVALID_ARGUMENT,
+    ERR_INVALID_FLAGS,
     ERR_WRITE_PATH_NOT_SET,
 
     ERR_TOO_MANY_MOUNTS,
@@ -74,6 +75,8 @@ constexpr inline const char *CypherFileSystem_ErrorName( const fs_error_t error 
         return "ERR_INVALID_HANDLE";
     case fs_error_t::ERR_INVALID_ARGUMENT:
         return "ERR_INVALID_ARGUMENT";
+    case fs_error_t::ERR_INVALID_FLAGS:
+        return "ERR_INVALID_FLAGS";
     case fs_error_t::ERR_WRITE_PATH_NOT_SET:
         return "ERR_WRITE_PATH_NOT_SET";
     case fs_error_t::ERR_TOO_MANY_MOUNTS:
@@ -139,6 +142,8 @@ constexpr inline const char *CypherFileSystem_ErrorDesc( const fs_error_t error 
         return "invalid filesystem open mode";
     case fs_error_t::ERR_INVALID_HANDLE:
         return "invalid filesystem file handle";
+    case fs_error_t::ERR_INVALID_FLAGS:
+        return "invalid filesystem flags set";
     case fs_error_t::ERR_INVALID_ARGUMENT:
         return "invalid filesystem argument";
     case fs_error_t::ERR_WRITE_PATH_NOT_SET:
