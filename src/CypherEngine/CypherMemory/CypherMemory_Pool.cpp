@@ -439,7 +439,7 @@ mem_error_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc )
         return CypherMemory_PoolFailInit( pool, pool_desc, mem_error_t::ERR_INVALID_ARGUMENT, "invalid backing type" );
     }
 
-    pool = {};
+    pool = pool_t{};
     pool.name = pool_desc.name;
     pool.base = static_cast<common::byte *>( memory );
     pool.free_list = nullptr;
@@ -498,7 +498,7 @@ void CypherMemory_PoolShutdown( pool_t &pool )
         std::memset( pool.base, 0, pool.backing_bytes );
     }
 
-    pool = {};
+    pool = pool_t{};
 }
 
 pool_stats_t CypherMemory_PoolStats( const pool_t &pool )
