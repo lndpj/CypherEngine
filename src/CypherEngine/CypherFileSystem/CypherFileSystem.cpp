@@ -64,6 +64,11 @@ fs_error_t PakErrorToFs( const pak::pak_error_t error )
 	}
 }
 
+void ClearRuntimeState( runtime_state_t &state )
+{
+	std::memset( &state, 0, sizeof( state ) );
+}
+
 }       // namespace
 
 /*
@@ -79,9 +84,10 @@ fs_error_t CypherFileSystem_Init() {
 		return fs_error_t::ERR_IS_INIT;
 	}
 
-	state = runtime_state_t{};
+	ClearRuntimeState( state );
 	state.initialized = true;
 	state.next_mount_handle = 1u;
+	state.next_watch_handle = 1u;
 
 	LOG_INFO( log::channel_t::FS, "filesystem initialized." );
 
@@ -105,8 +111,7 @@ fs_error_t CypherFileSystem_Shutdown() {
 		const mount_handle_t mount = state.mounts[0].handle;
 		( void )CypherFileSystem_Unmount( mount );
 	}
-	state = runtime_state_t{};
-	state.initialized = false;
+	ClearRuntimeState( state );
 	return fs_error_t::OK;
 }
 
