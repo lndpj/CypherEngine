@@ -223,7 +223,7 @@ bool CypherLog_ShouldFlush( const flush_policy_t flush_policy, const level_t lev
         case flush_policy_t::NEVER:
             return false;
         case flush_policy_t::ERRORS_AND_ABOVE:
-            return CypherLog_LevelPasses( level, level_t::ERROR );
+            return CypherLog_LevelPasses( level, level_t::ERR );
         case flush_policy_t::EVERY_MESSAGE:
             return true;
         default:
@@ -420,7 +420,7 @@ log_error_t CypherLog_LevelFromString( const char *level_name, level_t &out_leve
     }
 
     if ( std::strcmp( lower, "error" ) == 0 || std::strcmp( lower, "4" ) == 0 ) {
-        out_level = level_t::ERROR;
+        out_level = level_t::ERR;
         return log_error_t::OK;
     }
 
