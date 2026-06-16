@@ -275,7 +275,7 @@ void CypherMemory_ArenaShutdown( arena_t &arena )
         }
     }
     
-    arena = {};
+    arena = arena_t{};
 }
 
 void CypherMemory_ArenaReset( arena_t &arena )
