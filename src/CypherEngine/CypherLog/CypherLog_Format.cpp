@@ -22,7 +22,7 @@ const char *CypherLog_LevelColor( const level_t level )
         case level_t::DEBUG:   return "\033[36m";
         case level_t::INFO:    return "\033[37m";
         case level_t::WARNING: return "\033[33m";
-        case level_t::ERROR:   return "\033[31m";
+        case level_t::ERR:     return "\033[31m";
         case level_t::FATAL:   return "\033[35m";
         default:               return "";
     }
