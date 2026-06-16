@@ -79,7 +79,7 @@ fs_error_t CypherFileSystem_Init() {
 		return fs_error_t::ERR_IS_INIT;
 	}
 
-	state = {};
+	state = runtime_state_t{};
 	state.initialized = true;
 	state.next_mount_handle = 1u;
 
@@ -105,7 +105,7 @@ fs_error_t CypherFileSystem_Shutdown() {
 		const mount_handle_t mount = state.mounts[0].handle;
 		( void )CypherFileSystem_Unmount( mount );
 	}
-	state = {};
+	state = runtime_state_t{};
 	state.initialized = false;
 	return fs_error_t::OK;
 }
