@@ -54,40 +54,99 @@ Capture source file, function and line while keeping call sites compact.
 ================
 */
 #define CYPHER_LOG_IF_ENABLED( LOG_LEVEL, LOG_CHANNEL )                                                           \
-	if ( cypher::engine::log::CypherLog_LevelEnabled( ( LOG_LEVEL ), ( LOG_CHANNEL ) ) )
+    if ( cypher::engine::log::CypherLog_LevelEnabled( ( LOG_LEVEL ), ( LOG_CHANNEL ) ) )
 
 #define CYPHER_LOG( LOG_LEVEL, LOG_CHANNEL, LOG_MESSAGE )                                                         \
-    CYPHER_LOGF( ( LOG_LEVEL ), ( LOG_CHANNEL ), "%s", ( LOG_MESSAGE ) )
+    do {                                                                                                          \
+        const cypher::engine::log::level_t cypher_log_level_ = ( LOG_LEVEL );                                     \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( cypher::engine::log::CypherLog_LevelEnabled( cypher_log_level_, cypher_log_channel_ ) ) {            \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher_log_level_, cypher_log_channel_, __FILE__, __func__, __LINE__, "%s", ( LOG_MESSAGE ) );   \
+        }                                                                                                         \
+    } while ( false )
 
 #define CYPHER_LOGF( LOG_LEVEL, LOG_CHANNEL, LOG_FORMAT, ... )                                                    \
-    do {                                                                                                        \
-        if ( cypher::engine::log::CypherLog_LevelEnabled( ( LOG_LEVEL), ( LOG_CHANNEL ) ) ) {                          \
-            cypher::engine::log::CypherLog_Emitf(                                                                      \
-                ( LOG_LEVEL ), ( LOG_CHANNEL ), __FILE__, __func__, __LINE__, ( LOG_FORMAT )                     \
-				__VA_OPT__( , ) __VA_ARGS__ );                                                             \
-        }                                                                                                       \
-    } while ( false );
+    do {                                                                                                          \
+        const cypher::engine::log::level_t cypher_log_level_ = ( LOG_LEVEL );                                     \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( cypher::engine::log::CypherLog_LevelEnabled( cypher_log_level_, cypher_log_channel_ ) ) {            \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher_log_level_, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT )              \
+                __VA_OPT__( , ) __VA_ARGS__ );                                                                    \
+        }                                                                                                         \
+    } while ( false )
 
 #define CYPHER_LOGF_IF( LOG_CONDITION, LOG_LEVEL, LOG_CHANNEL, LOG_FORMAT, ... )                                  \
-    do {                                                                                                        \
-        if ( ( LOG_CONDITION ) && cypher::engine::log::CypherLog_LevelEnabled( ( LOG_LEVEL ), (LOG_CHANNEL ) ) ) {    \
-            cypher::engine::log::CypherLog_Emitf(                                                                      \
-                ( LOG_LEVEL ), ( LOG_CHANNEL ), __FILE__, __func__, __LINE__, ( LOG_FORMAT )                    \
-				__VA_OPT__( , ) __VA_ARGS__ );                                                             \
-        }                                                                                                       \
-    } while ( false );
+    do {                                                                                                          \
+        const cypher::engine::log::level_t cypher_log_level_ = ( LOG_LEVEL );                                     \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( ( LOG_CONDITION ) && cypher::engine::log::CypherLog_LevelEnabled( cypher_log_level_, cypher_log_channel_ ) ) { \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher_log_level_, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT )              \
+                __VA_OPT__( , ) __VA_ARGS__ );                                                                    \
+        }                                                                                                         \
+    } while ( false )
 
-#define CYPHER_LOG_TRACE( LOG_CHANNEL, LOG_FORMAT, ... )          CYPHER_LOGF( cypher::engine::log::level_t::TRACE, ( LOG_CHANNEL ), ( LOG_FORMAT ) __VA_OPT__( , ) __VA_ARGS__ )
+#define CYPHER_LOG_TRACE( LOG_CHANNEL, LOG_FORMAT, ... )                                                          \
+    do {                                                                                                          \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( cypher::engine::log::CypherLog_LevelEnabled( cypher::engine::log::level_t::TRACE, cypher_log_channel_ ) ) { \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher::engine::log::level_t::TRACE, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT ) \
+                __VA_OPT__( , ) __VA_ARGS__ );                                                                    \
+        }                                                                                                         \
+    } while ( false )
 
-#define CYPHER_LOG_DEBUG( LOG_CHANNEL, LOG_FORMAT, ... )          CYPHER_LOGF( cypher::engine::log::level_t::DEBUG, ( LOG_CHANNEL ), ( LOG_FORMAT ) __VA_OPT__( , ) __VA_ARGS__ )
+#define CYPHER_LOG_DEBUG( LOG_CHANNEL, LOG_FORMAT, ... )                                                          \
+    do {                                                                                                          \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( cypher::engine::log::CypherLog_LevelEnabled( cypher::engine::log::level_t::DEBUG, cypher_log_channel_ ) ) { \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher::engine::log::level_t::DEBUG, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT ) \
+                __VA_OPT__( , ) __VA_ARGS__ );                                                                    \
+        }                                                                                                         \
+    } while ( false )
 
-#define CYPHER_LOG_INFO( LOG_CHANNEL, LOG_FORMAT, ... )           CYPHER_LOGF( cypher::engine::log::level_t::INFO, ( LOG_CHANNEL ), ( LOG_FORMAT ) __VA_OPT__( , ) __VA_ARGS__ )
+#define CYPHER_LOG_INFO( LOG_CHANNEL, LOG_FORMAT, ... )                                                           \
+    do {                                                                                                          \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( cypher::engine::log::CypherLog_LevelEnabled( cypher::engine::log::level_t::INFO, cypher_log_channel_ ) ) { \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher::engine::log::level_t::INFO, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT ) \
+                __VA_OPT__( , ) __VA_ARGS__ );                                                                    \
+        }                                                                                                         \
+    } while ( false )
 
-#define CYPHER_LOG_WARNING( LOG_CHANNEL, LOG_FORMAT, ... )        CYPHER_LOGF( cypher::engine::log::level_t::WARNING, ( LOG_CHANNEL ), ( LOG_FORMAT ) __VA_OPT__( , ) __VA_ARGS__ )
+#define CYPHER_LOG_WARNING( LOG_CHANNEL, LOG_FORMAT, ... )                                                        \
+    do {                                                                                                          \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( cypher::engine::log::CypherLog_LevelEnabled( cypher::engine::log::level_t::WARNING, cypher_log_channel_ ) ) { \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher::engine::log::level_t::WARNING, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT ) \
+                __VA_OPT__( , ) __VA_ARGS__ );                                                                    \
+        }                                                                                                         \
+    } while ( false )
 
-#define CYPHER_LOG_ERROR( LOG_CHANNEL, LOG_FORMAT, ... )          CYPHER_LOGF( cypher::engine::log::level_t::ERROR, ( LOG_CHANNEL ), ( LOG_FORMAT ) __VA_OPT__( , ) __VA_ARGS__ )
+#define CYPHER_LOG_ERROR( LOG_CHANNEL, LOG_FORMAT, ... )                                                          \
+    do {                                                                                                          \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( cypher::engine::log::CypherLog_LevelEnabled( cypher::engine::log::level_t::ERROR, cypher_log_channel_ ) ) { \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher::engine::log::level_t::ERROR, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT ) \
+                __VA_OPT__( , ) __VA_ARGS__ );                                                                    \
+        }                                                                                                         \
+    } while ( false )
 
-#define CYPHER_LOG_FATAL( LOG_CHANNEL, LOG_FORMAT, ... )          CYPHER_LOGF( cypher::engine::log::level_t::FATAL, ( LOG_CHANNEL ), ( LOG_FORMAT ) __VA_OPT__( , ) __VA_ARGS__ )
+#define CYPHER_LOG_FATAL( LOG_CHANNEL, LOG_FORMAT, ... )                                                          \
+    do {                                                                                                          \
+        const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
+        if ( cypher::engine::log::CypherLog_LevelEnabled( cypher::engine::log::level_t::FATAL, cypher_log_channel_ ) ) { \
+            cypher::engine::log::CypherLog_Emitf(                                                                 \
+                cypher::engine::log::level_t::FATAL, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT ) \
+                __VA_OPT__( , ) __VA_ARGS__ );                                                                    \
+        }                                                                                                         \
+    } while ( false )
 
 #define CYPHER_LOG_INFO_MESSAGE( LOG_CHANNEL, LOG_MESSAGE )       CYPHER_LOG( cypher::engine::log::level_t::INFO, ( LOG_CHANNEL ), ( LOG_MESSAGE ) )
 
@@ -98,9 +157,14 @@ Capture source file, function and line while keeping call sites compact.
 #define CYPHER_LOG_CHECK( CONDITION, LOG_CHANNEL, LOG_FORMAT, ... )                                                                   \
     do {                                                                                                                            \
         if ( !CONDITION ) {                                                                                                         \
-            CYPHER_LOG_ERROR( ( LOG_CHANNEL ), ( LOG_FORMAT ) __VA_OPT__( , ) __VA_ARGS__ );                                         \
+            const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                                             \
+            if ( cypher::engine::log::CypherLog_LevelEnabled( cypher::engine::log::level_t::ERROR, cypher_log_channel_ ) ) {        \
+                cypher::engine::log::CypherLog_Emitf(                                                                               \
+                    cypher::engine::log::level_t::ERROR, cypher_log_channel_, __FILE__, __func__, __LINE__, ( LOG_FORMAT )          \
+                    __VA_OPT__( , ) __VA_ARGS__ );                                                                                  \
+            }                                                                                                                       \
         }                                                                                                                           \
-    } while ( false );
+    } while ( false )
 
 /*
 ================
@@ -110,21 +174,21 @@ Preferred call-site names. The CYPHER_LOG_* macros remain the canonical backing
 layer so older code and external users do not break while engine code stays compact.
 ================
 */
-#define LOG_IF_ENABLED( ... )           CYPHER_LOG_IF_ENABLED( __VA_ARGS__ )
-#define LOG( ... )                      CYPHER_LOG( __VA_ARGS__ )
-#define LOGF( ... )                     CYPHER_LOGF( __VA_ARGS__ )
-#define LOGF_IF( ... )                  CYPHER_LOGF_IF( __VA_ARGS__ )
+#define LOG_IF_ENABLED                  CYPHER_LOG_IF_ENABLED
+#define LOG                             CYPHER_LOG
+#define LOGF                            CYPHER_LOGF
+#define LOGF_IF                         CYPHER_LOGF_IF
 
-#define LOG_TRACE( ... )                CYPHER_LOG_TRACE( __VA_ARGS__ )
-#define LOG_DEBUG( ... )                CYPHER_LOG_DEBUG( __VA_ARGS__ )
-#define LOG_INFO( ... )                 CYPHER_LOG_INFO( __VA_ARGS__ )
-#define LOG_WARNING( ... )              CYPHER_LOG_WARNING( __VA_ARGS__ )
-#define LOG_ERROR( ... )                CYPHER_LOG_ERROR( __VA_ARGS__ )
-#define LOG_FATAL( ... )                CYPHER_LOG_FATAL( __VA_ARGS__ )
+#define LOG_TRACE                       CYPHER_LOG_TRACE
+#define LOG_DEBUG                       CYPHER_LOG_DEBUG
+#define LOG_INFO                        CYPHER_LOG_INFO
+#define LOG_WARNING                     CYPHER_LOG_WARNING
+#define LOG_ERROR                       CYPHER_LOG_ERROR
+#define LOG_FATAL                       CYPHER_LOG_FATAL
 
-#define LOG_INFO_MESSAGE( ... )         CYPHER_LOG_INFO_MESSAGE( __VA_ARGS__ )
-#define LOG_WARNING_MESSAGE( ... )      CYPHER_LOG_WARNING_MESSAGE( __VA_ARGS__ )
-#define LOG_ERROR_MESSAGE( ... )        CYPHER_LOG_ERROR_MESSAGE( __VA_ARGS__ )
-#define LOG_CHECK( ... )                CYPHER_LOG_CHECK( __VA_ARGS__ )
+#define LOG_INFO_MESSAGE                CYPHER_LOG_INFO_MESSAGE
+#define LOG_WARNING_MESSAGE             CYPHER_LOG_WARNING_MESSAGE
+#define LOG_ERROR_MESSAGE               CYPHER_LOG_ERROR_MESSAGE
+#define LOG_CHECK                       CYPHER_LOG_CHECK
 
 #endif // CYPHER_ENGINE_LOG_H
