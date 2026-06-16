@@ -69,6 +69,21 @@ bool HasDirectoryEntry(
     return false;
 }
 
+bool HasWatchEvent(
+    const fs::watch_event_t *events,
+    const cypher::engine::common::u32 event_count,
+    const fs::watch_event_type_t type,
+    const char *virtual_path )
+{
+    for ( cypher::engine::common::u32 i = 0u; i < event_count; ++i ) {
+        if ( events[i].type == type && std::strcmp( events[i].virtual_path, virtual_path ) == 0 ) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool TraceResolvedThroughMount( const fs::resolve_trace_t &trace, const fs::mount_handle_t mount )
 {
     if ( !trace.resolved ) {
@@ -578,10 +593,42 @@ int main()
     if ( !CheckError( fs::CypherFileSystem_ReadAsync( "profiles/player1/config.cfg", read_buffer, sizeof( read_buffer ), request ), fs::fs_error_t::ERR_NOT_IMPLEMENTED, "read async not implemented" ) ) {
         return 1;
     }
-    fs::watch_event_t events[4]{};
-    if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 4u, entry_count ), fs::fs_error_t::ERR_NOT_IMPLEMENTED, "poll changes not implemented" ) ) {
+
+    fs::watch_handle_t watch = fs::CYPHER_FILESYSTEM_INVALID_WATCH;
+    if ( !CheckError( fs::CypherFileSystem_WatchPath( "profiles/player1", fs::CYPHER_FILESYSTEM_WATCH_DIRECTORY, watch ), fs::fs_error_t::OK, "watch directory" ) ) {
         return 1;
     }
+    if ( !Check( watch != fs::CYPHER_FILESYSTEM_INVALID_WATCH, "watch handle assigned" ) ) {
+        return 1;
+    }
+
+    fs::watch_event_t events[8]{};
+    cypher::engine::common::u32 watch_event_count = 0u;
+    if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 8u, watch_event_count ), fs::fs_error_t::OK, "poll unchanged watch" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_WriteEntireFile( "profiles/player1/watched.cfg", text, std::strlen( text ) ), fs::fs_error_t::OK, "write watched file" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 8u, watch_event_count ), fs::fs_error_t::OK, "poll created watch file" ) ) {
+        return 1;
+    }
+    if ( !Check( HasWatchEvent( events, watch_event_count, fs::watch_event_type_t::CREATED, "profiles/player1/watched.cfg" ), "watch reports created file" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_DeleteFile( "profiles/player1/watched.cfg" ), fs::fs_error_t::OK, "delete watched file" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 8u, watch_event_count ), fs::fs_error_t::OK, "poll deleted watch file" ) ) {
+        return 1;
+    }
+    if ( !Check( HasWatchEvent( events, watch_event_count, fs::watch_event_type_t::DELETED, "profiles/player1/watched.cfg" ), "watch reports deleted file" ) ) {
+        return 1;
+    }
+    if ( !CheckError( fs::CypherFileSystem_UnwatchPath( watch ), fs::fs_error_t::OK, "unwatch directory" ) ) {
+        return 1;
+    }
+
     if ( !CheckError( fs::CypherFileSystem_MountPackage( "", "pak0.pak", fs::CYPHER_FILESYSTEM_MOUNT_READ_ONLY | fs::CYPHER_FILESYSTEM_MOUNT_OPTIONAL, 0u ), fs::fs_error_t::OK, "optional missing package mount" ) ) {
         return 1;
     }
