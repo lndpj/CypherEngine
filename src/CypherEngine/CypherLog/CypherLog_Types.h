@@ -25,7 +25,7 @@ enum class level_t : common::u8 {
 	DEBUG,
 	INFO,
 	WARNING,
-	ERROR,
+	ERR,
 	FATAL,
     COUNT
 };
@@ -190,7 +190,7 @@ constexpr inline const char *CypherLog_LevelName( const level_t log_level ) {
         case level_t::DEBUG:        return "DEBUG";
         case level_t::INFO:         return "INFO";
         case level_t::WARNING:      return "WARNING";
-        case level_t::ERROR:        return "ERROR";
+        case level_t::ERR:          return "ERROR";
         case level_t::FATAL:        return "FATAL";
         default:                    return "UNKNOWN";
 	}
@@ -276,7 +276,7 @@ constexpr inline common::com_u32 CypherLog_DefaultSinkMaskForLevel( level_t leve
         mask = CypherLog_SinkMaskAdd( mask, sink_flag_t::ERROR_FILE );
     }
 
-    if ( CypherLog_LevelPasses( level, level_t::ERROR ) ) {
+    if ( CypherLog_LevelPasses( level, level_t::ERR ) ) {
         mask = CypherLog_SinkMaskAdd( mask, sink_flag_t::CRASH_BUFFER );
     }
 
