@@ -4,11 +4,49 @@
 #pragma once
 
 #include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
+#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
 
 #include <mutex>
 
 namespace cypher::engine::fs
 {
+
+/*
+================
+Watch filesystem runtime structs
+
+Used for building up the watch structs and entires for communicating with the OS watching.
+================
+*/
+struct watch_snapshot_entry_t {
+    bool exists{ false };
+    bool is_directory{ false };
+    common::u64 size{ 0u };
+    std::time_t modified_time{};
+    char virtual_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char physical_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+};
+
+struct watch_t {
+    watch_handle_t handle{ CYPHER_FILESYSTEM_INVALID_WATCH };
+    common::u32 flags{ CYPHER_FILESYSTEM_WATCH_NONE };
+
+    char virtual_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char physical_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+
+    watch_snapshot_entry_t snapshot[CYPHER_FILESYSTEM_MAX_WATCH_SNAPSHOT_ENTRIES]{};
+    common::u32 snapshot_count{ 0u };
+
+#ifdef CYPHER_PLATFORM_WINDOWS
+    void *native_handle{ nullptr };
+#elif defined( CYPHER_PLATFORM_LINUX )
+    int native_fd{ -1 };
+    int native_watch{ -1 };
+#elif defined( CYPHER_PLATFORM_MACOS )
+    int native_fd{ -1 };
+#endif
+
+};
 
 /*
 ================
@@ -24,6 +62,18 @@ struct runtime_state_t {
     mount_handle_t next_mount_handle{ 1u };
     char write_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
     stats_t stats{};
+
+    /*
+     * File watching elements.
+     */
+    watch_t watches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
+    common::u32 watch_count{ 0u };
+    watch_handle_t next_watch_handle{ 1u };
+
+    watch_event_t watch_events[CYPHER_FILESYSTEM_MAX_WATCH_EVENTS]{};
+    common::u32 watch_event_read_index{ 0u };
+    common::u32 watch_event_write_index{ 0u };
+    common::u32 watch_event_count{ 0u };
 };
 
 struct resolved_file_t {
