@@ -69,6 +69,7 @@ struct runtime_state_t {
     watch_t watches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
     common::u32 watch_count{ 0u };
     watch_handle_t next_watch_handle{ 1u };
+    watch_t watch_scratch{};
 
     watch_event_t watch_events[CYPHER_FILESYSTEM_MAX_WATCH_EVENTS]{};
     common::u32 watch_event_read_index{ 0u };
