@@ -108,6 +108,17 @@ static watch_handle_t AllocateWatchHandle( runtime_state_t &state )
     return handle;
 }       // AllocateWatchHandle
 
+static void ResetWatch( watch_t &watch )
+{
+    std::memset( &watch, 0, sizeof( watch ) );
+#if defined( CYPHER_PLATFORM_LINUX )
+    watch.native_fd = -1;
+    watch.native_watch = -1;
+#elif defined( CYPHER_PLATFORM_MACOS )
+    watch.native_fd = -1;
+#endif
+}       // ResetWatch
+
 static bool CopyString( char *out, common::u32 out_size, const char *text )
 {
     if ( out == nullptr || out_size == 0u || text == nullptr ) {
@@ -261,7 +272,7 @@ fs_error_t CypherFileSystem_WatchPath(
         }
     }
     watch_t &watch = state.watches[state.watch_count];
-    watch = watch_t{};
+    ResetWatch( watch );
     watch.handle = AllocateWatchHandle( state );
     watch.flags = flags;
 
@@ -272,7 +283,7 @@ fs_error_t CypherFileSystem_WatchPath(
     }
     result = BuildWatchSnapshot( watch );
     if ( result != fs_error_t::OK ) {
-        watch = watch_t{};
+        ResetWatch( watch );
         return result;
     }
     ++state.watch_count;
@@ -300,7 +311,7 @@ fs_error_t CypherFileSystem_UnwatchPath( watch_handle_t watch_handle )
                 state.watches[j] = state.watches[j + 1];
             }
             --state.watch_count;
-            state.watches[state.watch_count] = watch_t{};
+            ResetWatch( state.watches[state.watch_count] );
             return fs_error_t::OK;
         }
     }
@@ -324,7 +335,7 @@ fs_error_t CypherFileSystem_PollChanges(
     for ( common::u32 watch_idx = 0; watch_idx < state.watch_count; ++watch_idx ) {
         watch_t &old_watch = state.watches[watch_idx];
         watch_t &new_watch = state.watch_scratch;
-        new_watch = watch_t{};
+        ResetWatch( new_watch );
         new_watch.handle = old_watch.handle;
         new_watch.flags = old_watch.flags;
         if ( !CopyString( new_watch.virtual_path, sizeof( new_watch.virtual_path ), old_watch.virtual_path ) ||
