@@ -253,6 +253,6 @@ vec4_t CypherMath_Vec4Min( const vec4_t &v1, const vec4_t &v2 );
 
 vec4_t CypherMath_Vec4Max( const vec4_t &v1, const vec4_t &v2 );
 
-} // namespace cypher::engine::math
+}       // namespace cypher::engine::math
 
-#endif // CYPHER_ENGINE_MATH_VEC_H
+#endif  // CYPHER_ENGINE_MATH_VEC_H
