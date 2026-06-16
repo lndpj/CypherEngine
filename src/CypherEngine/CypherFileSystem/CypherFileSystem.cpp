@@ -188,15 +188,15 @@ CypherFileSystem_OpenModeToCMode
 static const char *CypherFileSystem_OpenModeToCMode( const open_mode_t mode ) {
 	switch ( mode ) {
 	case open_mode_t::READ_TEXT:
-		return "r";
+		return "rb";
 	case open_mode_t::READ_BINARY:
 		return "rb";
 	case open_mode_t::WRITE_TEXT:
-		return "w";
+		return "wb";
 	case open_mode_t::WRITE_BINARY:
 		return "wb";
 	case open_mode_t::APPEND_TEXT:
-		return "a";
+		return "ab";
 	case open_mode_t::APPEND_BINARY:
 		return "ab";
 	default:
