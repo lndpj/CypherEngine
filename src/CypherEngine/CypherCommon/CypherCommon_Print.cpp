@@ -127,7 +127,7 @@ void CypherCommon_VErrorf( const error_t error, const char *message, va_list arg
 
     if ( log::CypherLog_IsInitialized() ) {
         log::record_t record{};
-        record.level = log::level_t::ERROR;
+        record.level = log::level_t::ERR;
         record.channel = CypherCommon_LogChannelForDomain( domain );
         record.sink_mask = log::CypherLog_DefaultSinkMaskForLevel( record.level );
         record.file = "";
