@@ -445,7 +445,7 @@ fs_error_t CypherFileSystem_TraceResolve( const char *virtual_path, resolve_trac
     runtime_state_t &state = CypherFileSystem_RuntimeState();
     std::lock_guard<std::recursive_mutex> lock( CypherFileSystem_RuntimeMutex() );
 
-    out_trace = {};
+    out_trace = resolve_trace_t{};
 
     if ( !state.initialized ) {
         out_trace.result = fs_error_t::ERR_NOT_INIT;
