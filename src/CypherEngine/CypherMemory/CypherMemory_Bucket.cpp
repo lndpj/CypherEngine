@@ -180,7 +180,7 @@ mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buck
 
     const arena_marker_t init_marker = CypherMemory_ArenaGetMarker( *bucket_desc.arena );
 
-    bucket = {};
+    bucket = bucket_t{};
     bucket.name = bucket_desc.name;
     bucket.arena = bucket_desc.arena;
     bucket.class_count = bucket_desc.class_count;
@@ -197,7 +197,7 @@ mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buck
                 CypherMemory_PoolShutdown( bucket.classes[shutdown_index].pool );
             }
             CypherMemory_ArenaRewind( *bucket_desc.arena, init_marker );
-            bucket = {};
+            bucket = bucket_t{};
             return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_CAPACITY, "invalid bucket class configuration" );
         }
 
@@ -220,7 +220,7 @@ mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &buck
                 CypherMemory_PoolShutdown( bucket.classes[shutdown_index].pool );
             }
             CypherMemory_ArenaRewind( *bucket_desc.arena, init_marker );
-            bucket = {};
+            bucket = bucket_t{};
             return CypherMemory_BucketFailInit( bucket, bucket_desc, pool_result, CypherMemory_ErrorDesc( pool_result ) );
         }
     }
@@ -258,7 +258,7 @@ void CypherMemory_BucketShutdown( bucket_t &bucket )
         CypherMemory_PoolShutdown( bucket.classes[class_index].pool );
     }
 
-    bucket = {};
+    bucket = bucket_t{};
 }
 
 void CypherMemory_BucketReset( bucket_t &bucket )
