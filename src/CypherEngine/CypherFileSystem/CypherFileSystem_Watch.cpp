@@ -260,7 +260,8 @@ fs_error_t CypherFileSystem_WatchPath(
             return fs_error_t::ERR_ALREADY_EXISTS;
         }
     }
-    watch_t watch{};
+    watch_t &watch = state.watches[state.watch_count];
+    watch = watch_t{};
     watch.handle = AllocateWatchHandle( state );
     watch.flags = flags;
 
@@ -271,9 +272,9 @@ fs_error_t CypherFileSystem_WatchPath(
     }
     result = BuildWatchSnapshot( watch );
     if ( result != fs_error_t::OK ) {
+        watch = watch_t{};
         return result;
     }
-    state.watches[state.watch_count] = watch;
     ++state.watch_count;
     out_watch = watch.handle;
 
@@ -299,7 +300,7 @@ fs_error_t CypherFileSystem_UnwatchPath( watch_handle_t watch_handle )
                 state.watches[j] = state.watches[j + 1];
             }
             --state.watch_count;
-            state.watches[state.watch_count] = {};
+            state.watches[state.watch_count] = watch_t{};
             return fs_error_t::OK;
         }
     }
@@ -322,7 +323,15 @@ fs_error_t CypherFileSystem_PollChanges(
     }
     for ( common::u32 watch_idx = 0; watch_idx < state.watch_count; ++watch_idx ) {
         watch_t &old_watch = state.watches[watch_idx];
-        watch_t new_watch = state.watches[watch_idx];
+        watch_t &new_watch = state.watch_scratch;
+        new_watch = watch_t{};
+        new_watch.handle = old_watch.handle;
+        new_watch.flags = old_watch.flags;
+        if ( !CopyString( new_watch.virtual_path, sizeof( new_watch.virtual_path ), old_watch.virtual_path ) ||
+             !CopyString( new_watch.physical_path, sizeof( new_watch.physical_path ), old_watch.physical_path ) )
+        {
+            return fs_error_t::ERR_BUFFER_TOO_SMALL;
+        }
         fs_error_t result = BuildWatchSnapshot( new_watch );
         if ( result != fs_error_t::OK ) {
             return result;
@@ -401,7 +410,10 @@ fs_error_t CypherFileSystem_PollChanges(
                 ++out_event_count;
             }
         }
-        old_watch = new_watch;
+        old_watch.snapshot_count = new_watch.snapshot_count;
+        for ( common::u32 snapshot_idx = 0; snapshot_idx < new_watch.snapshot_count; ++snapshot_idx ) {
+            old_watch.snapshot[snapshot_idx] = new_watch.snapshot[snapshot_idx];
+        }
     }
     return fs_error_t::OK;
 }
