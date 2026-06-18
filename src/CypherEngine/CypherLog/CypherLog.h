@@ -62,7 +62,7 @@ Capture source file, function and line while keeping call sites compact.
         const cypher::engine::log::channel_t cypher_log_channel_ = ( LOG_CHANNEL );                               \
         if ( cypher::engine::log::CypherLog_LevelEnabled( cypher_log_level_, cypher_log_channel_ ) ) {            \
             cypher::engine::log::CypherLog_Emitf(                                                                 \
-                cypher_log_level_, cypher_log_channel_, __FILE__, __func__, __LINE__, "%s", ( LOG_MESSAGE ) );   \
+                cypher_log_level_, cypher_log_channel_, __FILE__, __func__, __LINE__, "%s", ( LOG_MESSAGE ) );    \
         }                                                                                                         \
     } while ( false )
 
