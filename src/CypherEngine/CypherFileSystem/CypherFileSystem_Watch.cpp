@@ -1,3 +1,4 @@
+#include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
 #include "CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.h"
 #include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
 
@@ -7,10 +8,41 @@
 #include <filesystem>       // for std::filesystem::exists and etc...
 #include <system_error>     // for error_codes etc...
 
+// @Windows Including and Checking
+#if defined( CYPHER_PLATFORM_WINDOWS )
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <windows.h>
+#endif
+
 namespace cypher::engine::fs
 {
 
 namespace {
+
+#if defined( CYPHER_PLATFORM_WINDOWS )
+
+struct windows_watch_t {
+    bool used{ false };                                      // is this current watch in use or not.
+    HANDLE directory_handle{ INVALID_HANDLE_VALUE };                        // Windows OS directory handle for kernel/user object
+    HANDLE event_handle{ nullptr };                            // native Windows OS event handle reference for kernel/
+                                                    // user object
+    OVERLAPPED overlapped{};                          //
+    unsigned char buffer[64u * 1024u]{};            // buffer into which the changes will be written
+    bool read_pending{ false };                     // one currently active ReadDirectoryChangesW
+    bool watch_file{ false };
+
+    char watch_physical_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char watch_virtual_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char file_filter[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+
+    char pending_rename_old_virtual[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    bool pending_rename{ false };
+};
+
+static windows_watch_t g_windows_watches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
+
+#endif
 
 static fs_error_t ResolveWatchPhysicalPath( runtime_state_t &state,
                                             const char *virtual_path,
@@ -84,6 +116,9 @@ static fs_error_t ValidateWatchFlags( common::u32 flags, bool is_directory )
     const bool wants_file = ( flags & CYPHER_FILESYSTEM_WATCH_FILE ) != 0u;
     const bool wants_directory = ( flags & CYPHER_FILESYSTEM_WATCH_DIRECTORY ) != 0u;
     const bool wants_recursive = ( flags & CYPHER_FILESYSTEM_WATCH_RECURSIVE ) != 0u;
+    if ( !wants_file && !wants_directory ) {
+        return fs_error_t::ERR_INVALID_FLAGS;
+    }
     if ( wants_file && wants_directory ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
@@ -233,6 +268,200 @@ fs_error_t BuildWatchSnapshot( watch_t &watch )
     return fs_error_t::OK;
 }
 
+// @WindowsAPI Implementations ~ Karlo 17.06.2026
+#if defined( CYPHER_PLATFORM_WINDOWS )
+
+static void WindowsResetNativeWatch( windows_watch_t &win_watch )
+{
+    win_watch                   = {};
+    win_watch.directory_handle  = INVALID_HANDLE_VALUE;
+    win_watch.event_handle      = nullptr;
+}
+
+static windows_watch_t *WindowsAllocateNativeWatch()
+{
+    for ( common::u32 i = 0; i < CYPHER_FILESYSTEM_MAX_WATCHES; ++i )
+    {
+        windows_watch_t &win_watch = g_windows_watches[i];
+        if ( !win_watch.used ) {
+            WindowsResetNativeWatch( win_watch );
+            win_watch.used = true;
+            return &win_watch;
+        }
+    }
+    return nullptr;
+}
+
+static windows_watch_t *WindowsGetNativeWatch( watch_t &watch )
+{
+    return static_cast<windows_watch_t *>( watch.native_handle );
+}
+
+static fs_error_t WindowsUtf8ToWide( const char *text, wchar_t *out, common::u32 out_size )
+{
+    if ( text == nullptr || out == nullptr || out_size == 0u ) {
+        return fs_error_t::ERR_INVALID_ARGUMENT;
+    }
+    const int result = MultiByteToWideChar( CP_UTF8, MB_ERR_INVALID_CHARS, text, -1, out, static_cast<int>( out_size ) );
+    if ( result == 0 ) {
+        return fs_error_t::ERR_INVALID_PATH;
+    }
+
+    return fs_error_t::OK;
+}
+
+static void WindowsDestroyNativeWatch( watch_t &watch )
+{
+    windows_watch_t *win_watch = WindowsGetNativeWatch( watch );
+    if ( win_watch == nullptr ) {
+        return ;
+    }
+    if ( win_watch->read_pending && win_watch->directory_handle != INVALID_HANDLE_VALUE ) {
+        CancelIoEx( win_watch->directory_handle, &win_watch->overlapped );
+        win_watch->read_pending = false;
+    }
+    if ( win_watch->event_handle != nullptr ) {
+        CloseHandle( win_watch->event_handle );
+    }
+    if ( win_watch->directory_handle != INVALID_HANDLE_VALUE ) {
+        CloseHandle( win_watch->directory_handle );
+    }
+    WindowsResetNativeWatch( *win_watch );
+    watch.native_handle = nullptr;
+    return ;
+}
+
+static fs_error_t WindowsArmNativeWatch( watch_t &watch )
+{
+    windows_watch_t *win_watch = WindowsGetNativeWatch( watch );
+    if ( win_watch == nullptr || !win_watch->used ) {
+        return fs_error_t::ERR_INVALID_HANDLE;
+    }
+    if ( win_watch->read_pending ) {
+        return fs_error_t::OK;
+    }
+
+    std::memset( &win_watch->overlapped, 0, sizeof( win_watch->overlapped ) );
+    std::memset( win_watch->buffer, 0, sizeof( win_watch->buffer ) );
+
+    ResetEvent( win_watch->event_handle );
+    win_watch->overlapped.hEvent = win_watch->event_handle;
+
+    const BOOL recursive = ( watch.flags & CYPHER_FILESYSTEM_WATCH_RECURSIVE ) != 0u ? TRUE : FALSE;
+    const DWORD filter = FILE_NOTIFY_CHANGE_FILE_NAME   |
+                         FILE_NOTIFY_CHANGE_DIR_NAME    |
+                         FILE_NOTIFY_CHANGE_ATTRIBUTES  |
+                         FILE_NOTIFY_CHANGE_SIZE        |
+                         FILE_NOTIFY_CHANGE_LAST_WRITE  |
+                         FILE_NOTIFY_CHANGE_CREATION;
+    const BOOL ok = ReadDirectoryChangesW(
+                    win_watch->directory_handle,
+                    win_watch->buffer,
+                    sizeof( win_watch->buffer ),
+                    recursive,
+                    filter,
+                    nullptr,
+                    &win_watch->overlapped,
+                    nullptr
+                    );
+    if ( !ok ) {
+        const DWORD error = GetLastError();
+        if ( error != ERROR_IO_PENDING ) {
+            return fs_error_t::ERR_IO_ERROR;
+        }
+    }
+    win_watch->read_pending = true;
+    return fs_error_t::OK;
+}
+
+static fs_error_t WindowsCreateNativeWatch( watch_t &watch )
+{
+    windows_watch_t *win_watch = WindowsAllocateNativeWatch();
+    if ( win_watch == nullptr ) {
+        return fs_error_t::ERR_TOO_MANY_WATCHES;
+    }
+    watch.native_handle = win_watch;
+
+    const bool watch_is_file = ( watch.flags & CYPHER_FILESYSTEM_WATCH_FILE ) != 0u;
+    const bool watch_is_directory = ( watch.flags & CYPHER_FILESYSTEM_WATCH_DIRECTORY ) != 0u;
+
+    if ( watch_is_file ) {
+        std::filesystem::path physical_path( watch.physical_path );
+        std::string physical_parent = physical_path.parent_path().string();
+        if ( !CopyString( win_watch->watch_physical_path, sizeof( win_watch->watch_physical_path ), physical_parent.c_str() ) ) {
+            WindowsDestroyNativeWatch( watch );
+            return fs_error_t::ERR_BUFFER_TOO_SMALL;
+        }
+        fs_error_t dirname_result = CypherFileSystem_PathDirname( watch.virtual_path, win_watch->watch_virtual_path, sizeof( win_watch->watch_virtual_path ) );
+        if ( dirname_result != fs_error_t::OK ) {
+            WindowsDestroyNativeWatch( watch );
+            return dirname_result;
+        }
+        const char *basename = CypherFileSystem_PathBasename( watch.virtual_path );
+        if ( basename == nullptr || basename[0] == '\0' ) {
+            WindowsDestroyNativeWatch( watch );
+            return fs_error_t::ERR_INVALID_PATH;
+        }
+        if ( !CopyString( win_watch->file_filter, sizeof( win_watch->file_filter ), basename ) ) {
+            WindowsDestroyNativeWatch( watch );
+            return fs_error_t::ERR_BUFFER_TOO_SMALL;
+        }
+        win_watch->watch_file = true;
+    } else if ( watch_is_directory ) {
+        if ( !CopyString( win_watch->watch_physical_path, sizeof( win_watch->watch_physical_path ), watch.physical_path ) ||
+             !CopyString( win_watch->watch_virtual_path, sizeof( win_watch->watch_virtual_path ), watch.virtual_path ) ) {
+            WindowsDestroyNativeWatch( watch );
+            return fs_error_t::ERR_BUFFER_TOO_SMALL;
+        }
+        win_watch->file_filter[0] = '\0';
+        win_watch->watch_file = false;
+    } else {
+        WindowsDestroyNativeWatch( watch );
+        return fs_error_t::ERR_INVALID_FLAGS;
+    }
+
+    wchar_t wide_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    fs_error_t wide_result = WindowsUtf8ToWide(
+        win_watch->watch_physical_path,
+        wide_path,
+        static_cast<common::u32>( sizeof( wide_path ) / sizeof( wide_path[0] ) ) );
+
+    if ( wide_result != fs_error_t::OK ) {
+        WindowsDestroyNativeWatch( watch );
+        return wide_result;
+    }
+
+    win_watch->directory_handle = CreateFileW(
+        wide_path,
+        FILE_LIST_DIRECTORY,
+        FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+        nullptr,
+        OPEN_EXISTING,
+        FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+        nullptr );
+
+    if ( win_watch->directory_handle == INVALID_HANDLE_VALUE ) {
+        WindowsDestroyNativeWatch( watch );
+        return fs_error_t::ERR_IO_ERROR;
+    }
+
+    win_watch->event_handle = CreateEventW( nullptr, TRUE, FALSE, nullptr );
+    if ( win_watch->event_handle == nullptr ) {
+        WindowsDestroyNativeWatch( watch );
+        return fs_error_t::ERR_IO_ERROR;
+    }
+
+    fs_error_t arm_result = WindowsArmNativeWatch( watch );
+    if ( arm_result != fs_error_t::OK ) {
+        WindowsDestroyNativeWatch( watch );
+        return arm_result;
+    }
+
+    return fs_error_t::OK;
+}
+
+#endif
+
 }           // namespace
 
 fs_error_t CypherFileSystem_WatchPath(
@@ -286,6 +515,15 @@ fs_error_t CypherFileSystem_WatchPath(
         ResetWatch( watch );
         return result;
     }
+
+#if defined( CYPHER_PLATFORM_WINDOWS )
+    result = WindowsCreateNativeWatch( watch );
+    if ( result != fs_error_t::OK ) {
+        ResetWatch( watch );
+        return result;
+    }
+#endif
+
     ++state.watch_count;
     out_watch = watch.handle;
 
@@ -306,6 +544,9 @@ fs_error_t CypherFileSystem_UnwatchPath( watch_handle_t watch_handle )
     for ( common::u32 i = 0; i < state.watch_count; ++i ) {
         watch_t &watch = state.watches[i];
         if ( watch.handle == watch_handle ) {
+#if defined( CYPHER_PLATFORM_WINDOWS )
+            WindowsDestroyNativeWatch( watch );
+#endif
             // @note -> shift all the watches and fill the holes
             for ( common::u32 j = i; j + 1 < state.watch_count; ++j ) {
                 state.watches[j] = state.watches[j + 1];
