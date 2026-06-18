@@ -2,6 +2,40 @@
 
 All notable changes to CypherEngine and the REAP game/runtime direction are tracked here.
 
+## [0.1.0] - 2026-06-04 to 2026-06-18
+
+### Added
+- Added the CypherMemory allocator foundation with arena, pool, bucket, scratch, and thread-aware allocation paths.
+- Added filesystem path normalization, root normalization, path joining, basename, dirname, extension, and extension-stripping helpers.
+- Added VFS directory and discovery APIs for create, delete, remove tree, rename, copy, exists, file info, directory listing, and find-file workflows.
+- Added VFS mount handles, mount priority ordering, mount inspection, unmounting, and trace-resolve diagnostics.
+- Added package-backed VFS reads through CypherPak integration, including package mount, unmount, package info, package file open/read/seek/tell, directory listing, find, and copy-out behavior.
+- Added filesystem watch API coverage with snapshot-based polling for created, modified, and deleted loose-file changes.
+- Added Windows native file-watch groundwork using `ReadDirectoryChangesW`, fixed native watch slot storage, directory handle creation, async event creation, overlapped state, watch arming, and native cleanup on unwatch.
+- Added GitHub Actions CI coverage across Windows, macOS, and Ubuntu with Debug/Release builds, CTest execution, and Ubuntu sanitizer coverage.
+
+### Changed
+- Renamed common log/print usage toward shorter engine-facing macros and helpers.
+- Tightened subsystem error naming so filesystem, memory, pak, render, host, command, cvar, config, and common errors remain distinct.
+- Strengthened the VFS write path model so writes resolve through the configured write root while reads resolve through mounted roots and package overlays.
+- Improved package/VFS overlay behavior so higher-priority package content can override loose mounted content while still falling back after unmount.
+- Updated CI to use modern checkout, explicit permissions, concurrency cancellation, stricter CTest failure handling, and platform dependency setup.
+- Kept native platform code behind platform macros while preserving the public VFS API as platform-neutral.
+
+### Fixed
+- Fixed cross-platform CI failures from compiler differences, Windows CRT text-mode translation, Linux dependencies, and overly large temporary filesystem watch state.
+- Fixed VFS watch cleanup so active watches are unwatched before filesystem shutdown clears runtime state.
+- Fixed watch flag validation so recursive watching must still specify a file or directory watch mode.
+- Fixed package file handle behavior for read, seek, tell, EOF reads, permission-denied writes, and package unmount fallback.
+
+### Verified
+- Verified filesystem and package smoke tests locally.
+- Verified CI passing across Windows, macOS, Ubuntu, Release/Debug, and Ubuntu ASan/UBSan jobs.
+
+### Notes
+- Native Windows watching is now created and armed, but event parsing still needs to convert `FILE_NOTIFY_INFORMATION` records into engine `watch_event_t` records.
+- Linux `inotify`, macOS native watching, and async filesystem IO remain the next VFS work items.
+
 ## [0.1.0] - 2026-06-13
 
 ### Added
