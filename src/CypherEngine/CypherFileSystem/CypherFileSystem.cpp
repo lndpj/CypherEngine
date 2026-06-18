@@ -107,6 +107,10 @@ fs_error_t CypherFileSystem_Shutdown() {
 		return fs_error_t::ERR_NOT_INIT;
 	}
 	LOG_INFO( log::channel_t::FS, "filesystem shutdown: mounts=%u.", state.mount_count );
+	while ( state.watch_count > 0u ) {
+		const watch_handle_t watch = state.watches[0].handle;
+		( void )CypherFileSystem_UnwatchPath( watch );
+	}
 	while ( state.mount_count > 0u ) {
 		const mount_handle_t mount = state.mounts[0].handle;
 		( void )CypherFileSystem_Unmount( mount );
