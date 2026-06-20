@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
+#include "CypherFileSystem.h"
+#include "CypherSystem_Platform.h"
 
 #include <future>
 #include <mutex>
