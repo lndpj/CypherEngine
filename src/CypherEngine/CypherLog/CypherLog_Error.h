@@ -82,7 +82,7 @@ constexpr inline const char *CypherLog_ErrorDesc( const log_error_t error ) {
 }
 
 constexpr inline common::error_t CypherLog_ErrorCode( log_error_t error ) {
-    return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_LOG, static_cast<common::com_u16>( error ) );
+    return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_LOG, static_cast<common::u16>( error ) );
 }
 
 }
