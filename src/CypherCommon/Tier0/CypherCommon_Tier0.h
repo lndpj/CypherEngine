@@ -12,7 +12,8 @@ but it must not depend on any CypherEngine subsystem.
 ================
 */
 
-#include "CypherCommon/Tier0/CypherCommon_Platform.h"
-#include "CypherCommon/Tier0/CypherCommon_BaseTypes.h"
+#include "CypherCommon_Platform.h"
+#include "CypherCommon_BaseTypes.h"
+#include "CypherCommon_Defines.h"
 
 #endif // CYPHER_COMMON_TIER0_H
