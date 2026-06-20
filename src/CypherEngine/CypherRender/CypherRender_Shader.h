@@ -26,18 +26,18 @@ Shader Types
 ================
 */
 struct shader_t {
-    common::com_u32 shader_id{ 0 };
+    common::u32 nShaderId{ 0 };
     char name[CYPHER_RENDER_MAX_SHADER_NAME]{};
-    char vertex_path[CYPHER_RENDER_MAX_SHADER_PATH]{};
-    char fragment_path[CYPHER_RENDER_MAX_SHADER_PATH]{};
+    char szVertexPath[CYPHER_RENDER_MAX_SHADER_PATH]{};
+    char szFragmentPath[CYPHER_RENDER_MAX_SHADER_PATH]{};
 
-    common::u32 gl_shader_program_id{ 0 };
+    common::u32 nGlShaderProgramId{ 0 };
     bool loaded{ false };
 };
 
 struct shader_registry_t {
     shader_t shaders[CYPHER_RENDER_MAX_SHADERS]{};
-    common::u32 shader_count{ 0 };
+    common::u32 nShaderCount{ 0 };
 };
 
 /*
@@ -45,11 +45,11 @@ struct shader_registry_t {
 Shader Registry API
 ================
 */
-void CypherRender_ShaderRegistryInit( shader_registry_t &shader_registry );
+void CypherRender_ShaderRegistryInit( shader_registry_t &szShaderRegistry );
 
-void CypherRender_ShaderRegistryShutdown( shader_registry_t &shader_registry );
+void CypherRender_ShaderRegistryShutdown( shader_registry_t &szShaderRegistry );
 
-render_error_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const char *name, const char *vertex_path, const char *fragment_path, shader_t **out_shader );
+render_error_t CypherRender_ShaderLoad( shader_registry_t &szShaderRegistry, const char *name, const char *szVertexPath, const char *szFragmentPath, shader_t **szOutShader );
 
 shader_t *CypherRender_ShaderFind( shader_registry_t &registry, const char *name );
 
@@ -57,7 +57,7 @@ render_error_t CypherRender_ShaderBind( const shader_t &shader );
 
 void CypherRender_ShaderUnload( shader_t &shader );
 
-render_error_t CypherRender_ShaderSetMat4( const shader_t &shader, const char *uniform_name, const math::mat4_t &matrix );
+render_error_t CypherRender_ShaderSetMat4( const shader_t &shader, const char *szUniformName, const math::mat4_t &matrix );
 
 }       // namespace cypher::engine::render
 
