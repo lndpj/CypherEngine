@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherFileSystem/CypherFileSystem_Error.h"
-#include "CypherEngine/CypherFileSystem/CypherFileSystem_Types.h"
+#include "CypherFileSystem_Error.h"
+#include "CypherFileSystem_Types.h"
 
 namespace cypher::engine::fs
 {
