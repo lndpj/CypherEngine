@@ -530,16 +530,31 @@ static fs_error_t WindowsUtf8ToWide( const char *text, wchar_t *out, common::u32
     return fs_error_t::OK;
 }
 
+static void WindowsFinishPendingRead( windows_watch_t &winWatch )
+{
+    if ( !winWatch.bReadPending || winWatch.hDirectory == INVALID_HANDLE_VALUE ) {
+        return;
+    }
+
+    const BOOL cancelOk = CancelIoEx( winWatch.hDirectory, &winWatch.overlapped );
+    DWORD nBytesIgnored = 0u;
+
+    if ( cancelOk ) {
+        GetOverlappedResult( winWatch.hDirectory, &winWatch.overlapped, &nBytesIgnored, TRUE );
+    } else if ( GetLastError() == ERROR_NOT_FOUND ) {
+        GetOverlappedResult( winWatch.hDirectory, &winWatch.overlapped, &nBytesIgnored, FALSE );
+    }
+
+    winWatch.bReadPending = false;
+}
+
 static void WindowsDestroyNativeWatch( watch_t &watch )
 {
     windows_watch_t *winWatch = WindowsGetNativeWatch( watch );
     if ( winWatch == nullptr ) {
         return ;
     }
-    if ( winWatch->bReadPending && winWatch->hDirectory != INVALID_HANDLE_VALUE ) {
-        CancelIoEx( winWatch->hDirectory, &winWatch->overlapped );
-        winWatch->bReadPending = false;
-    }
+    WindowsFinishPendingRead( *winWatch );
     if ( winWatch->hEvent != nullptr ) {
         CloseHandle( winWatch->hEvent );
     }
