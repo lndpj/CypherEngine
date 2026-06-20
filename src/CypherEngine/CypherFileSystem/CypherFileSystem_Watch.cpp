@@ -51,7 +51,7 @@ struct windows_watch_t {
     bool bPendingRename{ false };
 };
 
-static windows_watch_t g_WindowsWatches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
+static windows_watch_t s_WindowsWatches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
 
 #elif defined( CYPHER_PLATFORM_LINUX )
 
@@ -79,7 +79,7 @@ struct linux_watch_t {
     bool bPendingRename{ false };
 };
 
-static linux_watch_t g_LinuxWatches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
+static linux_watch_t s_LinuxWatches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
 
 #elif defined( CYPHER_PLATFORM_MACOS )
 
@@ -94,7 +94,7 @@ struct macos_watch_t {
     char szFileFilter[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
 };
 
-static macos_watch_t g_MacosWatches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
+static macos_watch_t s_MacosWatches[CYPHER_FILESYSTEM_MAX_WATCHES]{};
 
 #endif
 
@@ -501,7 +501,7 @@ static windows_watch_t *WindowsAllocateNativeWatch()
 {
     for ( common::u32 i = 0; i < CYPHER_FILESYSTEM_MAX_WATCHES; ++i )
     {
-        windows_watch_t &winWatch = g_WindowsWatches[i];
+        windows_watch_t &winWatch = s_WindowsWatches[i];
         if ( !winWatch.used ) {
             WindowsResetNativeWatch( winWatch );
             winWatch.used = true;
@@ -907,7 +907,7 @@ static void LinuxResetNativeWatch( linux_watch_t &linuxWatch )
 static linux_watch_t *LinuxAllocateNativeWatch()
 {
     for ( common::u32 i = 0; i < CYPHER_FILESYSTEM_MAX_WATCHES; ++i ) {
-        linux_watch_t &linuxWatch = g_LinuxWatches[i];
+        linux_watch_t &linuxWatch = s_LinuxWatches[i];
         if ( !linuxWatch.used ) {
             LinuxResetNativeWatch( linuxWatch );
             linuxWatch.used = true;
@@ -991,7 +991,7 @@ static fs_error_t LinuxAddRecursiveWatchDirs(
         if ( ec ) {
             return fs_error_t::ERR_IO_ERROR;
         }
-        if ( !entry.bIsDirectory( ec ) || ec ) {
+        if ( !entry.is_directory( ec ) || ec ) {
             if ( ec ) {
                 return fs_error_t::ERR_IO_ERROR;
             }
@@ -1237,7 +1237,7 @@ static void MacOSResetNativeWatch( macos_watch_t &macosWatch )
 static macos_watch_t *MacOSAllocateNativeWatch()
 {
     for ( common::u32 i = 0; i < CYPHER_FILESYSTEM_MAX_WATCHES; ++i ) {
-        macos_watch_t &macosWatch = g_MacosWatches[i];
+        macos_watch_t &macosWatch = s_MacosWatches[i];
         if ( !macosWatch.used ) {
             MacOSResetNativeWatch( macosWatch );
             macosWatch.used = true;
