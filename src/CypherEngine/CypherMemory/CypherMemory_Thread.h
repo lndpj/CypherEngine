@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Arena.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Bucket.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Pool.h"
+#include "CypherCommon.h"
+#include "CypherMemory_Arena.h"
+#include "CypherMemory_Bucket.h"
+#include "CypherMemory_Pool.h"
 
 #include <mutex>
 
