@@ -27,17 +27,17 @@ enum flags_t : common::u32 {
 
 struct cvar_t {
 	const char *name;
-	char value_string[256];
-	char default_string[256];
-	common::u32 value_int;
-	common::f32 value_float;
-	bool value_bool;
+	char valueString[256];
+	char defaultString[256];
+	common::u32 valueInt;
+	common::f32 valueFloat;
+	bool valueBool;
 	flags_t flags;
 };
 
 struct registry_t {
 	cvar_t cvars[CYPHER_CVAR_MAX_CVARS];
-	common::u32 cvar_count;
+	common::u32 nCvarCount;
 	bool initialized;
 };
 
@@ -51,7 +51,7 @@ Cvar API
 */
 cvar_error_t CypherCVar_Init();
 
-cvar_error_t CypherCVar_Register( const char *name, const char *default_value, flags_t flags );
+cvar_error_t CypherCVar_Register( const char *name, const char *defaultValue, flags_t flags );
 
 cvar_error_t CypherCVar_Set( const char *name, const char *value );
 
