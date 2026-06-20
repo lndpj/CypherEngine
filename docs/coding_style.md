@@ -15,8 +15,11 @@ hidden runtime cost.
 
 ## Naming direction
 
-CypherEngine uses CryEngine-inspired module names with low-magic C-style
-runtime APIs.
+CypherEngine uses Source/id-style low-magic C/C++ naming: explicit prefixes for
+pointer intent, counts, handles, booleans and storage lifetime. The goal is not
+to copy any engine's code. The goal is to make call sites readable in the same
+way older professional engine code is readable: the name tells you what kind of
+data you are touching before you inspect the type.
 
 Module names use `Cypher*`:
 
@@ -47,8 +50,8 @@ Implementation files keep the subsystem visible in the filename:
 - `CypherMemory_Arena.h`
 - `CypherFileSystem_Types.h`
 
-Function names currently keep explicit subsystem prefixes because the project
-uses free functions rather than large class hierarchies:
+Function names keep explicit subsystem prefixes because the project uses free
+functions rather than large class hierarchies:
 
 - `CypherMemory_ArenaAlloc`
 - `CypherRender_SubmitDrawItem`
@@ -61,13 +64,42 @@ Backend-specific functions include the backend name:
 - `CypherRenderGL_MeshCreate`
 - `CypherRenderVK_Init` later if Vulkan is added
 
+## Identifier prefixes
+
+These prefixes are now the target for new code and for subsystem migrations:
+
+- `pName`: pointer to one object or one buffer.
+- `ppName`: pointer to pointer.
+- `pszName`: pointer to a zero-terminated string.
+- `szName`: local/member fixed string buffer or string-like character array.
+- `nName`: count, size, byte count, capacity, limit or integer quantity.
+- `iName`: loop index or random-access array index.
+- `bName`: boolean predicate.
+- `flName`: floating point scalar.
+- `hName`: opaque handle.
+- `pfnName`: function pointer.
+- `m_Name`: struct/class member when the type has behavior or private-like state.
+- `g_Name`: process-global state.
+- `s_Name`: file-local static state.
+
+`sz` does not mean size. It means zero-terminated string. Sizes must use `n`,
+for example `nPathBytes`, `nBufferSize`, `nFileCount`, `nMaxEntries`.
+
+Output reference parameters use an `Out` suffix after the normal typed name,
+for example `nBytesReadOut`, `hMountOut`, `fileInfoOut` or `traceOut`.
+
+Generic record/object values and error/result temporaries use lowerCamel when no
+data-shape prefix is useful, for example `mountInfo`, `resolveTrace`,
+`buildResult` or `memoryResult`.
+
 ## Type style
 
+- fixed engine scalars: `i8`, `i16`, `i32`, `i64`, `u8`, `u16`, `u32`, `u64`, `usize`, `isize`, `byte`
 - plain engine data: `snake_case_t`
 - creation/config descriptions: `*_desc_t`
 - runtime state structs: `*_state_t`
-- public opaque handles: `*_handle_t`
-- error enums: `error_code_t`
+- public opaque handles: `*_handle_t`, with variables named `hMount`, `hFile`, `hRequest`
+- error enums: subsystem-local names such as `fs_error_t`, `pak_error_t`, `render_error_t`
 - flag bitmasks: `*_flags_t` or `CYPHER_*_FLAG_*` constants
 - enum values: `OK`, `ERR_*`, or domain-specific `NAME_*` values
 - constants/macros: `SCREAMING_SNAKE_CASE`
@@ -83,6 +115,17 @@ represent stable editor/runtime/tool contracts:
 
 Do not add an `I*` interface just because a module exists. Add it when multiple
 systems need to depend on a stable contract without knowing the implementation.
+
+## Migration rule
+
+Naming migrations must happen one subsystem at a time. Do not rename the entire
+tree with a blind text replacement. The order is:
+
+1. Root `CypherCommon` Tier0 names.
+2. Public subsystem headers.
+3. Matching implementation files.
+4. Tests.
+5. Build and run tests before moving to the next subsystem.
 
 ## Documentation rule
 
