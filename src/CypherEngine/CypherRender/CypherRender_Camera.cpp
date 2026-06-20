@@ -15,11 +15,11 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherRender/CypherRender_Camera.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherMath/CypherMath_Frustum.h"
-#include "CypherEngine/CypherMath/CypherMath_Mat.h"
-#include "CypherEngine/CypherMath/CypherMath_Quat.h"
+#include "CypherRender_Camera.h"
+#include "CypherLog.h"
+#include "CypherMath_Frustum.h"
+#include "CypherMath_Mat.h"
+#include "CypherMath_Quat.h"
 
 namespace cypher::engine::render
 {
