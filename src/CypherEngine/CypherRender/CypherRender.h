@@ -23,19 +23,19 @@ High-level renderer state. Backend-specific OpenGL details stay behind r_gl.
 */
 struct render_runtime_state_t {
     bool initialized{ false };
-    bool in_frame{ false };
-    
+    bool inFrame{ false };
+
     const sys::window_t *window{ nullptr };
-    
-    camera_t active_camera{};
-    
-    draw_list_t main_draw_list{};
-    
-    common::u32 viewport_width{ 0u };    
-    common::u32 viewport_height{ 0u };    
-    
-    gl_state_t gl_state{};
-    shader_registry_t shader_registry{};
+
+    camera_t activeCamera{};
+
+    draw_list_t mainDrawList{};
+
+    common::u32 nViewportWidth{ 0u };
+    common::u32 nViewportHeight{ 0u };
+
+    gl_state_t pGlState{};
+    shader_registry_t szShaderRegistry{};
 };
 
 /*
@@ -43,17 +43,17 @@ struct render_runtime_state_t {
 Renderer API
 ================
 */
-render_error_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &window_config );
+render_error_t CypherRender_Init( const sys::window_t &window, const host::window_config_t &pWindowConfig );
 
 void CypherRender_Shutdown();
 
-render_error_t CypherRender_BeginFrame( const common::f32 delta_time_seconds );
+render_error_t CypherRender_BeginFrame( const common::f32 nDeltaTimeSeconds );
 
 render_error_t CypherRender_RenderFrame();
 
 render_error_t CypherRender_EndFrame();
 
-render_error_t CypherRender_SubmitDrawItem( const draw_item_t &draw_item );
+render_error_t CypherRender_SubmitDrawItem( const draw_item_t &drawItem );
 
 bool CypherRender_IsInitialized();
 
