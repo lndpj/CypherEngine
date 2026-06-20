@@ -17,19 +17,19 @@ enum pak_writer_flags_t : common::u32 {
 };
 
 struct pak_writer_config_t {
-    const char *archive_path{ nullptr };
+    const char *szArchivePath{ nullptr };
     common::u32 flags{ CYPHER_PAK_WRITER_DETERMINISTIC |
                        CYPHER_PAK_WRITER_SORT_INDEX |
                        CYPHER_PAK_WRITER_WRITE_HASHES |
                        CYPHER_PAK_WRITER_FAIL_ON_DUPLICATE };
-    pak_compression_t default_compression{ pak_compression_t::NONE };
-    common::u32 data_alignment{ CYPHER_PAK_DATA_ALIGNMENT };
+    pak_compression_t defaultCompression{ pak_compression_t::NONE };
+    common::u32 nDataAlignment{ CYPHER_PAK_DATA_ALIGNMENT };
 };
 
 pak_error_t CypherPak_CreateArchive(
     const pak_writer_config_t &config,
     const pak_source_file_t *files,
-    common::u32 file_count );
+    common::u32 nFileCount );
 
 pak_error_t CypherPak_BeginWriter(
     const pak_writer_config_t &config,
