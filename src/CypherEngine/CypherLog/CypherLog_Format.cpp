@@ -33,19 +33,19 @@ const char *CypherLog_LevelColor( const level_t level )
 CypherLog_FormatTimestamp
 ================
 */
-bool CypherLog_FormatTimestamp( const record_t &record, char *out_buffer, const common::usize out_buffer_size )
+bool CypherLog_FormatTimestamp( const record_t &record, char *bufferOut, const common::usize nOutBufferSize )
 {
-    if ( out_buffer == nullptr || out_buffer_size == 0u || record.timestamp == std::time_t{} ) {
+    if ( bufferOut == nullptr || nOutBufferSize == 0u || record.timestamp == std::time_t{} ) {
         return false;
     }
 
-    std::tm tm_value{};
+    std::tm tmValue{};
 
-    if ( !sys::CypherSystem_LocalTime( record.timestamp, tm_value ) ) {
+    if ( !sys::CypherSystem_LocalTime( record.timestamp, tmValue ) ) {
         return false;
     }
 
-    return std::strftime( out_buffer, out_buffer_size, "%H:%M:%S", &tm_value ) > 0u;
+    return std::strftime( bufferOut, nOutBufferSize, "%H:%M:%S", &tmValue ) > 0u;
 }
 
 /*
@@ -55,22 +55,22 @@ CypherLog_FormatCompact
 */
 log_error_t CypherLog_FormatCompact(
     const record_t &record,
-    const sink_config_t &sink_config,
-    char *out_buffer,
-    const common::usize out_buffer_size )
+    const sink_config_t &pSinkConfig,
+    char *bufferOut,
+    const common::usize nOutBufferSize )
 {
-    const char *color_begin = sink_config.color_enabled ? CypherLog_LevelColor( record.level ) : "";
-    const char *color_end = sink_config.color_enabled ? "\033[0m" : "";
+    const char *colorBegin = pSinkConfig.bColorEnabled ? CypherLog_LevelColor( record.level ) : "";
+    const char *colorEnd = pSinkConfig.bColorEnabled ? "\033[0m" : "";
 
     const int written = std::snprintf(
-        out_buffer,
-        out_buffer_size,
+        bufferOut,
+        nOutBufferSize,
         "%s[%s][%s] %s%s\n",
-        color_begin,
+        colorBegin,
         CypherLog_LevelName( record.level ),
         CypherLog_ChannelName( record.channel ),
         record.message,
-        color_end
+        colorEnd
     );
 
     return ( written < 0 ) ? log_error_t::ERR_FORMAT_FAILED : log_error_t::OK;
@@ -83,94 +83,94 @@ CypherLog_FormatDetailed
 */
 log_error_t CypherLog_FormatDetailed(
     const record_t &record,
-    const sink_config_t &sink_config,
+    const sink_config_t &pSinkConfig,
     const config_t &config,
-    char *out_buffer,
-    const common::usize out_buffer_size )
+    char *bufferOut,
+    const common::usize nOutBufferSize )
 {
-    char timestamp_buffer[32]{};
+    char pTimestampBuffer[32]{};
 
-    if ( sink_config.include_timestamps ) {
-        CypherLog_FormatTimestamp( record, timestamp_buffer, sizeof( timestamp_buffer ) );
+    if ( pSinkConfig.bIncludeTimestamps ) {
+        CypherLog_FormatTimestamp( record, pTimestampBuffer, sizeof( pTimestampBuffer ) );
     }
 
-    const bool has_source_location = record.file != nullptr && record.file[0] != '\0';
-    const bool has_function_name = record.function != nullptr && record.function[0] != '\0';
-    const bool include_source_location = sink_config.include_source_location && has_source_location;
-    const bool include_function_name = sink_config.include_function_name && has_function_name;
+    const bool bHasSourceLocation = record.file != nullptr && record.file[0] != '\0';
+    const bool bHasFunctionName = record.function != nullptr && record.function[0] != '\0';
+    const bool bIncludeSourceLocation = pSinkConfig.bIncludeSourceLocation && bHasSourceLocation;
+    const bool bIncludeFunctionName = pSinkConfig.bIncludeFunctionName && bHasFunctionName;
 
-    const char *source_file = has_source_location ? record.file : "";
+    const char *pszSourceFile = bHasSourceLocation ? record.file : "";
 
-    if ( include_source_location && config.source_path == source_path_mode_t::BASENAME ) {
-        source_file = sys::CypherSystem_PathBasename( source_file );
+    if ( bIncludeSourceLocation && config.szSourcePath == source_path_mode_t::BASENAME ) {
+        pszSourceFile = sys::CypherSystem_PathBasename( pszSourceFile );
     }
 
-    const char *function_name = has_function_name ? record.function : "";
+    const char *szFunctionName = bHasFunctionName ? record.function : "";
 
     int written = 0;
 
-    if ( timestamp_buffer[0] != '\0' && include_source_location && include_function_name ) {
+    if ( pTimestampBuffer[0] != '\0' && bIncludeSourceLocation && bIncludeFunctionName ) {
         written = std::snprintf(
-            out_buffer,
-            out_buffer_size,
+            bufferOut,
+            nOutBufferSize,
             "[%s][%s][%s] %s:%d (%s) %s\n",
-            timestamp_buffer,
+            pTimestampBuffer,
             CypherLog_LevelName( record.level ),
             CypherLog_ChannelName( record.channel ),
-            source_file,
+            pszSourceFile,
             record.line,
-            function_name,
+            szFunctionName,
             record.message
         );
-    } else if ( timestamp_buffer[0] != '\0' && include_source_location ) {
+    } else if ( pTimestampBuffer[0] != '\0' && bIncludeSourceLocation ) {
         written = std::snprintf(
-            out_buffer,
-            out_buffer_size,
+            bufferOut,
+            nOutBufferSize,
             "[%s][%s][%s] %s:%d %s\n",
-            timestamp_buffer,
+            pTimestampBuffer,
             CypherLog_LevelName( record.level ),
             CypherLog_ChannelName( record.channel ),
-            source_file,
+            pszSourceFile,
             record.line,
             record.message
         );
-    } else if ( timestamp_buffer[0] != '\0' ) {
+    } else if ( pTimestampBuffer[0] != '\0' ) {
         written = std::snprintf(
-            out_buffer,
-            out_buffer_size,
+            bufferOut,
+            nOutBufferSize,
             "[%s][%s][%s] %s\n",
-            timestamp_buffer,
+            pTimestampBuffer,
             CypherLog_LevelName( record.level ),
             CypherLog_ChannelName( record.channel ),
             record.message
         );
-    } else if ( include_source_location && include_function_name ) {
+    } else if ( bIncludeSourceLocation && bIncludeFunctionName ) {
         written = std::snprintf(
-            out_buffer,
-            out_buffer_size,
+            bufferOut,
+            nOutBufferSize,
             "[%s][%s] %s:%d (%s) %s\n",
             CypherLog_LevelName( record.level ),
             CypherLog_ChannelName( record.channel ),
-            source_file,
+            pszSourceFile,
             record.line,
-            function_name,
+            szFunctionName,
             record.message
         );
-    } else if ( include_source_location ) {
+    } else if ( bIncludeSourceLocation ) {
         written = std::snprintf(
-            out_buffer,
-            out_buffer_size,
+            bufferOut,
+            nOutBufferSize,
             "[%s][%s] %s:%d %s\n",
             CypherLog_LevelName( record.level ),
             CypherLog_ChannelName( record.channel ),
-            source_file,
+            pszSourceFile,
             record.line,
             record.message
         );
     } else {
         written = std::snprintf(
-            out_buffer,
-            out_buffer_size,
+            bufferOut,
+            nOutBufferSize,
             "[%s][%s] %s\n",
             CypherLog_LevelName( record.level ),
             CypherLog_ChannelName( record.channel ),
@@ -188,26 +188,26 @@ CypherLog_FormatRecord
 */
 log_error_t CypherLog_FormatRecord(
     const record_t &record,
-    const sink_config_t &sink_config,
+    const sink_config_t &pSinkConfig,
     const config_t &config,
-    char *out_buffer,
-    const common::usize out_buffer_size )
+    char *bufferOut,
+    const common::usize nOutBufferSize )
 {
-    if ( out_buffer == nullptr || out_buffer_size == 0u ) {
+    if ( bufferOut == nullptr || nOutBufferSize == 0u ) {
         return log_error_t::ERR_FORMAT_FAILED;
     }
 
-    out_buffer[0] = '\0';
+    bufferOut[0] = '\0';
 
     if ( record.message[0] == '\0' ) {
         return log_error_t::ERR_FORMAT_FAILED;
     }
 
-    switch ( sink_config.format ) {
+    switch ( pSinkConfig.format ) {
         case format_mode_t::COMPACT:
-            return CypherLog_FormatCompact( record, sink_config, out_buffer, out_buffer_size );
+            return CypherLog_FormatCompact( record, pSinkConfig, bufferOut, nOutBufferSize );
         case format_mode_t::DETAILED:
-            return CypherLog_FormatDetailed( record, sink_config, config, out_buffer, out_buffer_size );
+            return CypherLog_FormatDetailed( record, pSinkConfig, config, bufferOut, nOutBufferSize );
         default:
             return log_error_t::ERR_FORMAT_FAILED;
     }
