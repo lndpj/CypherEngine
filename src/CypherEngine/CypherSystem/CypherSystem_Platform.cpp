@@ -7,10 +7,10 @@
    Last Modified: 2026-06-10 10:33:03
    ---------------------------------------------------------------------
    Description:
-       
+
    ---------------------------------------------------------------------
-   License: 
-   Company: 
+   License:
+   Company:
    Version: 0.1.0
  ======================================================================
                                                                        */
@@ -51,7 +51,7 @@
 namespace cypher::engine::sys
 {
 
-runtime_state_t g_sys_runtime_state;
+runtime_state_t g_SysRuntimeState;
 
 namespace {
 
@@ -60,21 +60,21 @@ namespace {
 CypherSystem_CopyPath
 ================
 */
-bool CypherSystem_CopyPath( char *out_path, const common::u32 out_path_size, const std::filesystem::path &path )
+bool CypherSystem_CopyPath( char *szOutPath, const common::u32 nOutPathSize, const std::filesystem::path &path )
 {
-    if ( out_path == nullptr || out_path_size == 0u ) {
+    if ( szOutPath == nullptr || nOutPathSize == 0u ) {
         return false;
     }
 
-    std::string path_string = path.lexically_normal().string();
+    std::string szPathString = path.lexically_normal().string();
 
-    if ( path_string.size() >= out_path_size ) {
-        out_path[0] = '\0';
+    if ( szPathString.size() >= nOutPathSize ) {
+        szOutPath[0] = '\0';
         return false;
     }
 
-    std::strncpy( out_path, path_string.c_str(), out_path_size - 1u );
-    out_path[out_path_size - 1u] = '\0';
+    std::strncpy( szOutPath, szPathString.c_str(), nOutPathSize - 1u );
+    szOutPath[nOutPathSize - 1u] = '\0';
 
     return true;
 }
@@ -84,14 +84,14 @@ bool CypherSystem_CopyPath( char *out_path, const common::u32 out_path_size, con
 CypherSystem_FindArgvValue
 ================
 */
-const char *CypherSystem_FindArgvValue( const init_info_t &info, const char *argv_name )
+const char *CypherSystem_FindArgvValue( const init_info_t &info, const char *szArgvName )
 {
-    if ( info.argv == nullptr || argv_name == nullptr ) {
+    if ( info.argv == nullptr || szArgvName == nullptr ) {
         return nullptr;
     }
 
     for ( int i = 1; i + 1 < info.argc; ++i ) {
-        if ( std::strcmp( info.argv[i], argv_name ) == 0 ) {
+        if ( std::strcmp( info.argv[i], szArgvName ) == 0 ) {
             return info.argv[i + 1];
         }
     }
@@ -99,7 +99,7 @@ const char *CypherSystem_FindArgvValue( const init_info_t &info, const char *arg
     return nullptr;
 }
 
-sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, paths_t &out_paths );
+sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &infoInit, paths_t &pathsOut );
 void CypherSystem_PlatformSleepMilliseconds( common::u64 milliseconds );
 common::usize CypherSystem_PlatformVirtualPageSize();
 void *CypherSystem_PlatformVirtualReserve( common::usize size );
@@ -120,17 +120,17 @@ common::usize CypherSystem_AlignVirtualMemorySize( const common::usize size )
         return 0u;
     }
 
-    const common::usize page_size = CypherSystem_PlatformVirtualPageSize();
-    if ( page_size == 0u ) {
+    const common::usize nPageSize = CypherSystem_PlatformVirtualPageSize();
+    if ( nPageSize == 0u ) {
         return size;
     }
 
-    const common::usize remainder = size % page_size;
+    const common::usize remainder = size % nPageSize;
     if ( remainder == 0u ) {
         return size;
     }
 
-    return size + ( page_size - remainder );
+    return size + ( nPageSize - remainder );
 }
 
 }       // namespace
@@ -150,7 +150,7 @@ platform_t CypherSystem_PlatformType() {
 #   else
                 return platform_t::UNKNOWN;
 #   endif
-}    
+}
 
 /*
 ================
@@ -176,42 +176,42 @@ CypherSystem_Init
 Copies startup info and builds platform paths.
 ================
 */
-sys_error_t CypherSystem_Init( const init_info_t &info_init ) {
-    if ( g_sys_runtime_state.initialized ) {
+sys_error_t CypherSystem_Init( const init_info_t &infoInit ) {
+    if ( g_SysRuntimeState.initialized ) {
         return sys_error_t::ERR_IS_INIT;
     }
-    if ( info_init.app_name == nullptr || info_init.app_name[0] == '\0' ) {
+    if ( infoInit.szAppName == nullptr || infoInit.szAppName[0] == '\0' ) {
         return sys_error_t::ERR_INVALID_ARGUMENT;
     }
-    if ( info_init.organization_name == nullptr || info_init.organization_name[0] == '\0' ) {
+    if ( infoInit.szOrganizationName == nullptr || infoInit.szOrganizationName[0] == '\0' ) {
         return sys_error_t::ERR_INVALID_ARGUMENT;
     }
-    g_sys_runtime_state = {};
-    
+    g_SysRuntimeState = {};
+
     std::strncpy(
-                 g_sys_runtime_state.app_name,
-                 info_init.app_name,
-                 sizeof( g_sys_runtime_state.app_name ) - 1u 
+                 g_SysRuntimeState.szAppName,
+                 infoInit.szAppName,
+                 sizeof( g_SysRuntimeState.szAppName ) - 1u
     );
-    
+
     std::strncpy(
-                 g_sys_runtime_state.organization_name,
-                 info_init.organization_name,
-                 sizeof( g_sys_runtime_state.organization_name ) - 1u 
+                 g_SysRuntimeState.szOrganizationName,
+                 infoInit.szOrganizationName,
+                 sizeof( g_SysRuntimeState.szOrganizationName ) - 1u
     );
-    
-    g_sys_runtime_state.argc = info_init.argc;
-    g_sys_runtime_state.argv = info_init.argv;
-    
-    sys_error_t paths_result = CypherSystem_PlatformBuildPaths( info_init, g_sys_runtime_state.sys_paths );
-    
-    if ( paths_result != sys_error_t::OK ) {
-        g_sys_runtime_state = {};
-        return paths_result;
+
+    g_SysRuntimeState.argc = infoInit.argc;
+    g_SysRuntimeState.argv = infoInit.argv;
+
+    sys_error_t pathsResult = CypherSystem_PlatformBuildPaths( infoInit, g_SysRuntimeState.sysPaths );
+
+    if ( pathsResult != sys_error_t::OK ) {
+        g_SysRuntimeState = {};
+        return pathsResult;
     }
-    
-    g_sys_runtime_state.initialized = true;
-    
+
+    g_SysRuntimeState.initialized = true;
+
     return sys_error_t::OK;
 }
 
@@ -221,14 +221,14 @@ CypherSystem_Shutdown
 ================
 */
 sys_error_t CypherSystem_Shutdown() {
-    if ( !g_sys_runtime_state.initialized ) {
+    if ( !g_SysRuntimeState.initialized ) {
         return sys_error_t::ERR_NOT_INIT;
     }
-    
-    g_sys_runtime_state = {};
-    
-    g_sys_runtime_state.initialized = false;
-    
+
+    g_SysRuntimeState = {};
+
+    g_SysRuntimeState.initialized = false;
+
     return sys_error_t::OK;
 }
 
@@ -238,7 +238,7 @@ CypherSystem_IsInitialized
 ================
 */
 bool CypherSystem_IsInitialized() {
-    return g_sys_runtime_state.initialized;
+    return g_SysRuntimeState.initialized;
 }
 
 /*
@@ -253,7 +253,7 @@ const char *CypherSystem_PlatformName( platform_t type ) {
     case platform_t::MACOSX:        return "MacOS";
         default:                    return "Unknown";
     }
-}   
+}
 
 /*
 ================
@@ -278,15 +278,15 @@ const char *CypherSystem_PathBasename( const char *path ) {
     if ( path == nullptr || path[0] == '\0' ) {
         return "";
     }
-    
+
     const char *basename = path;
-    
+
     for ( const char *it = path; *it != '\0'; ++it ) {
         if ( *it == '/' || *it == '\\' ) {
             basename = it + 1;
         }
-    }   
-    
+    }
+
     return basename;
 }
 
@@ -295,9 +295,9 @@ const char *CypherSystem_PathBasename( const char *path ) {
 CypherSystem_TimeNowSeconds
 ================
 */
-common::com_f64 CypherSystem_TimeNowSeconds() {
+common::f64 CypherSystem_TimeNowSeconds() {
     const auto now = std::chrono::steady_clock::now();
-    const auto seconds = std::chrono::duration<common::com_f64>( now.time_since_epoch() );
+    const auto seconds = std::chrono::duration<common::f64>( now.time_since_epoch() );
     return seconds.count();
 }
 
@@ -306,14 +306,14 @@ common::com_f64 CypherSystem_TimeNowSeconds() {
 CypherSystem_LocalTime
 ================
 */
-bool CypherSystem_LocalTime( std::time_t time_value, std::tm &time_out ) {
+bool CypherSystem_LocalTime( std::time_t timeValue, std::tm &timeOut ) {
 
 #   ifdef CYPHER_PLATFORM_WINDOWS
-                return localtime_s( &time_out, &time_value ) == 0;
-#   else 
-                return localtime_r( &time_value, &time_out ) != nullptr;
-#   endif 
-                
+                return localtimeS( &timeOut, &timeValue ) == 0;
+#   else
+                return localtime_r( &timeValue, &timeOut ) != nullptr;
+#   endif
+
 }
 
 /*
@@ -322,7 +322,7 @@ CypherSystem_Paths
 ================
 */
 const paths_t &CypherSystem_Paths() {
-    return g_sys_runtime_state.sys_paths;
+    return g_SysRuntimeState.sysPaths;
 }
 
 /*
@@ -330,16 +330,16 @@ const paths_t &CypherSystem_Paths() {
 CypherSystem_GetPaths
 ================
 */
-sys_error_t CypherSystem_GetPaths( paths_t &out_paths ) {
-    if ( !g_sys_runtime_state.initialized ) {
+sys_error_t CypherSystem_GetPaths( paths_t &pathsOut ) {
+    if ( !g_SysRuntimeState.initialized ) {
         return sys_error_t::ERR_NOT_INIT;
-    }   
-    
-    out_paths = g_sys_runtime_state.sys_paths;
-    
+    }
+
+    pathsOut = g_SysRuntimeState.sysPaths;
+
     return sys_error_t::OK;
 }
- 
+
 /*
 ================
 CypherSystem_SleepMilliseconds
@@ -423,97 +423,97 @@ CypherSystem_PlatformBuildPaths
 Builds Win32 executable, base and user paths.
 ================
 */
-sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, paths_t &out_paths )
+sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &infoInit, paths_t &pathsOut )
 {
-    out_paths = {};
+    pathsOut = {};
 
     std::error_code ec{};
 
-    const std::filesystem::path working_dir = std::filesystem::current_path( ec );
+    const std::filesystem::path workingDir = std::filesystem::current_path( ec );
     if ( ec ) {
         return sys_error_t::ERR_PATH_QUERY_FAILED;
     }
 
-    char executable_buffer[SYS_MAX_PATH_LENGTH]{};
+    char pExecutableBuffer[SYS_MAX_PATH_LENGTH]{};
 
-    const DWORD executable_length = GetModuleFileNameA(
+    const DWORD nExecutableLength = GetModuleFileNameA(
         nullptr,
-        executable_buffer,
-        static_cast<DWORD>( sizeof( executable_buffer ) )
+        pExecutableBuffer,
+        static_cast<DWORD>( sizeof( pExecutableBuffer ) )
     );
 
-    if ( executable_length == 0u ) {
+    if ( nExecutableLength == 0u ) {
         return sys_error_t::ERR_PATH_QUERY_FAILED;
     }
 
-    if ( executable_length >= sizeof( executable_buffer ) ) {
+    if ( nExecutableLength >= sizeof( pExecutableBuffer ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    executable_buffer[executable_length] = '\0';
+    pExecutableBuffer[nExecutableLength] = '\0';
 
-    std::filesystem::path executable_path = std::filesystem::weakly_canonical( executable_buffer, ec );
+    std::filesystem::path szExecutablePath = std::filesystem::weakly_canonical( pExecutableBuffer, ec );
 
     if ( ec ) {
         ec.clear();
-        executable_path = executable_buffer;
+        szExecutablePath = pExecutableBuffer;
     }
 
-    const std::filesystem::path executable_dir = executable_path.parent_path();
-    const char *base_path_override = CypherSystem_FindArgvValue( info_init, "-basedir" );
+    const std::filesystem::path executableDir = szExecutablePath.parent_path();
+    const char *szBasePathOverride = CypherSystem_FindArgvValue( infoInit, "-basedir" );
 
-    const std::filesystem::path base_path =
-        ( base_path_override != nullptr && base_path_override[0] != '\0' ) ? std::filesystem::path( base_path_override ) : working_dir;
+    const std::filesystem::path szBasePath =
+        ( szBasePathOverride != nullptr && szBasePathOverride[0] != '\0' ) ? std::filesystem::path( szBasePathOverride ) : workingDir;
 
-    const char *user_path_override = CypherSystem_FindArgvValue( info_init, "-userpath" );
-    std::filesystem::path user_path{};
+    const char *szUserPathOverride = CypherSystem_FindArgvValue( infoInit, "-userpath" );
+    std::filesystem::path szUserPath{};
 
-    if ( user_path_override != nullptr && user_path_override[0] != '\0' ) {
-        user_path = user_path_override;
+    if ( szUserPathOverride != nullptr && szUserPathOverride[0] != '\0' ) {
+        szUserPath = szUserPathOverride;
     } else {
-        char appdata_buffer[SYS_MAX_PATH_LENGTH]{};
+        char pAppdataBuffer[SYS_MAX_PATH_LENGTH]{};
 
-        const DWORD appdata_length = GetEnvironmentVariableA(
+        const DWORD nAppdataLength = GetEnvironmentVariableA(
             "APPDATA",
-            appdata_buffer,
-            static_cast<DWORD>( sizeof( appdata_buffer ) )
+            pAppdataBuffer,
+            static_cast<DWORD>( sizeof( pAppdataBuffer ) )
         );
 
-        if ( appdata_length == 0u ) {
+        if ( nAppdataLength == 0u ) {
             return sys_error_t::ERR_PATH_QUERY_FAILED;
         }
 
-        if ( appdata_length >= sizeof( appdata_buffer ) ) {
+        if ( nAppdataLength >= sizeof( pAppdataBuffer ) ) {
             return sys_error_t::ERR_PATH_TOO_LONG;
         }
 
-        appdata_buffer[appdata_length] = '\0';
+        pAppdataBuffer[nAppdataLength] = '\0';
 
-        user_path = std::filesystem::path( appdata_buffer ) / info_init.app_name;
+        szUserPath = std::filesystem::path( pAppdataBuffer ) / infoInit.szAppName;
     }
 
-    std::filesystem::create_directories( user_path, ec );
+    std::filesystem::create_directories( szUserPath, ec );
     if ( ec ) {
         return sys_error_t::ERR_DIRECTORY_CREATE_FAILED;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.executable_path, sizeof( out_paths.executable_path ), executable_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szExecutablePath, sizeof( pathsOut.szExecutablePath ), szExecutablePath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.executable_dir, sizeof( out_paths.executable_dir ), executable_dir ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.executableDir, sizeof( pathsOut.executableDir ), executableDir ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.working_dir, sizeof( out_paths.working_dir ), working_dir ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.workingDir, sizeof( pathsOut.workingDir ), workingDir ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.base_path, sizeof( out_paths.base_path ), base_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szBasePath, sizeof( pathsOut.szBasePath ), szBasePath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.user_path, sizeof( out_paths.user_path ), user_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szUserPath, sizeof( pathsOut.szUserPath ), szUserPath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
@@ -649,43 +649,43 @@ CypherSystem_PlatformBuildPaths
 Builds macOS executable, base and user paths.
 ================
 */
-sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, paths_t &out_paths )
+sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &infoInit, paths_t &pathsOut )
 {
-    out_paths = {};
+    pathsOut = {};
 
     std::error_code ec{};
 
-    const std::filesystem::path working_dir = std::filesystem::current_path( ec );
+    const std::filesystem::path workingDir = std::filesystem::current_path( ec );
     if ( ec ) {
         return sys_error_t::ERR_PATH_QUERY_FAILED;
     }
 
-    char executable_buffer[SYS_MAX_PATH_LENGTH]{};
-    std::uint32_t executable_buffer_size = static_cast<std::uint32_t>( sizeof( executable_buffer ) );
+    char pExecutableBuffer[SYS_MAX_PATH_LENGTH]{};
+    std::uint32_t nExecutableBufferSize = static_cast<std::uint32_t>( sizeof( pExecutableBuffer ) );
 
-    if ( _NSGetExecutablePath( executable_buffer, &executable_buffer_size ) != 0 ) {
+    if ( _NSGetExecutablePath( pExecutableBuffer, &nExecutableBufferSize ) != 0 ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    std::filesystem::path executable_path = std::filesystem::weakly_canonical( executable_buffer, ec );
+    std::filesystem::path szExecutablePath = std::filesystem::weakly_canonical( pExecutableBuffer, ec );
 
     if ( ec ) {
         ec.clear();
-        executable_path = executable_buffer;
+        szExecutablePath = pExecutableBuffer;
     }
 
-    const std::filesystem::path executable_dir = executable_path.parent_path();
-    const char *base_path_override = CypherSystem_FindArgvValue( info_init, "-basedir" );
+    const std::filesystem::path executableDir = szExecutablePath.parent_path();
+    const char *szBasePathOverride = CypherSystem_FindArgvValue( infoInit, "-basedir" );
 
-    const std::filesystem::path base_path =
-        ( base_path_override != nullptr && base_path_override[0] != '\0' ) ? std::filesystem::path( base_path_override ) : working_dir;
+    const std::filesystem::path szBasePath =
+        ( szBasePathOverride != nullptr && szBasePathOverride[0] != '\0' ) ? std::filesystem::path( szBasePathOverride ) : workingDir;
 
-    const char *user_path_override = CypherSystem_FindArgvValue( info_init, "-userpath" );
+    const char *szUserPathOverride = CypherSystem_FindArgvValue( infoInit, "-userpath" );
 
-    std::filesystem::path user_path{};
+    std::filesystem::path szUserPath{};
 
-    if ( user_path_override != nullptr && user_path_override[0] != '\0' ) {
-        user_path = user_path_override;
+    if ( szUserPathOverride != nullptr && szUserPathOverride[0] != '\0' ) {
+        szUserPath = szUserPathOverride;
     } else {
         const char *home = std::getenv( "HOME" );
 
@@ -693,34 +693,34 @@ sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, paths
             return sys_error_t::ERR_PATH_QUERY_FAILED;
         }
 
-        user_path = std::filesystem::path( home ) /
+        szUserPath = std::filesystem::path( home ) /
                     "Library" /
                     "Application Support" /
-                    info_init.app_name;
+                    infoInit.szAppName;
     }
 
-    std::filesystem::create_directories( user_path, ec );
+    std::filesystem::create_directories( szUserPath, ec );
     if ( ec ) {
         return sys_error_t::ERR_DIRECTORY_CREATE_FAILED;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.executable_path, sizeof( out_paths.executable_path ), executable_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szExecutablePath, sizeof( pathsOut.szExecutablePath ), szExecutablePath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.executable_dir, sizeof( out_paths.executable_dir ), executable_dir ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.executableDir, sizeof( pathsOut.executableDir ), executableDir ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.working_dir, sizeof( out_paths.working_dir ), working_dir ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.workingDir, sizeof( pathsOut.workingDir ), workingDir ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.base_path, sizeof( out_paths.base_path ), base_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szBasePath, sizeof( pathsOut.szBasePath ), szBasePath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.user_path, sizeof( out_paths.user_path ), user_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szUserPath, sizeof( pathsOut.szUserPath ), szUserPath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
@@ -751,13 +751,13 @@ common::usize CypherSystem_PlatformVirtualPageSize()
 {
     constexpr common::usize DEFAULT_PAGE_SIZE = 4096u;
 
-    const long page_size = sysconf( _SC_PAGESIZE );
-    if ( page_size <= 0 ) {
+    const long nPageSize = sysconf( _SC_PAGESIZE );
+    if ( nPageSize <= 0 ) {
         LOG_WARNING( log::channel_t::PLATFORM, "sysconf(_SC_PAGESIZE) failed; using default page size %zu.", DEFAULT_PAGE_SIZE );
         return DEFAULT_PAGE_SIZE;
     }
 
-    return static_cast<common::usize>( page_size );
+    return static_cast<common::usize>( nPageSize );
 }
 
 /*
@@ -868,49 +868,49 @@ CypherSystem_PlatformBuildPaths
 Builds Linux executable, base and user paths.
 ================
 */
-sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, paths_t &out_paths )
+sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &infoInit, paths_t &pathsOut )
 {
     std::error_code ec{};
-    out_paths = {};
+    pathsOut = {};
 
-    const std::filesystem::path working_dir = std::filesystem::current_path( ec );
+    const std::filesystem::path workingDir = std::filesystem::current_path( ec );
     if ( ec ) {
         return sys_error_t::ERR_PATH_QUERY_FAILED;
     }
 
-    char executable_buffer[SYS_MAX_PATH_LENGTH]{};
+    char pExecutableBuffer[SYS_MAX_PATH_LENGTH]{};
 
-    const ssize_t executable_length = readlink(
+    const ssize_t nExecutableLength = readlink(
         "/proc/self/exe",
-        executable_buffer,
-        sizeof( executable_buffer ) - 1u
+        pExecutableBuffer,
+        sizeof( pExecutableBuffer ) - 1u
     );
 
-    if ( executable_length < 0 ) {
+    if ( nExecutableLength < 0 ) {
         return sys_error_t::ERR_PATH_QUERY_FAILED;
     }
 
-    executable_buffer[executable_length] = '\0';
+    pExecutableBuffer[nExecutableLength] = '\0';
 
-    std::filesystem::path executable_path = std::filesystem::weakly_canonical( executable_buffer, ec );
+    std::filesystem::path szExecutablePath = std::filesystem::weakly_canonical( pExecutableBuffer, ec );
 
     if ( ec ) {
         ec.clear();
-        executable_path = executable_buffer;
+        szExecutablePath = pExecutableBuffer;
     }
 
-    const std::filesystem::path executable_dir = executable_path.parent_path();
-    const char *base_path_override = CypherSystem_FindArgvValue( info_init, "-basedir" );
+    const std::filesystem::path executableDir = szExecutablePath.parent_path();
+    const char *szBasePathOverride = CypherSystem_FindArgvValue( infoInit, "-basedir" );
 
-    const std::filesystem::path base_path =
-        ( base_path_override != nullptr && base_path_override[0] != '\0' ) ? std::filesystem::path( base_path_override ) : working_dir;
+    const std::filesystem::path szBasePath =
+        ( szBasePathOverride != nullptr && szBasePathOverride[0] != '\0' ) ? std::filesystem::path( szBasePathOverride ) : workingDir;
 
-    const char *user_path_override = CypherSystem_FindArgvValue( info_init, "-userpath" );
+    const char *szUserPathOverride = CypherSystem_FindArgvValue( infoInit, "-userpath" );
 
-    std::filesystem::path user_path{};
+    std::filesystem::path szUserPath{};
 
-    if ( user_path_override != nullptr && user_path_override[0] != '\0' ) {
-        user_path = user_path_override;
+    if ( szUserPathOverride != nullptr && szUserPathOverride[0] != '\0' ) {
+        szUserPath = szUserPathOverride;
     } else {
         const char *home = std::getenv( "HOME" );
 
@@ -918,35 +918,35 @@ sys_error_t CypherSystem_PlatformBuildPaths( const init_info_t &info_init, paths
             return sys_error_t::ERR_PATH_QUERY_FAILED;
         }
 
-        user_path = std::filesystem::path( home ) /
+        szUserPath = std::filesystem::path( home ) /
                     ".local" /
                     "share" /
-                    info_init.app_name;
+                    infoInit.szAppName;
     }
 
-    std::filesystem::create_directories( user_path, ec );
+    std::filesystem::create_directories( szUserPath, ec );
 
     if ( ec ) {
         return sys_error_t::ERR_DIRECTORY_CREATE_FAILED;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.executable_path, sizeof( out_paths.executable_path ), executable_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szExecutablePath, sizeof( pathsOut.szExecutablePath ), szExecutablePath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.executable_dir, sizeof( out_paths.executable_dir ), executable_dir ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.executableDir, sizeof( pathsOut.executableDir ), executableDir ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.working_dir, sizeof( out_paths.working_dir ), working_dir ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.workingDir, sizeof( pathsOut.workingDir ), workingDir ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.base_path, sizeof( out_paths.base_path ), base_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szBasePath, sizeof( pathsOut.szBasePath ), szBasePath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
-    if ( !CypherSystem_CopyPath( out_paths.user_path, sizeof( out_paths.user_path ), user_path ) ) {
+    if ( !CypherSystem_CopyPath( pathsOut.szUserPath, sizeof( pathsOut.szUserPath ), szUserPath ) ) {
         return sys_error_t::ERR_PATH_TOO_LONG;
     }
 
@@ -976,14 +976,14 @@ CypherSystem_PlatformVirtualPageSize
 common::usize CypherSystem_PlatformVirtualPageSize()
 {
     constexpr common::usize DEFAULT_PAGE_SIZE = 4096u;
-    const long page_size = sysconf( _SC_PAGESIZE );
+    const long nPageSize = sysconf( _SC_PAGESIZE );
 
-    if ( page_size <= 0 ) {
+    if ( nPageSize <= 0 ) {
         LOG_WARNING( log::channel_t::PLATFORM, "sysconf(_SC_PAGESIZE) failed; using default page size %zu.", DEFAULT_PAGE_SIZE );
         return DEFAULT_PAGE_SIZE;
     }
 
-    return static_cast<common::usize>( page_size );
+    return static_cast<common::usize>( nPageSize );
 }
 
 /*
