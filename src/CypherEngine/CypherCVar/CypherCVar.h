@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCVar/CypherCVar_Error.h"
+#include "CypherCVar_Error.h"
 
 #define CYPHER_CVAR_MAX_CVARS 256u
 
