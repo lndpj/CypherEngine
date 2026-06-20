@@ -26,7 +26,7 @@
 namespace cypher::engine::cmd
 {
 
-registry_t g_CmdRegistery{};
+static registry_t s_CmdRegistry{};
 
 /*
 ================
@@ -34,15 +34,15 @@ CypherCommand_Init
 ================
 */
 cmd_error_t CypherCommand_Init( ) {
-    if ( g_CmdRegistery.initialized ) {
+    if ( s_CmdRegistry.initialized ) {
         LOG_WARNING( log::channel_t::CMD, "command system init requested while already initialized." );
         return cmd_error_t::ERR_IS_INIT;
     }
 
-    g_CmdRegistery = {};
+    s_CmdRegistry = {};
 
-    g_CmdRegistery.nCmdCount = 0;
-    g_CmdRegistery.initialized = true;
+    s_CmdRegistry.nCmdCount = 0;
+    s_CmdRegistry.initialized = true;
 
     LOG_INFO( log::channel_t::CMD, "command system initialized." );
 
@@ -55,16 +55,16 @@ CypherCommand_Shutdown
 ================
 */
 void CypherCommand_Shutdown() {
-    if ( !g_CmdRegistery.initialized ) {
+    if ( !s_CmdRegistry.initialized ) {
         LOG_WARNING( log::channel_t::CMD, "command system shutdown requested while not initialized." );
         return ;
     }
 
-    LOG_INFO( log::channel_t::CMD, "command system shutdown: commands=%u.", g_CmdRegistery.nCmdCount );
+    LOG_INFO( log::channel_t::CMD, "command system shutdown: commands=%u.", s_CmdRegistry.nCmdCount );
 
-    g_CmdRegistery = {};
-    g_CmdRegistery.nCmdCount = 0;
-    g_CmdRegistery.initialized = false;
+    s_CmdRegistry = {};
+    s_CmdRegistry.nCmdCount = 0;
+    s_CmdRegistry.initialized = false;
 
     return ;
 }
@@ -77,7 +77,7 @@ Adds a named command callback to the fixed registry.
 ================
 */
 cmd_error_t CypherCommand_Register( const char *szCmdName, command_fn_t pCallbackFn, void *pExtraData, const char *szCmdDescription ) {
-    if ( !g_CmdRegistery.initialized ) {
+    if ( !s_CmdRegistry.initialized ) {
         LOG_ERROR( log::channel_t::CMD, "command register failed for '%s': command system is not initialized.", szCmdName ? szCmdName : "<null>" );
         return cmd_error_t::ERR_NOT_INIT;
     }
@@ -99,20 +99,20 @@ cmd_error_t CypherCommand_Register( const char *szCmdName, command_fn_t pCallbac
         return cmd_error_t::ERR_INVALID_CALLBACK;
     }
 
-    common::u32 count = g_CmdRegistery.nCmdCount;
+    common::u32 count = s_CmdRegistry.nCmdCount;
 
-    if ( g_CmdRegistery.nCmdCount >= CYPHER_COMMAND_MAX_COMMANDS ) {
+    if ( s_CmdRegistry.nCmdCount >= CYPHER_COMMAND_MAX_COMMANDS ) {
         LOG_ERROR( log::channel_t::CMD, "command register failed for '%s': registry full (%u).", szCmdName, CYPHER_COMMAND_MAX_COMMANDS );
         return cmd_error_t::ERR_REGISTRY_FULL;
     }
 
-    g_CmdRegistery.cmdCommands[count].name = szCmdName;
-    g_CmdRegistery.cmdCommands[count].pCallbackFn = pCallbackFn;
-    g_CmdRegistery.cmdCommands[count].pExtraData = pExtraData;
-    g_CmdRegistery.cmdCommands[count].description = szCmdDescription;
+    s_CmdRegistry.cmdCommands[count].name = szCmdName;
+    s_CmdRegistry.cmdCommands[count].pCallbackFn = pCallbackFn;
+    s_CmdRegistry.cmdCommands[count].pExtraData = pExtraData;
+    s_CmdRegistry.cmdCommands[count].description = szCmdDescription;
     count++;
 
-    g_CmdRegistery.nCmdCount = count;
+    s_CmdRegistry.nCmdCount = count;
 
     LOG_DEBUG( log::channel_t::CMD, "registered command '%s'.", szCmdName );
 
@@ -125,7 +125,7 @@ CypherCommand_Find
 ================
 */
 const cmd_t *CypherCommand_Find( const char *szCmdName ) {
-    if ( !g_CmdRegistery.initialized ) {
+    if ( !s_CmdRegistry.initialized ) {
         LOG_ERROR( log::channel_t::CMD, "command find failed for '%s': command system is not initialized.", szCmdName ? szCmdName : "<null>" );
         return nullptr;
     }
@@ -135,9 +135,9 @@ const cmd_t *CypherCommand_Find( const char *szCmdName ) {
         return nullptr;
     }
 
-    for ( common::u32 i = 0; i < g_CmdRegistery.nCmdCount; i++ ) {
-        if ( std::strcmp( szCmdName, g_CmdRegistery.cmdCommands[i].name ) == 0 ) {
-            return &g_CmdRegistery.cmdCommands[i];
+    for ( common::u32 i = 0; i < s_CmdRegistry.nCmdCount; i++ ) {
+        if ( std::strcmp( szCmdName, s_CmdRegistry.cmdCommands[i].name ) == 0 ) {
+            return &s_CmdRegistry.cmdCommands[i];
         }
     }
 
@@ -196,7 +196,7 @@ Parses a command line, finds the command, and calls its callback.
 ================
 */
 cmd_error_t CypherCommand_Execute( const char *nCommandLine ) {
-    if ( !g_CmdRegistery.initialized ) {
+    if ( !s_CmdRegistry.initialized ) {
         LOG_ERROR( log::channel_t::CMD, "command execute failed: command system is not initialized." );
         return cmd_error_t::ERR_NOT_INIT;
     }
