@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CypherEngine/CypherPak/CypherPak_Types.h"
+#include "CypherPak_Types.h"
 
 namespace cypher::engine::pak
 {
