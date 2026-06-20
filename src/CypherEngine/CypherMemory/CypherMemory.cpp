@@ -7,10 +7,10 @@
    Last Modified: 2026-06-12 01:43:27
    ---------------------------------------------------------------------
    Description:
-       
+
    ---------------------------------------------------------------------
-   License: 
-   Company: 
+   License:
+   Company:
    Version: 0.1.0
  ======================================================================
                                                                        */
@@ -19,39 +19,39 @@
 
 namespace {
 
-cypher::engine::memory::memory_state_t g_memory{};
+cypher::engine::memory::memory_state_t g_Memory{};
 
-cypher::engine::memory::arena_desc_t CypherMemory_MakeArenaDesc( const cypher::engine::memory::memory_arena_config_t &arena_config )
+cypher::engine::memory::arena_desc_t CypherMemory_MakeArenaDesc( const cypher::engine::memory::memory_arena_config_t &arenaConfig )
 {
     cypher::engine::memory::arena_desc_t desc{};
 
-    desc.name = arena_config.name;
-    desc.capacity = arena_config.reserve_size;
-    desc.initial_commit = arena_config.initial_commit;
-    desc.flags = arena_config.flags;
-    desc.backing = arena_config.backing;
+    desc.name = arenaConfig.name;
+    desc.capacity = arenaConfig.nReserveSize;
+    desc.initialCommit = arenaConfig.initialCommit;
+    desc.flags = arenaConfig.flags;
+    desc.backing = arenaConfig.backing;
 
     return desc;
 }
 
 cypher::engine::memory::mem_error_t CypherMemory_InitArena(
     cypher::engine::memory::arena_t &arena,
-    const cypher::engine::memory::memory_arena_config_t &arena_config )
+    const cypher::engine::memory::memory_arena_config_t &arenaConfig )
 {
     return cypher::engine::memory::CypherMemory_ArenaInit(
         arena,
-        CypherMemory_MakeArenaDesc( arena_config ) );
+        CypherMemory_MakeArenaDesc( arenaConfig ) );
 }
 
 void CypherMemory_ShutdownInitializedArenas()
 {
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_memory.editor_arena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_memory.render_arena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_memory.world_arena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_memory.resource_arena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_memory.scratch_arena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_memory.frame_arena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_memory.permanent_arena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.editorArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.renderArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.worldArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.resourceArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.scratchArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.frameArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.permanentArena );
 }
 
 void CypherMemory_AddArenaStats(
@@ -59,22 +59,22 @@ void CypherMemory_AddArenaStats(
     cypher::engine::memory::memory_stats_t &stats,
     const cypher::engine::memory::memory_tag_t tag )
 {
-    const cypher::engine::common::usize tag_index = static_cast<cypher::engine::common::usize>( tag );
+    const cypher::engine::common::usize nTagIndex = static_cast<cypher::engine::common::usize>( tag );
 
-    stats.total_capacity += arena.capacity;
-    stats.total_committed += arena.committed;
-    stats.total_used += arena.used;
+    stats.nTotalCapacity += arena.capacity;
+    stats.totalCommitted += arena.committed;
+    stats.nTotalUsed += arena.used;
 
-    if ( arena.peak_used > stats.peak_used ) {
-        stats.peak_used = arena.peak_used;
+    if ( arena.nPeakUsed > stats.nPeakUsed ) {
+        stats.nPeakUsed = arena.nPeakUsed;
     }
 
-    if ( tag_index < static_cast<cypher::engine::common::usize>( cypher::engine::memory::memory_tag_t::COUNT ) ) {
-        stats.tag_stats[tag_index].name = cypher::engine::memory::CypherMemory_TagName( tag );
-        stats.tag_stats[tag_index].used += arena.used;
-        stats.tag_stats[tag_index].peak_used += arena.peak_used;
-        stats.tag_stats[tag_index].allocation_count += arena.allocation_count;
-        stats.tag_stats[tag_index].failed_allocation_count += arena.failed_allocation_count;
+    if ( nTagIndex < static_cast<cypher::engine::common::usize>( cypher::engine::memory::memory_tag_t::COUNT ) ) {
+        stats.tagStats[nTagIndex].name = cypher::engine::memory::CypherMemory_TagName( tag );
+        stats.tagStats[nTagIndex].used += arena.used;
+        stats.tagStats[nTagIndex].nPeakUsed += arena.nPeakUsed;
+        stats.tagStats[nTagIndex].nAllocationCount += arena.nAllocationCount;
+        stats.tagStats[nTagIndex].nFailedAllocationCount += arena.nFailedAllocationCount;
     }
 }
 
@@ -87,7 +87,7 @@ memory_config_t CypherMemory_DefaultConfig()
 {
     memory_config_t config{};
 
-    config.permanent_arena = memory_arena_config_t{
+    config.permanentArena = memory_arena_config_t{
         "PermanentArena",
         CypherMemory_Megabytes( 256u ),
         CypherMemory_Megabytes( 16u ),
@@ -96,7 +96,7 @@ memory_config_t CypherMemory_DefaultConfig()
         memory_tag_t::CORE
     };
 
-    config.frame_arena = memory_arena_config_t{
+    config.frameArena = memory_arena_config_t{
         "FrameArena",
         CypherMemory_Megabytes( 64u ),
         CypherMemory_Megabytes( 8u ),
@@ -105,7 +105,7 @@ memory_config_t CypherMemory_DefaultConfig()
         memory_tag_t::TEMP
     };
 
-    config.scratch_arena = memory_arena_config_t{
+    config.scratchArena = memory_arena_config_t{
         "ScratchArena",
         CypherMemory_Megabytes( 128u ),
         CypherMemory_Megabytes( 8u ),
@@ -114,7 +114,7 @@ memory_config_t CypherMemory_DefaultConfig()
         memory_tag_t::TEMP
     };
 
-    config.resource_arena = memory_arena_config_t{
+    config.resourceArena = memory_arena_config_t{
         "ResourceArena",
         CypherMemory_Gigabytes( 2u ),
         CypherMemory_Megabytes( 64u ),
@@ -123,7 +123,7 @@ memory_config_t CypherMemory_DefaultConfig()
         memory_tag_t::RESOURCE
     };
 
-    config.world_arena = memory_arena_config_t{
+    config.worldArena = memory_arena_config_t{
         "WorldArena",
         CypherMemory_Gigabytes( 1u ),
         CypherMemory_Megabytes( 64u ),
@@ -132,7 +132,7 @@ memory_config_t CypherMemory_DefaultConfig()
         memory_tag_t::WORLD
     };
 
-    config.render_arena = memory_arena_config_t{
+    config.renderArena = memory_arena_config_t{
         "RenderArena",
         CypherMemory_Megabytes( 512u ),
         CypherMemory_Megabytes( 32u ),
@@ -141,7 +141,7 @@ memory_config_t CypherMemory_DefaultConfig()
         memory_tag_t::RENDER
     };
 
-    config.editor_arena = memory_arena_config_t{
+    config.editorArena = memory_arena_config_t{
         "EditorArena",
         CypherMemory_Megabytes( 512u ),
         CypherMemory_Megabytes( 32u ),
@@ -155,142 +155,142 @@ memory_config_t CypherMemory_DefaultConfig()
 
 mem_error_t CypherMemory_Init( const memory_config_t &config )
 {
-    if ( g_memory.initialized ) {
+    if ( g_Memory.initialized ) {
         LOG_WARNING( log::channel_t::MEMORY, "memory system is already initialized." );
         return mem_error_t::ERR_ALREADY_INITIALIZED;
     }
 
-    g_memory = {};
-    g_memory.config = config;
+    g_Memory = {};
+    g_Memory.config = config;
 
-    mem_error_t result = CypherMemory_InitArena( g_memory.permanent_arena, config.permanent_arena );
+    mem_error_t result = CypherMemory_InitArena( g_Memory.permanentArena, config.permanentArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_memory = {};
+        g_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_memory.frame_arena, config.frame_arena );
+    result = CypherMemory_InitArena( g_Memory.frameArena, config.frameArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_memory = {};
+        g_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_memory.scratch_arena, config.scratch_arena );
+    result = CypherMemory_InitArena( g_Memory.scratchArena, config.scratchArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_memory = {};
+        g_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_memory.resource_arena, config.resource_arena );
+    result = CypherMemory_InitArena( g_Memory.resourceArena, config.resourceArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_memory = {};
+        g_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_memory.world_arena, config.world_arena );
+    result = CypherMemory_InitArena( g_Memory.worldArena, config.worldArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_memory = {};
+        g_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_memory.render_arena, config.render_arena );
+    result = CypherMemory_InitArena( g_Memory.renderArena, config.renderArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_memory = {};
+        g_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_memory.editor_arena, config.editor_arena );
+    result = CypherMemory_InitArena( g_Memory.editorArena, config.editorArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_memory = {};
+        g_Memory = {};
         return result;
     }
 
-    g_memory.initialized = true;
+    g_Memory.initialized = true;
 
     const memory_stats_t stats = CypherMemory_Stats();
     LOG_INFO( log::channel_t::MEMORY,
                      "memory system initialized: capacity=%zu bytes, committed=%zu bytes.",
-                     stats.total_capacity,
-                     stats.total_committed );
+                     stats.nTotalCapacity,
+                     stats.totalCommitted );
 
     return mem_error_t::OK;
 }
 
 void CypherMemory_Shutdown()
 {
-    if ( !g_memory.initialized ) {
+    if ( !g_Memory.initialized ) {
         return;
     }
 
     const memory_stats_t stats = CypherMemory_Stats();
     LOG_INFO( log::channel_t::MEMORY,
                      "memory system shutdown: used=%zu bytes, peak=%zu bytes.",
-                     stats.total_used,
-                     stats.peak_used );
+                     stats.nTotalUsed,
+                     stats.nPeakUsed );
 
     CypherMemory_ShutdownInitializedArenas();
-    g_memory = {};
+    g_Memory = {};
 }
 
 void CypherMemory_BeginFrame()
 {
-    if ( !g_memory.initialized ) {
+    if ( !g_Memory.initialized ) {
         return;
     }
 
-    CypherMemory_ArenaReset( g_memory.frame_arena );
+    CypherMemory_ArenaReset( g_Memory.frameArena );
 }
 
 void CypherMemory_EndFrame()
 {
-    if ( !g_memory.initialized ) {
+    if ( !g_Memory.initialized ) {
         return;
     }
 
-    CypherMemory_ArenaResetCounters( g_memory.frame_arena );
+    CypherMemory_ArenaResetCounters( g_Memory.frameArena );
 }
 
 bool CypherMemory_IsInitialized()
 {
-    return g_memory.initialized;
+    return g_Memory.initialized;
 }
 
 memory_stats_t CypherMemory_Stats()
 {
     memory_stats_t stats{};
 
-    stats.permanent_stats = CypherMemory_ArenaStats( g_memory.permanent_arena );
-    stats.frame_stats = CypherMemory_ArenaStats( g_memory.frame_arena );
-    stats.scratch_stats = CypherMemory_ArenaStats( g_memory.scratch_arena );
-    stats.resource_stats = CypherMemory_ArenaStats( g_memory.resource_arena );
-    stats.world_stats = CypherMemory_ArenaStats( g_memory.world_arena );
-    stats.render_stats = CypherMemory_ArenaStats( g_memory.render_arena );
-    stats.editor_stats = CypherMemory_ArenaStats( g_memory.editor_arena );
+    stats.permanentStats = CypherMemory_ArenaStats( g_Memory.permanentArena );
+    stats.frameStats = CypherMemory_ArenaStats( g_Memory.frameArena );
+    stats.scratchStats = CypherMemory_ArenaStats( g_Memory.scratchArena );
+    stats.resourceStats = CypherMemory_ArenaStats( g_Memory.resourceArena );
+    stats.worldStats = CypherMemory_ArenaStats( g_Memory.worldArena );
+    stats.renderStats = CypherMemory_ArenaStats( g_Memory.renderArena );
+    stats.editorStats = CypherMemory_ArenaStats( g_Memory.editorArena );
 
-    CypherMemory_AddArenaStats( g_memory.permanent_arena, stats, g_memory.config.permanent_arena.tag );
-    CypherMemory_AddArenaStats( g_memory.frame_arena, stats, g_memory.config.frame_arena.tag );
-    CypherMemory_AddArenaStats( g_memory.scratch_arena, stats, g_memory.config.scratch_arena.tag );
-    CypherMemory_AddArenaStats( g_memory.resource_arena, stats, g_memory.config.resource_arena.tag );
-    CypherMemory_AddArenaStats( g_memory.world_arena, stats, g_memory.config.world_arena.tag );
-    CypherMemory_AddArenaStats( g_memory.render_arena, stats, g_memory.config.render_arena.tag );
-    CypherMemory_AddArenaStats( g_memory.editor_arena, stats, g_memory.config.editor_arena.tag );
+    CypherMemory_AddArenaStats( g_Memory.permanentArena, stats, g_Memory.config.permanentArena.tag );
+    CypherMemory_AddArenaStats( g_Memory.frameArena, stats, g_Memory.config.frameArena.tag );
+    CypherMemory_AddArenaStats( g_Memory.scratchArena, stats, g_Memory.config.scratchArena.tag );
+    CypherMemory_AddArenaStats( g_Memory.resourceArena, stats, g_Memory.config.resourceArena.tag );
+    CypherMemory_AddArenaStats( g_Memory.worldArena, stats, g_Memory.config.worldArena.tag );
+    CypherMemory_AddArenaStats( g_Memory.renderArena, stats, g_Memory.config.renderArena.tag );
+    CypherMemory_AddArenaStats( g_Memory.editorArena, stats, g_Memory.config.editorArena.tag );
 
-    g_memory.total_capacity = stats.total_capacity;
-    g_memory.total_committed = stats.total_committed;
-    g_memory.total_used = stats.total_used;
+    g_Memory.nTotalCapacity = stats.nTotalCapacity;
+    g_Memory.totalCommitted = stats.totalCommitted;
+    g_Memory.nTotalUsed = stats.nTotalUsed;
 
-    if ( stats.total_used > g_memory.peak_used ) {
-        g_memory.peak_used = stats.total_used;
+    if ( stats.nTotalUsed > g_Memory.nPeakUsed ) {
+        g_Memory.nPeakUsed = stats.nTotalUsed;
     }
 
-    stats.peak_used = g_memory.peak_used;
+    stats.nPeakUsed = g_Memory.nPeakUsed;
 
     return stats;
 }
@@ -321,37 +321,37 @@ const char *CypherMemory_TagName( const memory_tag_t tag )
 
 arena_t &CypherMemory_PermanentArena()
 {
-    return g_memory.permanent_arena;
+    return g_Memory.permanentArena;
 }
 
 arena_t &CypherMemory_FrameArena()
 {
-    return g_memory.frame_arena;
+    return g_Memory.frameArena;
 }
 
 arena_t &CypherMemory_ScratchArena()
 {
-    return g_memory.scratch_arena;
+    return g_Memory.scratchArena;
 }
 
 arena_t &CypherMemory_ResourceArena()
 {
-    return g_memory.resource_arena;
+    return g_Memory.resourceArena;
 }
 
 arena_t &CypherMemory_WorldArena()
 {
-    return g_memory.world_arena;
+    return g_Memory.worldArena;
 }
 
 arena_t &CypherMemory_RenderArena()
 {
-    return g_memory.render_arena;
+    return g_Memory.renderArena;
 }
 
 arena_t &CypherMemory_EditorArena()
 {
-    return g_memory.editor_arena;
+    return g_Memory.editorArena;
 }
 
 }       // namespace cypher::engine::memory
