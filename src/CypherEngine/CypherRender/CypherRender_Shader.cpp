@@ -15,11 +15,11 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherRender/CypherRender_Shader.h"
-#include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
-#include "CypherEngine/CypherCommon/CypherCommon_Print.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherRender/CypherRender_GL.h"
+#include "CypherRender_Shader.h"
+#include "CypherFileSystem.h"
+#include "CypherCommon_Print.h"
+#include "CypherLog.h"
+#include "CypherRender_GL.h"
 
 #include <cstring>     // strcmp / strncpy for fixed-size shader names and paths.
 
