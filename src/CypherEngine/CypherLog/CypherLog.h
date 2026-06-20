@@ -28,20 +28,20 @@ const config_t &CypherLog_GetConfig();
 
 log_error_t CypherLog_SetConfig( const config_t &config );
 
-log_error_t CypherLog_LevelFromString( const char *level_name, level_t &out_level );
+log_error_t CypherLog_LevelFromString( const char *szLevelName, level_t &levelOut );
 
-bool CypherLog_LevelEnabled( const level_t log_level, const channel_t channel );
+bool CypherLog_LevelEnabled( const level_t logLevel, const channel_t channel );
 
-bool CypherLog_ChannelEnabled( const common::com_u32 channel_mask, const channel_t channel );
+bool CypherLog_ChannelEnabled( const common::u32 nChannelMask, const channel_t channel );
 
 void CypherLog_Emit( const record_t &record );
 
-void CypherLog_Emitf( const level_t log_level, const channel_t channel,
-                const char *file, const char *function, const common::com_i32 line,
+void CypherLog_Emitf( const level_t logLevel, const channel_t channel,
+                const char *file, const char *function, const common::i32 line,
                 const char *format, ... );
 
-void CypherLog_Emitfv( const level_t log_level, const channel_t channel,
-                 const char *file, const char *function, const common::com_i32 line,
+void CypherLog_Emitfv( const level_t logLevel, const channel_t channel,
+                 const char *file, const char *function, const common::i32 line,
                  const char *format, va_list args );
 
 }
