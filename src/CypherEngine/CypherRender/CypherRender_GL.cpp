@@ -1,10 +1,10 @@
 /*======================================================================
-   File: r_gl.cpp
+   File: CypherRender_GL.cpp
    Project: CypherEngine
    Author: ksiric <email@example.com>
    Created: 2026-05-05 22:02:15
    Last Modified by: ksiric
-   Last Modified: 2026-06-03 17:49:15
+   Last Modified: 2026-06-20 12:59:08
    ---------------------------------------------------------------------
    Description:
 
@@ -14,10 +14,10 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "CypherEngine/CypherRender/CypherRender_GL.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherSystem/CypherSystem_OpenGL.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
+#include "CypherRender_GL.h"
+#include "CypherLog.h"
+#include "CypherSystem_OpenGL.h"
+#include "CypherSystem_Platform.h"
 
 #include <SDL3/SDL.h>      // SDL owns window creation and GL context lifetime.
 #include <cstddef>         // offsetof for vertex attribute layout.
