@@ -13,8 +13,8 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherMemory/CypherMemory_Bucket.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherMemory_Bucket.h"
+#include "CypherLog.h"
 
 #include <cstring>
 #include <limits>
