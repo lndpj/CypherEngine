@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Arena.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Pool.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Scratch.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Bucket.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Thread.h"
+#include "CypherCommon.h"
+#include "CypherMemory_Arena.h"
+#include "CypherMemory_Pool.h"
+#include "CypherMemory_Scratch.h"
+#include "CypherMemory_Bucket.h"
+#include "CypherMemory_Thread.h"
 
 namespace cypher::engine::memory
 {
