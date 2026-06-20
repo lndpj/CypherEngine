@@ -6,7 +6,7 @@
 #include "CypherEngine/CypherCommon/CypherCommon.h"
 
 namespace cypher::engine::math
-{ 
+{
 /*
 ================
 Math Constants
@@ -22,8 +22,8 @@ constexpr common::f32 MATH_RAD2DEG_F   = 180.0f / MATH_PI_F;
 constexpr common::f32 MATH_EPSILON_F   = 1.0e-6f;
 
 constexpr common::f64 MATH_PI_D        = 3.14159265358979323846264338327950288;
-constexpr common::f64 MATH_EPSILON_D   = 1.0e-12; 
-    
+constexpr common::f64 MATH_EPSILON_D   = 1.0e-12;
+
 /*
 ================
 Vector Types
@@ -80,9 +80,9 @@ Do not use these for normal runtime movement or rendering math.
 */
 
 struct vec3_s_t {
-    common::i16 x{};  
-    common::i16 y{};  
-    common::i16 z{};  
+    common::i16 x{};
+    common::i16 y{};
+    common::i16 z{};
 };
 
 /*
