@@ -1,5 +1,5 @@
-#include "CypherEngine/CypherLog/CypherLog_Format.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
+#include "CypherLog_Format.h"
+#include "CypherSystem_Platform.h"
 
 #include <cstdio>      // std::snprintf.
 #include <ctime>       // std::strftime.
