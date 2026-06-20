@@ -28,8 +28,8 @@ namespace cypher::engine::render
 
 namespace
 {
-char g_VertexShaderSource[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
-char g_FragmentShaderSource[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
+char s_VertexShaderSource[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
+char s_FragmentShaderSource[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
 }
 
 /*
@@ -116,8 +116,8 @@ render_error_t CypherRender_ShaderLoad( shader_registry_t &szShaderRegistry, con
     std::strncpy( shader->szVertexPath, szVertexPath, CYPHER_RENDER_MAX_SHADER_PATH - 1u );
     std::strncpy( shader->szFragmentPath, szFragmentPath, CYPHER_RENDER_MAX_SHADER_PATH - 1u );
 
-    char *szVertexSource = g_VertexShaderSource;
-    char *szFragmentSource = g_FragmentShaderSource;
+    char *szVertexSource = s_VertexShaderSource;
+    char *szFragmentSource = s_FragmentShaderSource;
 
     common::u64 nVertexBytesRead{ 0u };
     common::u64 nFragmentBytesRead{ 0u };
