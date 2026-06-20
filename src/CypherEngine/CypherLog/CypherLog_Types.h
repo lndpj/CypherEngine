@@ -105,11 +105,11 @@ Log Runtime Records
 struct record_t {
 	level_t level{ level_t::INFO };
 	channel_t channel{ channel_t::CORE };
-    common::u32 sink_mask{ 0u };
+    common::u32 nSinkMask{ 0u };
 
 	const char *file{ "" };
 	const char *function{ "" };
-	common::com_i32 line{ 0 };
+	common::i32 line{ 0 };
 
     std::time_t timestamp{};
 	char message[CYPHER_LOG_MESSAGE_MAX]{};
@@ -117,23 +117,23 @@ struct record_t {
 
 struct sink_config_t {
     bool enabled{ false };
-    level_t min_level{ level_t::INFO };
+    level_t nMinLevel{ level_t::INFO };
     format_mode_t format{ format_mode_t::COMPACT };
     flush_policy_t flush{ flush_policy_t::ERRORS_AND_ABOVE };
     file_mode_t file{ file_mode_t::TRUNCATE };
 
-    bool include_timestamps{ false };
-    bool include_source_location{ false };
-    bool include_function_name{ false };
-    bool color_enabled{ false };
+    bool bIncludeTimestamps{ false };
+    bool bIncludeSourceLocation{ false };
+    bool bIncludeFunctionName{ false };
+    bool bColorEnabled{ false };
 
     char path[CYPHER_LOG_FILE_PATH_MAX]{};
 };
 
 struct config_t {
-    level_t min_level{ level_t::TRACE };
-    common::u32 channel_mask{ 0xFFFFFFFFu };
-    source_path_mode_t source_path{ source_path_mode_t::BASENAME };
+    level_t nMinLevel{ level_t::TRACE };
+    common::u32 nChannelMask{ 0xFFFFFFFFu };
+    source_path_mode_t szSourcePath{ source_path_mode_t::BASENAME };
 
     sink_config_t terminal{
         true,
@@ -148,7 +148,7 @@ struct config_t {
         ""
     };
 
-    sink_config_t engine_file{
+    sink_config_t engineFile{
         true,
         level_t::TRACE,
         format_mode_t::DETAILED,
@@ -161,7 +161,7 @@ struct config_t {
         "CypherEngine.log"
     };
 
-    sink_config_t error_file{
+    sink_config_t errorFile{
         true,
         level_t::WARNING,
         format_mode_t::DETAILED,
@@ -174,9 +174,9 @@ struct config_t {
         "CypherEngine_errors.log"
     };
 
-    sink_config_t console_file{};
-    sink_config_t editor_file{};
-    sink_config_t game_file{};
+    sink_config_t consoleFile{};
+    sink_config_t editorFile{};
+    sink_config_t gameFile{};
 };
 
 /*
@@ -184,8 +184,8 @@ struct config_t {
 Log Name Helpers
 ================
 */
-constexpr inline const char *CypherLog_LevelName( const level_t log_level ) {
-	switch ( log_level ) {
+constexpr inline const char *CypherLog_LevelName( const level_t logLevel ) {
+	switch ( logLevel ) {
         case level_t::TRACE:        return "TRACE";
         case level_t::DEBUG:        return "DEBUG";
         case level_t::INFO:         return "INFO";
@@ -231,43 +231,43 @@ constexpr inline const char *CypherLog_ChannelName( const channel_t channel ) {
     }
 }
 
-constexpr inline common::com_u32 CypherLog_ChannelBit( const channel_t channel )
+constexpr inline common::u32 CypherLog_ChannelBit( const channel_t channel )
 {
-    return 1u << static_cast<common::com_u32>( channel );
+    return 1u << static_cast<common::u32>( channel );
 }
 
 /*
  * Helpers for the sink masking and bit masking.
  */
 
-constexpr inline common::u32 CypherLog_SinkBit( sink_flag_t sink_flag )
+constexpr inline common::u32 CypherLog_SinkBit( sink_flag_t pSinkFlag )
 {
-    return static_cast<common::u32>( sink_flag );
+    return static_cast<common::u32>( pSinkFlag );
 }
 
-constexpr inline bool CypherLog_SinkMaskHas( common::u32 sink_mask, sink_flag_t sink_flag )
+constexpr inline bool CypherLog_SinkMaskHas( common::u32 nSinkMask, sink_flag_t pSinkFlag )
 {
-    return ( ( sink_mask & CypherLog_SinkBit( sink_flag ) ) != 0u );
+    return ( ( nSinkMask & CypherLog_SinkBit( pSinkFlag ) ) != 0u );
 }
 
-constexpr inline common::u32 CypherLog_SinkMaskAdd( common::u32 sink_mask, sink_flag_t sink_flag )
+constexpr inline common::u32 CypherLog_SinkMaskAdd( common::u32 nSinkMask, sink_flag_t pSinkFlag )
 {
-    return sink_mask | CypherLog_SinkBit( sink_flag );
+    return nSinkMask | CypherLog_SinkBit( pSinkFlag );
 }
 
-constexpr inline common::u32 CypherLog_SinkMaskRemove( common::u32 sink_mask, sink_flag_t sink_flag )
+constexpr inline common::u32 CypherLog_SinkMaskRemove( common::u32 nSinkMask, sink_flag_t pSinkFlag )
 {
-    return sink_mask & ~CypherLog_SinkBit( sink_flag );
+    return nSinkMask & ~CypherLog_SinkBit( pSinkFlag );
 }
 
-constexpr inline bool CypherLog_LevelPasses( level_t level, level_t min_level )
+constexpr inline bool CypherLog_LevelPasses( level_t level, level_t nMinLevel )
 {
-    return static_cast<common::u8>( level ) >= static_cast<common::u8>( min_level );
+    return static_cast<common::u8>( level ) >= static_cast<common::u8>( nMinLevel );
 }
 
-constexpr inline common::com_u32 CypherLog_DefaultSinkMaskForLevel( level_t level )
+constexpr inline common::u32 CypherLog_DefaultSinkMaskForLevel( level_t level )
 {
-    common::com_u32 mask = 0u;
+    common::u32 mask = 0u;
 
     mask = CypherLog_SinkMaskAdd( mask, sink_flag_t::TERMINAL );
     mask = CypherLog_SinkMaskAdd( mask, sink_flag_t::ENGINE_FILE );
