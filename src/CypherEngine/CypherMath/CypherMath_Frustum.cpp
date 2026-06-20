@@ -14,12 +14,12 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "CypherEngine/CypherMath/CypherMath_Bounds.h"
-#include "CypherEngine/CypherMath/CypherMath_Plane.h"
-#include "CypherEngine/CypherMath/CypherMath_Types.h"
-#include "CypherEngine/CypherMath/CypherMath_Frustum.h"
-#include "CypherEngine/CypherMath/CypherMath_Mat.h"
-#include "CypherEngine/CypherMath/CypherMath_Vec.h"
+#include "CypherMath_Bounds.h"
+#include "CypherMath_Plane.h"
+#include "CypherMath_Types.h"
+#include "CypherMath_Frustum.h"
+#include "CypherMath_Mat.h"
+#include "CypherMath_Vec.h"
 
 #include <cmath>            // sqrt
 
