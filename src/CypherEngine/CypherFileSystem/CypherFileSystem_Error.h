@@ -49,6 +49,7 @@ enum class fs_error_t : common::u8 {
     ERR_UNSUPPORTED_BACKEND,
     ERR_NOT_IMPLEMENTED,
     ERR_PERMISSION_DENIED,
+    ERR_CANCELLED,
     ERR_IO_ERROR
 };
 
@@ -119,6 +120,8 @@ constexpr inline const char *CypherFileSystem_ErrorName( const fs_error_t error 
         return "ERR_NOT_IMPLEMENTED";
     case fs_error_t::ERR_PERMISSION_DENIED:
         return "ERR_PERMISSION_DENIED";
+    case fs_error_t::ERR_CANCELLED:
+        return "ERR_CANCELLED";
     case fs_error_t::ERR_IO_ERROR:
         return "ERR_IO_ERROR";
     default:
@@ -188,6 +191,8 @@ constexpr inline const char *CypherFileSystem_ErrorDesc( const fs_error_t error 
         return "filesystem operation is declared but not implemented yet";
     case fs_error_t::ERR_PERMISSION_DENIED:
         return "filesystem permission denied";
+    case fs_error_t::ERR_CANCELLED:
+        return "filesystem operation was cancelled";
     case fs_error_t::ERR_IO_ERROR:
         return "filesystem IO error";
     default:
@@ -196,7 +201,7 @@ constexpr inline const char *CypherFileSystem_ErrorDesc( const fs_error_t error 
 }
 
 constexpr inline common::error_t CypherFileSystem_ErrorCode( fs_error_t  error ) {
-    return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_FS, static_cast<common::com_u16>( error ) );
+    return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_FS, static_cast<common::u16>( error ) );
 }
 
 }       // namespace cypher::engine::fs
