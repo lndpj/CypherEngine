@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-04-21 22:26:01
    Last Modified by: ksiric
-   Last Modified: 2026-06-05 12:00:30
+   Last Modified: 2026-06-20 18:49:17
    ---------------------------------------------------------------------
    Description:
 
@@ -15,10 +15,10 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherCommand/CypherCommand.h"
-#include "CypherEngine/CypherCommand/CypherCommand_Error.h"
-#include "CypherEngine/CypherCommon/CypherCommon_Print.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherCommand.h"
+#include "CypherCommand_Error.h"
+#include "CypherCommon_Print.h"
+#include "CypherLog.h"
 
 #include <cctype>      // std::isspace while tokenizing command lines.
 #include <cstring>     // strcmp / strncpy for fixed command strings.
