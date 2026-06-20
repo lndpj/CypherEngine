@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommand/CypherCommand_Error.h"
-#include "CypherEngine/CypherCommon/CypherCommon.h"
+#include "CypherCommand_Error.h"
+#include "CypherCommon.h"
 
 #define CYPHER_COMMAND_MAX_COMMANDS        256u
 #define CYPHER_COMMAND_MAX_ARGUMENTS       16u
