@@ -3,12 +3,12 @@
 
 #pragma once
 
-#include "CypherEngine/CypherPak/CypherPak_Compression.h"
-#include "CypherEngine/CypherPak/CypherPak_Error.h"
-#include "CypherEngine/CypherPak/CypherPak_Format.h"
-#include "CypherEngine/CypherPak/CypherPak_Reader.h"
-#include "CypherEngine/CypherPak/CypherPak_Types.h"
-#include "CypherEngine/CypherPak/CypherPak_Writer.h"
+#include "CypherPak_Compression.h"
+#include "CypherPak_Error.h"
+#include "CypherPak_Format.h"
+#include "CypherPak_Reader.h"
+#include "CypherPak_Types.h"
+#include "CypherPak_Writer.h"
 
 namespace cypher::engine::pak
 {
