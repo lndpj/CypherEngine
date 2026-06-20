@@ -15,9 +15,9 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherMath/CypherMath_Mat.h"
-#include "CypherEngine/CypherMath/CypherMath_Quat.h"
-#include "CypherEngine/CypherMath/CypherMath_Vec.h"
+#include "CypherMath_Mat.h"
+#include "CypherMath_Quat.h"
+#include "CypherMath_Vec.h"
 
 #include <cmath>            // std::cos / std::sin etc / std::tan
 
