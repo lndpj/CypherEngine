@@ -14,9 +14,9 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "CypherEngine/CypherSystem/CypherSystem_Window.h"
-#include "CypherEngine/CypherCommon/CypherCommon_Print.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherSystem_Window.h"
+#include "CypherCommon_Print.h"
+#include "CypherLog.h"
 
 #include <SDL3/SDL.h>      // Cross-platform window and event API.
 
