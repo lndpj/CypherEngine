@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Window.h"
+#include "CypherCommon.h"
+#include "CypherSystem_Window.h"
 
 namespace cypher::engine::host
 {
