@@ -15,8 +15,8 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherMath/CypherMath_Ray.h"
-#include "CypherEngine/CypherMath/CypherMath_Vec.h"
+#include "CypherMath_Ray.h"
+#include "CypherMath_Vec.h"
 
 #include <cmath>
 
