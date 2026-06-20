@@ -1,6 +1,6 @@
-#include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
-#include "CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
+#include "CypherFileSystem.h"
+#include "CypherFileSystem_Runtime.h"
+#include "CypherSystem_Platform.h"
 
 #include <algorithm>        // std::sort for deterministic snapshot comparison.
 #include <cstddef>          // offsetof
