@@ -14,11 +14,11 @@
    Version: 0.1.0
  ======================================================================
 																	   */
-#include "CypherEngine/CypherConfig/CypherConfig.h"
-#include "CypherEngine/CypherCommand/CypherCommand.h"
-#include "CypherEngine/CypherCVar/CypherCVar.h"
-#include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherConfig.h"
+#include "CypherCommand.h"
+#include "CypherCVar.h"
+#include "CypherFileSystem.h"
+#include "CypherLog.h"
 
 #include <cctype>      // std::isspace while parsing cfg lines.
 #include <cstring>     // strlen / strcmp / strncpy for line parsing.
