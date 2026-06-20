@@ -1,4 +1,4 @@
-#include "CypherEngine/CypherPak/CypherPak_Reader.h"
+#include "CypherPak_Reader.h"
 
 #include <algorithm>
 #include <atomic>
