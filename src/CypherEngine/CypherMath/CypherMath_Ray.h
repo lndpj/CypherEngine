@@ -8,12 +8,12 @@
 namespace cypher::engine::math
 {
 
-vec3_t CypherMath_RayPointAt( const ray_t &ray, common::f32 t_units );
+vec3_t CypherMath_RayPointAt( const ray_t &ray, common::f32 tUnits );
 
-bool CypherMath_RayIntersectsPlane( const ray_t &ray, const plane_t &plane, common::f32 &out_t_units );
+bool CypherMath_RayIntersectsPlane( const ray_t &ray, const plane_t &plane, common::f32 &tUnitsOut );
 
-bool CypherMath_RayIntersectsBounds( const ray_t &ray, const bounds_t &bounds, common::f32 &out_tmin, common::f32 &out_tmax );
-    
+bool CypherMath_RayIntersectsBounds( const ray_t &ray, const bounds_t &bounds, common::f32 &tminOut, common::f32 &tmaxOut );
+
 }       // namespace cypher::engine::math
 
 #endif // CYPHER_ENGINE_MATH_RAY_H
