@@ -11,6 +11,6 @@ editor. Keep this independent from CypherEngine subsystem headers.
 ================
 */
 
-#include "CypherCommon/Tier0/CypherCommon_BaseTypes.h"
+#include "CypherCommon/Tier0/CypherCommon_Tier0.h"
 
 #endif // CYPHER_COMMON_H
