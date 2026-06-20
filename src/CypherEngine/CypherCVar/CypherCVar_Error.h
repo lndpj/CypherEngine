@@ -92,7 +92,7 @@ constexpr inline const char *CypherCVar_ErrorDesc( const cvar_error_t error ) {
 }
 
 constexpr inline common::error_t CypherCVar_ErrorCode( cvar_error_t error ) {
-	return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_CVAR, static_cast<common::com_u16>( error ) );
+	return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_CVAR, static_cast<common::u16>( error ) );
 }
 
 }
