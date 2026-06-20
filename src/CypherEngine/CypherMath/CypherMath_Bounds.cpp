@@ -15,8 +15,8 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherMath/CypherMath_Bounds.h"
-#include "CypherEngine/CypherMath/CypherMath_Vec.h"
+#include "CypherMath_Bounds.h"
+#include "CypherMath_Vec.h"
 
 #include <limits>
 
