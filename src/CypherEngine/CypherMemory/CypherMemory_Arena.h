@@ -10,13 +10,13 @@
 
 namespace cypher::engine::memory
 {
-    
+
 /*
 ================
 Memory Size Helpers
 ================
-*/   
-constexpr inline common::usize CypherMemory_Kilobytes( const common::usize value ) 
+*/
+constexpr inline common::usize CypherMemory_Kilobytes( const common::usize value )
 {
     return value * 1024u;
 }
@@ -25,7 +25,7 @@ constexpr inline common::usize CypherMemory_Megabytes( const common::usize value
 {
     return CypherMemory_Kilobytes( value ) * 1024u;
 }
-    
+
 constexpr inline common::usize CypherMemory_Gigabytes( const common::usize value )
 {
     return CypherMemory_Megabytes( value ) * 1024u;
@@ -36,7 +36,7 @@ constexpr inline common::usize CypherMemory_Gigabytes( const common::usize value
 Arena Constants
 ================
 */
-constexpr common::usize CYPHER_MEMORY_DEFAULT_ALIGNMENT = alignof( common::usize );    
+constexpr common::usize CYPHER_MEMORY_DEFAULT_ALIGNMENT = alignof( common::usize );
 
 constexpr common::usize CYPHER_MEMORY_KIB               = 1024u;
 constexpr common::usize CYPHER_MEMORY_MIB               = 1024u * CYPHER_MEMORY_KIB;
@@ -57,36 +57,36 @@ Arena Helpers
 ================
 */
 constexpr inline bool CypherMemory_IsPowerOfTwo( const common::usize value )
-{   
+{
     // Quick fast O(1) formula for checking if the binary value is power of two.
     return ( ( value > 0 ) && ( value & ( value - 1 ) ) == 0 );
 }
 
-constexpr inline bool CypherMemory_AddSizeChecked( const common::usize a, const common::usize b, common::usize &out_value )
+constexpr inline bool CypherMemory_AddSizeChecked( const common::usize a, const common::usize b, common::usize &valueOut )
 {
-    const common::usize max_value = std::numeric_limits<common::usize>::max();
+    const common::usize nMaxValue = std::numeric_limits<common::usize>::max();
 
-    if ( a > max_value - b ) {
+    if ( a > nMaxValue - b ) {
         return false;
     }
 
-    out_value = a + b;
+    valueOut = a + b;
     return true;
 }
 
-constexpr inline bool CypherMemory_MulSizeChecked( const common::usize a, const common::usize b, common::usize &out_value )
+constexpr inline bool CypherMemory_MulSizeChecked( const common::usize a, const common::usize b, common::usize &valueOut )
 {
-    const common::usize max_value = std::numeric_limits<common::usize>::max();
+    const common::usize nMaxValue = std::numeric_limits<common::usize>::max();
 
-    if ( a != 0u && b > max_value / a ) {
+    if ( a != 0u && b > nMaxValue / a ) {
         return false;
     }
 
-    out_value = a * b;
+    valueOut = a * b;
     return true;
 }
 
-constexpr inline bool CypherMemory_AlignForwardChecked( const common::usize value, const common::usize alignment, common::usize &out_value )
+constexpr inline bool CypherMemory_AlignForwardChecked( const common::usize value, const common::usize alignment, common::usize &valueOut )
 {
     if ( !CypherMemory_IsPowerOfTwo( alignment ) ) {
         return false;
@@ -98,11 +98,11 @@ constexpr inline bool CypherMemory_AlignForwardChecked( const common::usize valu
         return false;
     }
 
-    out_value = ( value + mask ) & ~mask;
+    valueOut = ( value + mask ) & ~mask;
     return true;
 }
 
-constexpr inline common::usize CypherMemory_AlignForward( common::usize value, common::usize alignment ) 
+constexpr inline common::usize CypherMemory_AlignForward( common::usize value, common::usize alignment )
 {
     assert( CypherMemory_IsPowerOfTwo( alignment ) );
 
@@ -116,7 +116,7 @@ constexpr inline common::usize CypherMemory_AlignForward( common::usize value, c
 enum class arena_backing_t : common::u8 {
     ARENA_HEAP = 0,
     ARENA_EXTERNAL_BUFFER,
-    ARENA_VIRTUAL_MEMORY  
+    ARENA_VIRTUAL_MEMORY
 };
 
 /*
@@ -125,14 +125,14 @@ Arena Description
 
 Creation request for an arena that owns its backing memory.
 ================
-*/  
+*/
 struct arena_desc_t {
     const char *name{ nullptr };
-    
+
     common::usize capacity{ 0u };
-    common::usize initial_commit{ 0u };
-    void *external_buffer{ nullptr };
-    
+    common::usize initialCommit{ 0u };
+    void *pExternalBuffer{ nullptr };
+
     common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
     arena_backing_t backing{ arena_backing_t::ARENA_HEAP };
 };
@@ -164,9 +164,9 @@ struct arena_allocation_trace_t {
     void *ptr{ nullptr };
     common::usize size{ 0u };
     common::usize alignment{ 0u };
-    common::usize used_after{ 0u };
+    common::usize nUsedAfter{ 0u };
 
-    common::u64 allocation_index{ 0u };
+    common::u64 nAllocationIndex{ 0u };
     mem_error_t error{ mem_error_t::OK };
     bool failed{ false };
 };
@@ -180,17 +180,17 @@ Snapshot of arena memory usage.
 */
 struct arena_stats_t {
     const char *name{ nullptr };
-    
+
     common::usize capacity{ 0u };
     common::usize used{ 0u };
     common::usize remaining{ 0u };
-    common::usize peak_used{ 0u };
+    common::usize nPeakUsed{ 0u };
 
-    common::u64 allocation_count{ 0u };
-    common::u64 failed_allocation_count{ 0u };
+    common::u64 nAllocationCount{ 0u };
+    common::u64 nFailedAllocationCount{ 0u };
 
     common::usize committed{ 0u };
-    common::usize initial_commit{ 0u };
+    common::usize initialCommit{ 0u };
 };
 
 /*
@@ -203,32 +203,32 @@ block and serves allocations by moving the used offset forward.
 */
 struct arena_t {
     const char *name{ nullptr };        // debugging/logging
-    
+
     common::byte *base{ nullptr };      // pointer to the beginning of the arena memory block
-    
+
     common::usize capacity{ 0u };       // max bytes allocation size
     common::usize used{ 0u };           // how much is used by this specific arena in arena.
-    common::usize peak_used{ 0u };      // peak usage in frames for debugging.
-    
-    common::usize committed{ 0u };
-    common::usize initial_commit{ 0u };
-    common::usize page_size{ 0u };
-    
-    common::u64 allocation_count{ 0u }; // how many allocations happened for this, like usage
-    common::u64 failed_allocation_count{ 0u };
-    
-    common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
-    
-    mem_error_t last_error{ mem_error_t::OK };
+    common::usize nPeakUsed{ 0u };      // peak usage in frames for debugging.
 
-    arena_allocation_trace_t allocation_traces[CYPHER_MEMORY_ARENA_ALLOCATION_TRACE_COUNT]{};
-    common::usize allocation_trace_index{ 0u };
-    common::usize allocation_trace_count{ 0u };
-    
+    common::usize committed{ 0u };
+    common::usize initialCommit{ 0u };
+    common::usize nPageSize{ 0u };
+
+    common::u64 nAllocationCount{ 0u }; // how many allocations happened for this, like usage
+    common::u64 nFailedAllocationCount{ 0u };
+
+    common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
+
+    mem_error_t lastError{ mem_error_t::OK };
+
+    arena_allocation_trace_t pAllocationTraces[CYPHER_MEMORY_ARENA_ALLOCATION_TRACE_COUNT]{};
+    common::usize nAllocationTraceIndex{ 0u };
+    common::usize nAllocationTraceCount{ 0u };
+
     arena_backing_t backing{ arena_backing_t::ARENA_HEAP };
-    
+
     bool initialized{ false };          // did we init this arena or not
-    bool owns_memory{ false };          // is it external or internal, arenas memory or not
+    bool pOwnsMemory{ false };          // is it external or internal, arenas memory or not
 };
 
 /*
@@ -239,7 +239,7 @@ List of functions necessary to use for creating arena memory layouts.
 ================
 */
 
-mem_error_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arena_desc );
+mem_error_t CypherMemory_ArenaInit( arena_t &arena, const arena_desc_t &arenaDesc );
 
 void CypherMemory_ArenaShutdown( arena_t &arena );
 
@@ -248,7 +248,7 @@ arena_stats_t CypherMemory_ArenaStats( const arena_t &arena );
 void CypherMemory_ArenaResetCounters( arena_t &arena );
 
 void CypherMemory_ArenaReset( arena_t &arena );
-    
+
 void *CypherMemory_ArenaAlloc( arena_t &arena, common::usize size, common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
 
 void *CypherMemory_ArenaAllocDebug( arena_t &arena,
@@ -257,7 +257,7 @@ void *CypherMemory_ArenaAllocDebug( arena_t &arena,
                                     const char *file,
                                     const char *function,
                                     common::i32 line );
-    
+
 void *CypherMemory_ArenaAllocZero( arena_t &arena, common::usize size, common::usize alignment = CYPHER_MEMORY_DEFAULT_ALIGNMENT );
 
 void *CypherMemory_ArenaAllocZeroDebug( arena_t &arena,
@@ -285,8 +285,8 @@ common::usize CypherMemory_ArenaCapacity( const arena_t &arena );
 
 common::usize CypherMemory_ArenaRemaining( const arena_t &arena );
 
-const arena_allocation_trace_t *CypherMemory_ArenaAllocationTraces( const arena_t &arena, common::usize &out_count );
-        
+const arena_allocation_trace_t *CypherMemory_ArenaAllocationTraces( const arena_t &arena, common::usize &nOutCount );
+
 /*
 ================
 Arena Helper Functions
@@ -322,8 +322,8 @@ T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count )
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        arena.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
-        ++arena.failed_allocation_count;
+        arena.lastError = mem_error_t::ERR_INTEGER_OVERFLOW;
+        ++arena.nFailedAllocationCount;
         return nullptr;
     }
 
@@ -331,7 +331,7 @@ T *CypherMemory_ArenaAllocArray( arena_t &arena, const common::usize count )
             CypherMemory_ArenaAlloc(
             arena,
             size,
-            alignof( T ) ) );   
+            alignof( T ) ) );
 }
 
 template <typename T>
@@ -339,8 +339,8 @@ T *CypherMemory_ArenaAllocArrayDebug( arena_t &arena, const common::usize count,
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        arena.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
-        ++arena.failed_allocation_count;
+        arena.lastError = mem_error_t::ERR_INTEGER_OVERFLOW;
+        ++arena.nFailedAllocationCount;
         return nullptr;
     }
 
@@ -359,8 +359,8 @@ T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count )
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        arena.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
-        ++arena.failed_allocation_count;
+        arena.lastError = mem_error_t::ERR_INTEGER_OVERFLOW;
+        ++arena.nFailedAllocationCount;
         return nullptr;
     }
 
@@ -368,7 +368,7 @@ T *CypherMemory_ArenaAllocArrayZero( arena_t &arena, const common::usize count )
             CypherMemory_ArenaAllocZero(
             arena,
             size,
-            alignof( T ) ) );   
+            alignof( T ) ) );
 }
 
 template <typename T>
@@ -376,8 +376,8 @@ T *CypherMemory_ArenaAllocArrayZeroDebug( arena_t &arena, const common::usize co
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        arena.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
-        ++arena.failed_allocation_count;
+        arena.lastError = mem_error_t::ERR_INTEGER_OVERFLOW;
+        ++arena.nFailedAllocationCount;
         return nullptr;
     }
 
@@ -398,7 +398,7 @@ T *CypherMemory_ArenaAllocTypeZero( arena_t &arena )
             CypherMemory_ArenaAllocZero(
             arena,
             sizeof( T ),
-            alignof( T ) ) );   
+            alignof( T ) ) );
 }
 
 template <typename T>
