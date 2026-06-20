@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "CypherEngine/CypherRender/CypherRender_Error.h"
-#include "CypherEngine/CypherRender/CypherRender_Mesh.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Window.h"
-#include "CypherEngine/CypherMath/CypherMath_Types.h"
+#include "CypherRender_Error.h"
+#include "CypherRender_Mesh.h"
+#include "CypherSystem_Window.h"
+#include "CypherMath_Types.h"
 
 namespace cypher::engine::render
 {
