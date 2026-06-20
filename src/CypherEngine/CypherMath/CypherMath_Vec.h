@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CypherEngine/CypherMath/CypherMath_Types.h"
+#include "CypherMath_Types.h"
 
 namespace cypher::engine::math {
 
