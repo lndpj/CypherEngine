@@ -14,8 +14,8 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherLog/CypherLog_Format.h"
+#include "CypherLog.h"
+#include "CypherLog_Format.h"
 
 #include <cctype>      // std::tolower for level parsing.
 #include <cstdio>      // FILE and stdio logging sinks.
