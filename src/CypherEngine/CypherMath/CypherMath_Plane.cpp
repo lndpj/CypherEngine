@@ -14,8 +14,8 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "CypherEngine/CypherMath/CypherMath_Plane.h"
-#include "CypherEngine/CypherMath/CypherMath_Vec.h"
+#include "CypherMath_Plane.h"
+#include "CypherMath_Vec.h"
 
 namespace cypher::engine::math
 {
