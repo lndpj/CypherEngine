@@ -22,12 +22,12 @@ struct vertex_t {
 };
 
 struct mesh_t {
-    common::u32 vertex_count{ 0u };
-    common::u32 index_count{ 0u };
+    common::u32 nVertexCount{ 0u };
+    common::u32 nIndexCount{ 0u };
 
-    common::u32 gl_vao{ 0u };
-    common::u32 gl_vbo{ 0u };
-    common::u32 gl_ebo{ 0u };
+    common::u32 nGlVao{ 0u };
+    common::u32 nGlVbo{ 0u };
+    common::u32 nGlEbo{ 0u };
 
     math::bounds_t bounds{};
 
@@ -42,10 +42,10 @@ Uploads vertex/index data into the active renderer backend.
 ================
 */
 render_error_t CypherRender_MeshCreate( const vertex_t *vertices,
-                             const common::u32 vertex_count,
+                             const common::u32 nVertexCount,
                              const common::u32 *indices,
-                             const common::u32 index_count,
-                             mesh_t &mesh_out );
+                             const common::u32 nIndexCount,
+                             mesh_t &meshOut );
 
 void CypherRender_MeshDestroy( mesh_t &mesh );
 
