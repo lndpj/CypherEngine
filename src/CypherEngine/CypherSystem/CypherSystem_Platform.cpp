@@ -14,8 +14,8 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherSystem_Platform.h"
+#include "CypherLog.h"
 
 #ifdef CYPHER_PLATFORM_WINDOWS
     #ifndef WIN32_LEAN_AND_MEAN
