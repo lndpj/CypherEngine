@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
+#include "CypherCommon.h"
 
 #include <ctime>       // std::time_t timestamps.
 
