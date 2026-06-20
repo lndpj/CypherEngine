@@ -14,9 +14,9 @@ namespace cypher::engine::host
 Host Defaults
 ================
 */
-constexpr common::com_u32 HOST_DEFAULT_VIEWPORT_WIDTH  = 1280u;
-constexpr common::com_u32 HOST_DEFAULT_VIEWPORT_HEIGHT = 720u;
-constexpr common::com_u32 HOST_DEFAULT_TARGET_FPS      = 60u;    
+constexpr common::u32 HOST_DEFAULT_VIEWPORT_WIDTH  = 1280u;
+constexpr common::u32 HOST_DEFAULT_VIEWPORT_HEIGHT = 720u;
+constexpr common::u32 HOST_DEFAULT_TARGET_FPS      = 60u;
 constexpr const char *HOST_DEFAULT_WINDOW_TITLE         = "REAP";
 
 /*
@@ -48,8 +48,8 @@ Host Runtime Data
 ================
 */
 struct viewport_t {
-    common::com_u32 width{ HOST_DEFAULT_VIEWPORT_WIDTH };
-    common::com_u32 height{ HOST_DEFAULT_VIEWPORT_HEIGHT };
+    common::u32 width{ HOST_DEFAULT_VIEWPORT_WIDTH };
+    common::u32 height{ HOST_DEFAULT_VIEWPORT_HEIGHT };
 };
 
 struct window_config_t {
@@ -57,26 +57,26 @@ struct window_config_t {
     const char *title{ HOST_DEFAULT_WINDOW_TITLE };
     bool fullscreen{false};
     bool vsync{true};
-    common::com_u32 target_fps{ HOST_DEFAULT_TARGET_FPS };
+    common::u32 nTargetFps{ HOST_DEFAULT_TARGET_FPS };
 };
 
 struct frame_t {
     common::frame_index_t index{};
-    
-    common::f64 previous_time_seconds{};
-    common::f64 current_time_seconds{};
-    
-    common::com_f32 delta_time_seconds{};
-    common::com_f32 real_time_seconds{};
-    common::com_f32 simulation_time_seconds{};
+
+    common::f64 nPreviousTimeSeconds{};
+    common::f64 nCurrentTimeSeconds{};
+
+    common::f32 nDeltaTimeSeconds{};
+    common::f32 nRealTimeSeconds{};
+    common::f32 nSimulationTimeSeconds{};
 };
 
 struct config_t {
     int argc{ 0 };
     const char *const *argv{ nullptr };
-    
-    build_config_t build_config{ build_config_t::UNKNOWN };
-    window_config_t window_config{};
+
+    build_config_t buildConfig{ build_config_t::UNKNOWN };
+    window_config_t pWindowConfig{};
 };
 
 struct state_t {
@@ -84,7 +84,7 @@ struct state_t {
     config_t config{};
     sys::window_t window{};
     bool running{ false };
-    bool has_focus{ false };
+    bool bHasFocus{ false };
     frame_t frame{};
 };
 
