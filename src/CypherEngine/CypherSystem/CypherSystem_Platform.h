@@ -19,14 +19,14 @@ constexpr common::u32 SYS_MAX_NAME_LENGTH = 256;
 Platform Detection Types
 ================
 */
-enum class platform_t : common::com_u8 {
+enum class platform_t : common::u8 {
     UNKNOWN = 0,
     WINDOWS,
     LINUX,
     MACOSX
 };
 
-enum class compiler_t : common::com_u8 {
+enum class compiler_t : common::u8 {
     UNKNOWN = 0,
     CLANG,
     GCC,
@@ -42,39 +42,39 @@ struct init_info_t {
     int argc{ 0 };
     const char *const *argv{ nullptr };
 
-    const char *app_name{ nullptr };
-    const char *organization_name{ nullptr };
+    const char *szAppName{ nullptr };
+    const char *szOrganizationName{ nullptr };
 };
 
 struct paths_t {
-    char executable_path[SYS_MAX_PATH_LENGTH]{};
-    char executable_dir[SYS_MAX_PATH_LENGTH]{};
-    char working_dir[SYS_MAX_PATH_LENGTH]{};
+    char szExecutablePath[SYS_MAX_PATH_LENGTH]{};
+    char executableDir[SYS_MAX_PATH_LENGTH]{};
+    char workingDir[SYS_MAX_PATH_LENGTH]{};
 
-    char base_path[SYS_MAX_PATH_LENGTH]{};
-    char user_path[SYS_MAX_PATH_LENGTH]{};
+    char szBasePath[SYS_MAX_PATH_LENGTH]{};
+    char szUserPath[SYS_MAX_PATH_LENGTH]{};
 };
 
 struct runtime_state_t {
     bool initialized{ false };
-    
-    char app_name[SYS_MAX_NAME_LENGTH]{};
-    char organization_name[SYS_MAX_NAME_LENGTH]{};
-    
+
+    char szAppName[SYS_MAX_NAME_LENGTH]{};
+    char szOrganizationName[SYS_MAX_NAME_LENGTH]{};
+
     int argc{ 0u };
     const char *const *argv{ nullptr };
-    paths_t sys_paths{};
-    
+    paths_t sysPaths{};
+
 };
 
-extern runtime_state_t g_sys_runtime_state;
+extern runtime_state_t g_SysRuntimeState;
 
 /*
 ================
 System API
 ================
 */
-sys_error_t CypherSystem_Init( const init_info_t &init_info );
+sys_error_t CypherSystem_Init( const init_info_t &initInfo );
 sys_error_t CypherSystem_Shutdown();
 
 bool CypherSystem_IsInitialized();
@@ -86,14 +86,14 @@ const char *CypherSystem_PlatformName( platform_t type );
 const char *CypherSystem_CompilerName( compiler_t type );
 
 const paths_t &CypherSystem_Paths();
-sys_error_t CypherSystem_GetPaths( paths_t &out_paths );
+sys_error_t CypherSystem_GetPaths( paths_t &pathsOut );
 
 const char *CypherSystem_PathBasename( const char *path );
 
-common::com_f64 CypherSystem_TimeNowSeconds();
+common::f64 CypherSystem_TimeNowSeconds();
 void CypherSystem_SleepMilliseconds( common::u64 milliseconds );
 
-bool CypherSystem_LocalTime( std::time_t time_value, std::tm &time_out );
+bool CypherSystem_LocalTime( std::time_t timeValue, std::tm &timeOut );
 
 common::usize CypherSystem_VirtualPageSize();
 
