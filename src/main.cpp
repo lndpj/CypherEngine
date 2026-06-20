@@ -7,10 +7,10 @@
    Last Modified: 2026-05-01 21:30:06
    ---------------------------------------------------------------------
    Description:
-       
+
    ---------------------------------------------------------------------
-   License: 
-   Company: 
+   License:
+   Company:
    Version: 0.1.0
  ======================================================================
                                                                        */
@@ -30,23 +30,23 @@ and shutdown ordering.
 ================
 */
 int main(int argc, char const *argv[])
-{   
-    host::state_t  host_state{};
-    host_state.config.argc = argc;
-    host_state.config.argv = argv;
-    
-    if ( host::CypherHost_Init( host_state ) != host::host_error_t::OK ) {
+{
+    host::state_t  pHostState{};
+    pHostState.config.argc = argc;
+    pHostState.config.argv = argv;
+
+    if ( host::CypherHost_Init( pHostState ) != host::host_error_t::OK ) {
         return ( EXIT_FAILURE );
     }
-    
-    while( host::CypherHost_IsRunning( host_state ) ) {
-        host::CypherHost_BeginFrame( host_state );
-        host::CypherHost_Update( host_state );
-        host::CypherHost_Render( host_state );
-        host::CypherHost_EndFrame( host_state );
+
+    while( host::CypherHost_IsRunning( pHostState ) ) {
+        host::CypherHost_BeginFrame( pHostState );
+        host::CypherHost_Update( pHostState );
+        host::CypherHost_Render( pHostState );
+        host::CypherHost_EndFrame( pHostState );
     }
-    
-    host::CypherHost_Shutdown( host_state );
-    
+
+    host::CypherHost_Shutdown( pHostState );
+
     return ( EXIT_SUCCESS );
 }
