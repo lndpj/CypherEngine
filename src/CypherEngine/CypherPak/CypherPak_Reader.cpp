@@ -27,30 +27,30 @@ constexpr common::u64 FNV1A64_OFFSET = 14695981039346656037ull;
 constexpr common::u64 FNV1A64_PRIME = 1099511628211ull;
 constexpr common::u64 READ_CHUNK_SIZE = 64u * 1024u;
 
-std::atomic<common::u32> g_next_reader_handle{ 1u };
+std::atomic<common::u32> g_NextReaderHandle{ 1u };
 
 pak_handle_t AllocateReaderHandle()
 {
-    common::u32 handle = g_next_reader_handle.fetch_add( 1u );
+    common::u32 handle = g_NextReaderHandle.fetch_add( 1u );
     if ( handle == CYPHER_PAK_INVALID_HANDLE ) {
-        handle = g_next_reader_handle.fetch_add( 1u );
+        handle = g_NextReaderHandle.fetch_add( 1u );
     }
     return handle;
 }
 
-bool CopyString( char *out, const common::u32 out_size, const char *text )
+bool CopyString( char *out, const common::u32 nOutSize, const char *text )
 {
-    if ( out == nullptr || out_size == 0u || text == nullptr ) {
+    if ( out == nullptr || nOutSize == 0u || text == nullptr ) {
         return false;
     }
 
-    const common::usize text_len = std::strlen( text );
-    if ( text_len + 1u > out_size ) {
+    const common::usize nTextLen = std::strlen( text );
+    if ( nTextLen + 1u > nOutSize ) {
         out[0] = '\0';
         return false;
     }
 
-    std::memcpy( out, text, text_len + 1u );
+    std::memcpy( out, text, nTextLen + 1u );
     return true;
 }
 
@@ -89,27 +89,27 @@ bool IsInvalidPathChar( const char c )
     }
 }
 
-pak_error_t NormalizeVirtualPath( const char *virtual_path, char *out_path, const common::u32 out_path_size )
+pak_error_t NormalizeVirtualPath( const char *szVirtualPath, char *szOutPath, const common::u32 nOutPathSize )
 {
-    if ( virtual_path == nullptr || virtual_path[0] == '\0' ) {
+    if ( szVirtualPath == nullptr || szVirtualPath[0] == '\0' ) {
         return pak_error_t::ERR_INVALID_PATH;
     }
-    if ( out_path == nullptr || out_path_size == 0u ) {
+    if ( szOutPath == nullptr || nOutPathSize == 0u ) {
         return pak_error_t::ERR_INVALID_ARGUMENT;
     }
 
-    out_path[0] = '\0';
+    szOutPath[0] = '\0';
 
-    if ( virtual_path[0] == '/' || virtual_path[0] == '\\' ) {
+    if ( szVirtualPath[0] == '/' || szVirtualPath[0] == '\\' ) {
         return pak_error_t::ERR_INVALID_PATH;
     }
-    if ( IsAsciiAlpha( virtual_path[0] ) && virtual_path[1] == ':' ) {
+    if ( IsAsciiAlpha( szVirtualPath[0] ) && szVirtualPath[1] == ':' ) {
         return pak_error_t::ERR_INVALID_PATH;
     }
 
-    common::u32 write_index = 0u;
-    common::u32 segment_count = 0u;
-    const char *cursor = virtual_path;
+    common::u32 nWriteIndex = 0u;
+    common::u32 nSegmentCount = 0u;
+    const char *cursor = szVirtualPath;
 
     while ( *cursor != '\0' ) {
         while ( *cursor == '/' || *cursor == '\\' ) {
@@ -119,47 +119,47 @@ pak_error_t NormalizeVirtualPath( const char *virtual_path, char *out_path, cons
             break;
         }
 
-        const char *segment_start = cursor;
+        const char *segmentStart = cursor;
         while ( *cursor != '\0' && *cursor != '/' && *cursor != '\\' ) {
             if ( IsInvalidPathChar( *cursor ) ) {
-                out_path[0] = '\0';
+                szOutPath[0] = '\0';
                 return pak_error_t::ERR_INVALID_PATH;
             }
             ++cursor;
         }
 
-        const common::usize segment_len = static_cast<common::usize>( cursor - segment_start );
-        if ( segment_len == 0u ) {
+        const common::usize nSegmentLen = static_cast<common::usize>( cursor - segmentStart );
+        if ( nSegmentLen == 0u ) {
             continue;
         }
-        if ( ( segment_len == 1u && segment_start[0] == '.' ) ||
-             ( segment_len == 2u && segment_start[0] == '.' && segment_start[1] == '.' ) ) {
-            out_path[0] = '\0';
+        if ( ( nSegmentLen == 1u && segmentStart[0] == '.' ) ||
+             ( nSegmentLen == 2u && segmentStart[0] == '.' && segmentStart[1] == '.' ) ) {
+            szOutPath[0] = '\0';
             return pak_error_t::ERR_INVALID_PATH;
         }
-        if ( segment_count > 0u ) {
-            if ( write_index + 1u >= out_path_size ) {
-                out_path[0] = '\0';
+        if ( nSegmentCount > 0u ) {
+            if ( nWriteIndex + 1u >= nOutPathSize ) {
+                szOutPath[0] = '\0';
                 return pak_error_t::ERR_BUFFER_TOO_SMALL;
             }
-            out_path[write_index++] = '/';
+            szOutPath[nWriteIndex++] = '/';
         }
-        for ( common::usize i = 0u; i < segment_len; ++i ) {
-            if ( write_index + 1u >= out_path_size ) {
-                out_path[0] = '\0';
+        for ( common::usize i = 0u; i < nSegmentLen; ++i ) {
+            if ( nWriteIndex + 1u >= nOutPathSize ) {
+                szOutPath[0] = '\0';
                 return pak_error_t::ERR_BUFFER_TOO_SMALL;
             }
-            out_path[write_index++] = ToLowerAscii( segment_start[i] );
+            szOutPath[nWriteIndex++] = ToLowerAscii( segmentStart[i] );
         }
 
-        ++segment_count;
+        ++nSegmentCount;
     }
 
-    if ( segment_count == 0u ) {
+    if ( nSegmentCount == 0u ) {
         return pak_error_t::ERR_INVALID_PATH;
     }
 
-    out_path[write_index] = '\0';
+    szOutPath[nWriteIndex] = '\0';
     return pak_error_t::OK;
 }
 
@@ -190,23 +190,23 @@ bool AddOverflow( const common::u64 a, const common::u64 b, common::u64 &out )
     return out < a;
 }
 
-bool RangeInside( const common::u64 offset, const common::u64 size, const common::u64 container_size )
+bool RangeInside( const common::u64 offset, const common::u64 size, const common::u64 nContainerSize )
 {
     common::u64 end = 0u;
     if ( AddOverflow( offset, size, end ) ) {
         return false;
     }
-    return end <= container_size;
+    return end <= nContainerSize;
 }
 
 bool OpenFlagsSupported( const common::u32 flags )
 {
-    const common::u32 supported_flags =
+    const common::u32 bSupportedFlags =
         CYPHER_PAK_OPEN_VERIFY_HEADER |
         CYPHER_PAK_OPEN_VERIFY_INDEX |
         CYPHER_PAK_OPEN_VERIFY_FILE_HASHES |
         CYPHER_PAK_OPEN_MEMORY_MAP;
-    return ( flags & ~supported_flags ) == 0u;
+    return ( flags & ~bSupportedFlags ) == 0u;
 }
 
 bool SeekFile( std::FILE *file, const common::u64 offset )
@@ -259,30 +259,30 @@ pak_header_t DecodeHeader( const common::u8 *bytes )
 
     header.version = CypherPak_LoadU32LE( bytes + offset );
     offset += 4u;
-    header.header_size = CypherPak_LoadU32LE( bytes + offset );
+    header.nHeaderSize = CypherPak_LoadU32LE( bytes + offset );
     offset += 4u;
-    header.endian_tag = CypherPak_LoadU32LE( bytes + offset );
+    header.endianTag = CypherPak_LoadU32LE( bytes + offset );
     offset += 4u;
     header.flags = CypherPak_LoadU32LE( bytes + offset );
     offset += 4u;
 
-    header.archive_size = CypherPak_LoadU64LE( bytes + offset );
+    header.nArchiveSize = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    header.file_count = CypherPak_LoadU64LE( bytes + offset );
+    header.nFileCount = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    header.index_offset = CypherPak_LoadU64LE( bytes + offset );
+    header.nIndexOffset = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    header.index_size = CypherPak_LoadU64LE( bytes + offset );
+    header.nIndexSize = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    header.string_table_offset = CypherPak_LoadU64LE( bytes + offset );
+    header.nStringTableOffset = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    header.string_table_size = CypherPak_LoadU64LE( bytes + offset );
+    header.nStringTableSize = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    header.data_offset = CypherPak_LoadU64LE( bytes + offset );
+    header.nDataOffset = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    header.data_size = CypherPak_LoadU64LE( bytes + offset );
+    header.nDataSize = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    header.archive_hash = CypherPak_LoadU64LE( bytes + offset );
+    header.archiveHash = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
 
     for ( common::u32 i = 0u; i < 4u; ++i ) {
@@ -298,21 +298,21 @@ pak_disk_file_entry_t DecodeFileEntry( const common::u8 *bytes )
     pak_disk_file_entry_t entry{};
     common::usize offset = 0u;
 
-    entry.path_offset = CypherPak_LoadU64LE( bytes + offset );
+    entry.nPathOffset = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    entry.data_offset = CypherPak_LoadU64LE( bytes + offset );
+    entry.nDataOffset = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    entry.stored_size = CypherPak_LoadU64LE( bytes + offset );
+    entry.nStoredSize = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    entry.unpacked_size = CypherPak_LoadU64LE( bytes + offset );
+    entry.nUnpackedSize = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    entry.modified_time_utc = CypherPak_LoadU64LE( bytes + offset );
+    entry.modifiedTimeUtc = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    entry.content_hash = CypherPak_LoadU64LE( bytes + offset );
+    entry.contentHash = CypherPak_LoadU64LE( bytes + offset );
     offset += 8u;
-    entry.path_size = CypherPak_LoadU32LE( bytes + offset );
+    entry.nPathSize = CypherPak_LoadU32LE( bytes + offset );
     offset += 4u;
-    entry.path_hash = CypherPak_LoadU32LE( bytes + offset );
+    entry.szPathHash = CypherPak_LoadU32LE( bytes + offset );
     offset += 4u;
     entry.compression = CypherPak_LoadU32LE( bytes + offset );
     offset += 4u;
@@ -323,92 +323,92 @@ pak_disk_file_entry_t DecodeFileEntry( const common::u8 *bytes )
 
 const char *EntryPath( const pak_reader_t &reader, const pak_disk_file_entry_t &entry )
 {
-    if ( reader.string_table == nullptr || entry.path_offset >= reader.string_table_size ) {
+    if ( reader.stringTable == nullptr || entry.nPathOffset >= reader.nStringTableSize ) {
         return nullptr;
     }
-    return reader.string_table + entry.path_offset;
+    return reader.stringTable + entry.nPathOffset;
 }
 
 pak_error_t ValidateLoadedIndex( const pak_reader_t &reader )
 {
-    if ( reader.header.file_count != reader.file_count ) {
+    if ( reader.header.nFileCount != reader.nFileCount ) {
         return pak_error_t::ERR_INVALID_INDEX;
     }
-    if ( reader.file_count > 0u && ( reader.entries == nullptr || reader.string_table == nullptr ) ) {
+    if ( reader.nFileCount > 0u && ( reader.entries == nullptr || reader.stringTable == nullptr ) ) {
         return pak_error_t::ERR_INVALID_INDEX;
     }
 
-    std::vector<const char *> sorted_paths;
+    std::vector<const char *> sortedPaths;
     try {
-        sorted_paths.reserve( reader.file_count );
+        sortedPaths.reserve( reader.nFileCount );
     } catch ( const std::bad_alloc & ) {
         return pak_error_t::ERR_OUT_OF_MEMORY;
     }
 
-    const char *previous_path = nullptr;
-    for ( common::u32 i = 0u; i < reader.file_count; ++i ) {
+    const char *szPreviousPath = nullptr;
+    for ( common::u32 i = 0u; i < reader.nFileCount; ++i ) {
         const pak_disk_file_entry_t &entry = reader.entries[i];
-        if ( entry.path_size == 0u || entry.path_size >= CYPHER_PAK_MAX_PATH_LENGTH ) {
+        if ( entry.nPathSize == 0u || entry.nPathSize >= CYPHER_PAK_MAX_PATH_LENGTH ) {
             return pak_error_t::ERR_INVALID_INDEX;
         }
-        if ( entry.path_offset >= reader.string_table_size ) {
+        if ( entry.nPathOffset >= reader.nStringTableSize ) {
             return pak_error_t::ERR_INVALID_INDEX;
         }
 
-        common::u64 path_end = 0u;
-        if ( AddOverflow( entry.path_offset, entry.path_size, path_end ) ||
-             path_end >= reader.string_table_size ) {
+        common::u64 szPathEnd = 0u;
+        if ( AddOverflow( entry.nPathOffset, entry.nPathSize, szPathEnd ) ||
+             szPathEnd >= reader.nStringTableSize ) {
             return pak_error_t::ERR_INVALID_INDEX;
         }
-        if ( reader.string_table[path_end] != '\0' ) {
+        if ( reader.stringTable[szPathEnd] != '\0' ) {
             return pak_error_t::ERR_INVALID_INDEX;
         }
 
         const char *path = EntryPath( reader, entry );
-        char normalized_path[CYPHER_PAK_MAX_PATH_LENGTH]{};
-        const pak_error_t normalize_result = NormalizeVirtualPath( path, normalized_path, sizeof( normalized_path ) );
-        if ( normalize_result != pak_error_t::OK ) {
-            return normalize_result;
+        char szNormalizedPath[CYPHER_PAK_MAX_PATH_LENGTH]{};
+        const pak_error_t normalizeResult = NormalizeVirtualPath( path, szNormalizedPath, sizeof( szNormalizedPath ) );
+        if ( normalizeResult != pak_error_t::OK ) {
+            return normalizeResult;
         }
-        if ( std::strcmp( path, normalized_path ) != 0 ) {
+        if ( std::strcmp( path, szNormalizedPath ) != 0 ) {
             return pak_error_t::ERR_INVALID_INDEX;
         }
-        if ( entry.path_hash != HashPath32( path ) ) {
+        if ( entry.szPathHash != HashPath32( path ) ) {
             return pak_error_t::ERR_ARCHIVE_CORRUPT;
         }
 
-        const common::u32 entry_flags_allowed = CYPHER_PAK_ENTRY_COMPRESSED | CYPHER_PAK_ENTRY_HAS_HASH;
-        if ( ( entry.flags & ~entry_flags_allowed ) != 0u ) {
+        const common::u32 bEntryFlagsAllowed = CYPHER_PAK_ENTRY_COMPRESSED | CYPHER_PAK_ENTRY_HAS_HASH;
+        if ( ( entry.flags & ~bEntryFlagsAllowed ) != 0u ) {
             return pak_error_t::ERR_UNSUPPORTED_FLAGS;
         }
         if ( entry.compression != static_cast<common::u32>( pak_compression_t::NONE ) ) {
             return pak_error_t::ERR_UNSUPPORTED_COMPRESSION;
         }
-        if ( ( entry.flags & CYPHER_PAK_ENTRY_COMPRESSED ) == 0u && entry.stored_size != entry.unpacked_size ) {
+        if ( ( entry.flags & CYPHER_PAK_ENTRY_COMPRESSED ) == 0u && entry.nStoredSize != entry.nUnpackedSize ) {
             return pak_error_t::ERR_ARCHIVE_CORRUPT;
         }
-        if ( !RangeInside( entry.data_offset, entry.stored_size, reader.header.archive_size ) ) {
+        if ( !RangeInside( entry.nDataOffset, entry.nStoredSize, reader.header.nArchiveSize ) ) {
             return pak_error_t::ERR_ARCHIVE_CORRUPT;
         }
-        if ( entry.data_offset < reader.header.data_offset ) {
+        if ( entry.nDataOffset < reader.header.nDataOffset ) {
             return pak_error_t::ERR_ARCHIVE_CORRUPT;
         }
 
-        if ( ( reader.header.flags & CYPHER_PAK_FORMAT_INDEX_SORTED ) != 0u && previous_path != nullptr ) {
-            if ( std::strcmp( previous_path, path ) >= 0 ) {
+        if ( ( reader.header.flags & CYPHER_PAK_FORMAT_INDEX_SORTED ) != 0u && szPreviousPath != nullptr ) {
+            if ( std::strcmp( szPreviousPath, path ) >= 0 ) {
                 return pak_error_t::ERR_INVALID_INDEX;
             }
         }
-        previous_path = path;
-        sorted_paths.push_back( path );
+        szPreviousPath = path;
+        sortedPaths.push_back( path );
     }
 
     if ( ( reader.header.flags & CYPHER_PAK_FORMAT_INDEX_SORTED ) == 0u ) {
-        std::sort( sorted_paths.begin(), sorted_paths.end(), []( const char *a, const char *b ) {
+        std::sort( sortedPaths.begin(), sortedPaths.end(), []( const char *a, const char *b ) {
             return std::strcmp( a, b ) < 0;
         } );
-        for ( common::u32 i = 1u; i < static_cast<common::u32>( sorted_paths.size() ); ++i ) {
-            if ( std::strcmp( sorted_paths[i - 1u], sorted_paths[i] ) == 0 ) {
+        for ( common::u32 i = 1u; i < static_cast<common::u32>( sortedPaths.size() ); ++i ) {
+            if ( std::strcmp( sortedPaths[i - 1u], sortedPaths[i] ) == 0 ) {
                 return pak_error_t::ERR_DUPLICATE_ENTRY;
             }
         }
@@ -421,9 +421,9 @@ pak_error_t HashFileRange(
     std::FILE *file,
     const common::u64 offset,
     const common::u64 size,
-    common::u64 &out_hash )
+    common::u64 &hashOut )
 {
-    out_hash = FNV1A64_OFFSET;
+    hashOut = FNV1A64_OFFSET;
     if ( !SeekFile( file, offset ) ) {
         return pak_error_t::ERR_FILE_SEEK_FAILED;
     }
@@ -436,7 +436,7 @@ pak_error_t HashFileRange(
         if ( std::fread( buffer, 1u, chunk, file ) != chunk ) {
             return pak_error_t::ERR_FILE_READ_FAILED;
         }
-        out_hash = HashBytes64( buffer, chunk64, out_hash );
+        hashOut = HashBytes64( buffer, chunk64, hashOut );
         remaining -= chunk64;
     }
 
@@ -446,15 +446,15 @@ pak_error_t HashFileRange(
 void FillStats( pak_reader_t &reader )
 {
     reader.stats = {};
-    reader.stats.file_count = reader.file_count;
-    reader.stats.archive_size = reader.header.archive_size;
+    reader.stats.nFileCount = reader.nFileCount;
+    reader.stats.nArchiveSize = reader.header.nArchiveSize;
 
-    for ( common::u32 i = 0u; i < reader.file_count; ++i ) {
+    for ( common::u32 i = 0u; i < reader.nFileCount; ++i ) {
         const pak_disk_file_entry_t &entry = reader.entries[i];
-        reader.stats.stored_data_size += entry.stored_size;
-        reader.stats.unpacked_data_size += entry.unpacked_size;
+        reader.stats.nStoredDataSize += entry.nStoredSize;
+        reader.stats.nUnpackedDataSize += entry.nUnpackedSize;
         if ( entry.compression != static_cast<common::u32>( pak_compression_t::NONE ) ) {
-            reader.stats.compressed_file_count++;
+            reader.stats.nCompressedFileCount++;
         }
     }
 }
@@ -469,54 +469,54 @@ pak_error_t CypherPak_ValidateHeader( const pak_header_t &header )
     if ( header.version != CYPHER_PAK_FORMAT_VERSION ) {
         return pak_error_t::ERR_UNSUPPORTED_VERSION;
     }
-    if ( header.header_size != CYPHER_PAK_HEADER_SIZE ) {
+    if ( header.nHeaderSize != CYPHER_PAK_HEADER_SIZE ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
-    if ( header.endian_tag != CYPHER_PAK_ENDIAN_TAG ) {
+    if ( header.endianTag != CYPHER_PAK_ENDIAN_TAG ) {
         return pak_error_t::ERR_ENDIAN_MISMATCH;
     }
 
-    const common::u32 supported_flags =
+    const common::u32 bSupportedFlags =
         CYPHER_PAK_FORMAT_INDEX_SORTED |
         CYPHER_PAK_FORMAT_HAS_FILE_HASHES |
         CYPHER_PAK_FORMAT_HAS_ARCHIVE_HASH;
-    if ( ( header.flags & ~supported_flags ) != 0u ) {
+    if ( ( header.flags & ~bSupportedFlags ) != 0u ) {
         return pak_error_t::ERR_UNSUPPORTED_FLAGS;
     }
-    if ( header.file_count > static_cast<common::u64>( std::numeric_limits<common::u32>::max() ) ) {
+    if ( header.nFileCount > static_cast<common::u64>( std::numeric_limits<common::u32>::max() ) ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
-    if ( header.file_count > std::numeric_limits<common::u64>::max() / CYPHER_PAK_FILE_ENTRY_SIZE ) {
-        return pak_error_t::ERR_INVALID_HEADER;
-    }
-
-    const common::u64 expected_index_size = header.file_count * CYPHER_PAK_FILE_ENTRY_SIZE;
-    if ( header.index_size != expected_index_size ) {
+    if ( header.nFileCount > std::numeric_limits<common::u64>::max() / CYPHER_PAK_FILE_ENTRY_SIZE ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
 
-    common::u64 index_end = 0u;
-    common::u64 string_end = 0u;
-    common::u64 data_end = 0u;
-    if ( header.index_offset < header.header_size ) {
+    const common::u64 nExpectedIndexSize = header.nFileCount * CYPHER_PAK_FILE_ENTRY_SIZE;
+    if ( header.nIndexSize != nExpectedIndexSize ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
-    if ( AddOverflow( header.index_offset, header.index_size, index_end ) ) {
+
+    common::u64 nIndexEnd = 0u;
+    common::u64 stringEnd = 0u;
+    common::u64 pDataEnd = 0u;
+    if ( header.nIndexOffset < header.nHeaderSize ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
-    if ( header.string_table_offset < index_end ) {
+    if ( AddOverflow( header.nIndexOffset, header.nIndexSize, nIndexEnd ) ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
-    if ( AddOverflow( header.string_table_offset, header.string_table_size, string_end ) ) {
+    if ( header.nStringTableOffset < nIndexEnd ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
-    if ( header.data_offset < string_end ) {
+    if ( AddOverflow( header.nStringTableOffset, header.nStringTableSize, stringEnd ) ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
-    if ( AddOverflow( header.data_offset, header.data_size, data_end ) ) {
+    if ( header.nDataOffset < stringEnd ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
-    if ( header.archive_size < data_end ) {
+    if ( AddOverflow( header.nDataOffset, header.nDataSize, pDataEnd ) ) {
+        return pak_error_t::ERR_INVALID_HEADER;
+    }
+    if ( header.nArchiveSize < pDataEnd ) {
         return pak_error_t::ERR_INVALID_HEADER;
     }
 
@@ -524,13 +524,13 @@ pak_error_t CypherPak_ValidateHeader( const pak_header_t &header )
 }
 
 pak_error_t CypherPak_OpenReader(
-    const char *archive_path,
+    const char *szArchivePath,
     const common::u32 flags,
     pak_reader_t &reader )
 {
     reader = {};
 
-    if ( archive_path == nullptr || archive_path[0] == '\0' ) {
+    if ( szArchivePath == nullptr || szArchivePath[0] == '\0' ) {
         return pak_error_t::ERR_INVALID_PATH;
     }
     if ( !OpenFlagsSupported( flags ) ) {
@@ -539,44 +539,44 @@ pak_error_t CypherPak_OpenReader(
     if ( ( flags & CYPHER_PAK_OPEN_MEMORY_MAP ) != 0u ) {
         return pak_error_t::ERR_NOT_IMPLEMENTED;
     }
-    if ( !CopyString( reader.archive_path, sizeof( reader.archive_path ), archive_path ) ) {
+    if ( !CopyString( reader.szArchivePath, sizeof( reader.szArchivePath ), szArchivePath ) ) {
         return pak_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
     std::error_code ec{};
-    const common::u64 archive_size = static_cast<common::u64>( std::filesystem::file_size( archive_path, ec ) );
+    const common::u64 nArchiveSize = static_cast<common::u64>( std::filesystem::file_size( szArchivePath, ec ) );
     if ( ec ) {
         return pak_error_t::ERR_FILE_OPEN_FAILED;
     }
 
-    std::FILE *file = std::fopen( archive_path, "rb" );
+    std::FILE *file = std::fopen( szArchivePath, "rb" );
     if ( file == nullptr ) {
         return pak_error_t::ERR_FILE_OPEN_FAILED;
     }
 
-    common::u8 header_bytes[CYPHER_PAK_HEADER_SIZE]{};
-    if ( !ReadExact( file, header_bytes, sizeof( header_bytes ) ) ) {
+    common::u8 nHeaderBytes[CYPHER_PAK_HEADER_SIZE]{};
+    if ( !ReadExact( file, nHeaderBytes, sizeof( nHeaderBytes ) ) ) {
         std::fclose( file );
         reader = {};
         return pak_error_t::ERR_FILE_READ_FAILED;
     }
 
-    reader.header = DecodeHeader( header_bytes );
+    reader.header = DecodeHeader( nHeaderBytes );
     pak_error_t result = CypherPak_ValidateHeader( reader.header );
     if ( result != pak_error_t::OK ) {
         std::fclose( file );
         reader = {};
         return result;
     }
-    if ( reader.header.archive_size != archive_size ) {
+    if ( reader.header.nArchiveSize != nArchiveSize ) {
         std::fclose( file );
         reader = {};
         return pak_error_t::ERR_ARCHIVE_CORRUPT;
     }
 
-    reader.file_count = static_cast<common::u32>( reader.header.file_count );
-    if ( reader.file_count > 0u ) {
-        reader.entries = new ( std::nothrow ) pak_disk_file_entry_t[reader.file_count];
+    reader.nFileCount = static_cast<common::u32>( reader.header.nFileCount );
+    if ( reader.nFileCount > 0u ) {
+        reader.entries = new ( std::nothrow ) pak_disk_file_entry_t[reader.nFileCount];
         if ( reader.entries == nullptr ) {
             std::fclose( file );
             reader = {};
@@ -584,17 +584,17 @@ pak_error_t CypherPak_OpenReader(
         }
     }
 
-    if ( reader.header.string_table_size > static_cast<common::u64>( std::numeric_limits<common::usize>::max() - 1u ) ) {
+    if ( reader.header.nStringTableSize > static_cast<common::u64>( std::numeric_limits<common::usize>::max() - 1u ) ) {
         delete[] reader.entries;
         std::fclose( file );
         reader = {};
         return pak_error_t::ERR_OUT_OF_MEMORY;
     }
 
-    reader.string_table_size = reader.header.string_table_size;
-    if ( reader.string_table_size > 0u ) {
-        reader.string_table = new ( std::nothrow ) char[static_cast<common::usize>( reader.string_table_size ) + 1u];
-        if ( reader.string_table == nullptr ) {
+    reader.nStringTableSize = reader.header.nStringTableSize;
+    if ( reader.nStringTableSize > 0u ) {
+        reader.stringTable = new ( std::nothrow ) char[static_cast<common::usize>( reader.nStringTableSize ) + 1u];
+        if ( reader.stringTable == nullptr ) {
             delete[] reader.entries;
             std::fclose( file );
             reader = {};
@@ -602,39 +602,39 @@ pak_error_t CypherPak_OpenReader(
         }
     }
 
-    if ( reader.file_count > 0u ) {
-        if ( !SeekFile( file, reader.header.index_offset ) ) {
+    if ( reader.nFileCount > 0u ) {
+        if ( !SeekFile( file, reader.header.nIndexOffset ) ) {
             CypherPak_CloseReader( reader );
             std::fclose( file );
             return pak_error_t::ERR_FILE_SEEK_FAILED;
         }
 
-        common::u8 entry_bytes[CYPHER_PAK_FILE_ENTRY_SIZE]{};
-        for ( common::u32 i = 0u; i < reader.file_count; ++i ) {
-            if ( !ReadExact( file, entry_bytes, sizeof( entry_bytes ) ) ) {
+        common::u8 nEntryBytes[CYPHER_PAK_FILE_ENTRY_SIZE]{};
+        for ( common::u32 i = 0u; i < reader.nFileCount; ++i ) {
+            if ( !ReadExact( file, nEntryBytes, sizeof( nEntryBytes ) ) ) {
                 CypherPak_CloseReader( reader );
                 std::fclose( file );
                 return pak_error_t::ERR_FILE_READ_FAILED;
             }
-            reader.entries[i] = DecodeFileEntry( entry_bytes );
+            reader.entries[i] = DecodeFileEntry( nEntryBytes );
         }
     }
 
-    if ( reader.string_table_size > 0u ) {
-        if ( !SeekFile( file, reader.header.string_table_offset ) ) {
+    if ( reader.nStringTableSize > 0u ) {
+        if ( !SeekFile( file, reader.header.nStringTableOffset ) ) {
             CypherPak_CloseReader( reader );
             std::fclose( file );
             return pak_error_t::ERR_FILE_SEEK_FAILED;
         }
-        if ( !ReadExact( file, reader.string_table, reader.string_table_size ) ) {
+        if ( !ReadExact( file, reader.stringTable, reader.nStringTableSize ) ) {
             CypherPak_CloseReader( reader );
             std::fclose( file );
             return pak_error_t::ERR_FILE_READ_FAILED;
         }
-        reader.string_table[reader.string_table_size] = '\0';
+        reader.stringTable[reader.nStringTableSize] = '\0';
     }
 
-    reader.native_file = file;
+    reader.pNativeFile = file;
     reader.flags = flags;
     reader.handle = AllocateReaderHandle();
     reader.open = true;
@@ -661,77 +661,77 @@ pak_error_t CypherPak_CloseReader( pak_reader_t &reader )
 {
     pak_error_t result = pak_error_t::OK;
 
-    if ( reader.native_file != nullptr ) {
-        if ( std::fclose( static_cast<std::FILE *>( reader.native_file ) ) != 0 ) {
+    if ( reader.pNativeFile != nullptr ) {
+        if ( std::fclose( static_cast<std::FILE *>( reader.pNativeFile ) ) != 0 ) {
             result = pak_error_t::ERR_FILE_CLOSE_FAILED;
         }
     }
 
     delete[] reader.entries;
-    delete[] reader.string_table;
+    delete[] reader.stringTable;
     reader = {};
     return result;
 }
 
 bool CypherPak_IsOpen( const pak_reader_t &reader )
 {
-    return reader.open && reader.native_file != nullptr && reader.handle != CYPHER_PAK_INVALID_HANDLE;
+    return reader.open && reader.pNativeFile != nullptr && reader.handle != CYPHER_PAK_INVALID_HANDLE;
 }
 
 pak_error_t CypherPak_GetStats(
     const pak_reader_t &reader,
-    pak_stats_t &out_stats )
+    pak_stats_t &statsOut )
 {
-    out_stats = {};
+    statsOut = {};
 
     if ( !CypherPak_IsOpen( reader ) ) {
         return pak_error_t::ERR_INVALID_HANDLE;
     }
 
-    out_stats = reader.stats;
+    statsOut = reader.stats;
     return pak_error_t::OK;
 }
 
 pak_error_t CypherPak_GetFileCount(
     const pak_reader_t &reader,
-    common::u32 &out_file_count )
+    common::u32 &nOutFileCount )
 {
-    out_file_count = 0u;
+    nOutFileCount = 0u;
 
     if ( !CypherPak_IsOpen( reader ) ) {
         return pak_error_t::ERR_INVALID_HANDLE;
     }
 
-    out_file_count = reader.file_count;
+    nOutFileCount = reader.nFileCount;
     return pak_error_t::OK;
 }
 
 pak_error_t CypherPak_FindFile(
     const pak_reader_t &reader,
-    const char *virtual_path,
-    pak_file_index_t &out_index )
+    const char *szVirtualPath,
+    pak_file_index_t &nOutIndex )
 {
-    out_index = CYPHER_PAK_INVALID_FILE_INDEX;
+    nOutIndex = CYPHER_PAK_INVALID_FILE_INDEX;
 
     if ( !CypherPak_IsOpen( reader ) ) {
         return pak_error_t::ERR_INVALID_HANDLE;
     }
 
-    char normalized_path[CYPHER_PAK_MAX_PATH_LENGTH]{};
-    pak_error_t result = NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
+    char szNormalizedPath[CYPHER_PAK_MAX_PATH_LENGTH]{};
+    pak_error_t result = NormalizeVirtualPath( szVirtualPath, szNormalizedPath, sizeof( szNormalizedPath ) );
     if ( result != pak_error_t::OK ) {
         return result;
     }
 
     if ( ( reader.header.flags & CYPHER_PAK_FORMAT_INDEX_SORTED ) != 0u ) {
         common::u32 left = 0u;
-        common::u32 right = reader.file_count;
+        common::u32 right = reader.nFileCount;
         while ( left < right ) {
             const common::u32 middle = left + ( right - left ) / 2u;
-            const char *entry_path = EntryPath( reader, reader.entries[middle] );
-            const int compare = std::strcmp( entry_path, normalized_path );
+            const char *szEntryPath = EntryPath( reader, reader.entries[middle] );
+            const int compare = std::strcmp( szEntryPath, szNormalizedPath );
             if ( compare == 0 ) {
-                out_index = middle;
+                nOutIndex = middle;
                 return pak_error_t::OK;
             }
             if ( compare < 0 ) {
@@ -743,14 +743,14 @@ pak_error_t CypherPak_FindFile(
         return pak_error_t::ERR_ENTRY_NOT_FOUND;
     }
 
-    const common::u32 path_hash = HashPath32( normalized_path );
-    for ( common::u32 i = 0u; i < reader.file_count; ++i ) {
-        if ( reader.entries[i].path_hash != path_hash ) {
+    const common::u32 szPathHash = HashPath32( szNormalizedPath );
+    for ( common::u32 i = 0u; i < reader.nFileCount; ++i ) {
+        if ( reader.entries[i].szPathHash != szPathHash ) {
             continue;
         }
-        const char *entry_path = EntryPath( reader, reader.entries[i] );
-        if ( entry_path != nullptr && std::strcmp( entry_path, normalized_path ) == 0 ) {
-            out_index = i;
+        const char *szEntryPath = EntryPath( reader, reader.entries[i] );
+        if ( szEntryPath != nullptr && std::strcmp( szEntryPath, szNormalizedPath ) == 0 ) {
+            nOutIndex = i;
             return pak_error_t::OK;
         }
     }
@@ -761,87 +761,87 @@ pak_error_t CypherPak_FindFile(
 pak_error_t CypherPak_GetFileInfo(
     const pak_reader_t &reader,
     const pak_file_index_t index,
-    pak_file_info_t &out_info )
+    pak_file_info_t &infoOut )
 {
-    out_info = {};
+    infoOut = {};
 
     if ( !CypherPak_IsOpen( reader ) ) {
         return pak_error_t::ERR_INVALID_HANDLE;
     }
-    if ( index >= reader.file_count ) {
+    if ( index >= reader.nFileCount ) {
         return pak_error_t::ERR_ENTRY_NOT_FOUND;
     }
 
     const pak_disk_file_entry_t &entry = reader.entries[index];
     const char *path = EntryPath( reader, entry );
-    if ( path == nullptr || !CopyString( out_info.virtual_path, sizeof( out_info.virtual_path ), path ) ) {
+    if ( path == nullptr || !CopyString( infoOut.szVirtualPath, sizeof( infoOut.szVirtualPath ), path ) ) {
         return pak_error_t::ERR_INVALID_INDEX;
     }
 
-    out_info.index = index;
-    out_info.data_offset = entry.data_offset;
-    out_info.stored_size = entry.stored_size;
-    out_info.unpacked_size = entry.unpacked_size;
-    out_info.modified_time_utc = entry.modified_time_utc;
-    out_info.content_hash = entry.content_hash;
-    out_info.path_hash = entry.path_hash;
-    out_info.compression = static_cast<pak_compression_t>( entry.compression );
-    out_info.flags = entry.flags;
+    infoOut.index = index;
+    infoOut.nDataOffset = entry.nDataOffset;
+    infoOut.nStoredSize = entry.nStoredSize;
+    infoOut.nUnpackedSize = entry.nUnpackedSize;
+    infoOut.modifiedTimeUtc = entry.modifiedTimeUtc;
+    infoOut.contentHash = entry.contentHash;
+    infoOut.szPathHash = entry.szPathHash;
+    infoOut.compression = static_cast<pak_compression_t>( entry.compression );
+    infoOut.flags = entry.flags;
 
     return pak_error_t::OK;
 }
 
 pak_error_t CypherPak_GetFileInfoByPath(
     const pak_reader_t &reader,
-    const char *virtual_path,
-    pak_file_info_t &out_info )
+    const char *szVirtualPath,
+    pak_file_info_t &infoOut )
 {
-    out_info = {};
+    infoOut = {};
 
     pak_file_index_t index = CYPHER_PAK_INVALID_FILE_INDEX;
-    const pak_error_t result = CypherPak_FindFile( reader, virtual_path, index );
+    const pak_error_t result = CypherPak_FindFile( reader, szVirtualPath, index );
     if ( result != pak_error_t::OK ) {
         return result;
     }
 
-    return CypherPak_GetFileInfo( reader, index, out_info );
+    return CypherPak_GetFileInfo( reader, index, infoOut );
 }
 
 pak_error_t CypherPak_ReadRawFileByIndex(
     pak_reader_t &reader,
     const pak_file_index_t index,
     void *buffer,
-    const common::u64 buffer_size,
-    common::u64 &out_bytes_read )
+    const common::u64 nBufferSize,
+    common::u64 &nOutBytesRead )
 {
-    out_bytes_read = 0u;
+    nOutBytesRead = 0u;
 
     if ( !CypherPak_IsOpen( reader ) ) {
         return pak_error_t::ERR_INVALID_HANDLE;
     }
-    if ( index >= reader.file_count ) {
+    if ( index >= reader.nFileCount ) {
         return pak_error_t::ERR_ENTRY_NOT_FOUND;
     }
 
     const pak_disk_file_entry_t &entry = reader.entries[index];
-    if ( entry.stored_size > 0u && buffer == nullptr ) {
+    if ( entry.nStoredSize > 0u && buffer == nullptr ) {
         return pak_error_t::ERR_INVALID_ARGUMENT;
     }
-    if ( buffer_size < entry.stored_size ) {
+    if ( nBufferSize < entry.nStoredSize ) {
         return pak_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
-    std::FILE *file = static_cast<std::FILE *>( reader.native_file );
-    if ( !SeekFile( file, entry.data_offset ) ) {
+    std::FILE *file = static_cast<std::FILE *>( reader.pNativeFile );
+    if ( !SeekFile( file, entry.nDataOffset ) ) {
         return pak_error_t::ERR_FILE_SEEK_FAILED;
     }
-    if ( !ReadExact( file, buffer, entry.stored_size ) ) {
+    if ( !ReadExact( file, buffer, entry.nStoredSize ) ) {
         return pak_error_t::ERR_FILE_READ_FAILED;
     }
 
-    out_bytes_read = entry.stored_size;
-    reader.stats.read_count++;
-    reader.stats.bytes_read += out_bytes_read;
+    nOutBytesRead = entry.nStoredSize;
+    reader.stats.nReadCount++;
+    reader.stats.nBytesRead += nOutBytesRead;
     return pak_error_t::OK;
 }
 
@@ -849,15 +849,15 @@ pak_error_t CypherPak_ReadFileByIndex(
     pak_reader_t &reader,
     const pak_file_index_t index,
     void *buffer,
-    const common::u64 buffer_size,
-    common::u64 &out_bytes_read )
+    const common::u64 nBufferSize,
+    common::u64 &nOutBytesRead )
 {
-    out_bytes_read = 0u;
+    nOutBytesRead = 0u;
 
     if ( !CypherPak_IsOpen( reader ) ) {
         return pak_error_t::ERR_INVALID_HANDLE;
     }
-    if ( index >= reader.file_count ) {
+    if ( index >= reader.nFileCount ) {
         return pak_error_t::ERR_ENTRY_NOT_FOUND;
     }
 
@@ -865,29 +865,29 @@ pak_error_t CypherPak_ReadFileByIndex(
     if ( entry.compression != static_cast<common::u32>( pak_compression_t::NONE ) ) {
         return pak_error_t::ERR_UNSUPPORTED_COMPRESSION;
     }
-    if ( buffer_size < entry.unpacked_size ) {
+    if ( nBufferSize < entry.nUnpackedSize ) {
         return pak_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
-    return CypherPak_ReadRawFileByIndex( reader, index, buffer, buffer_size, out_bytes_read );
+    return CypherPak_ReadRawFileByIndex( reader, index, buffer, nBufferSize, nOutBytesRead );
 }
 
 pak_error_t CypherPak_ReadFile(
     pak_reader_t &reader,
-    const char *virtual_path,
+    const char *szVirtualPath,
     void *buffer,
-    const common::u64 buffer_size,
-    common::u64 &out_bytes_read )
+    const common::u64 nBufferSize,
+    common::u64 &nOutBytesRead )
 {
-    out_bytes_read = 0u;
+    nOutBytesRead = 0u;
 
     pak_file_index_t index = CYPHER_PAK_INVALID_FILE_INDEX;
-    const pak_error_t result = CypherPak_FindFile( reader, virtual_path, index );
+    const pak_error_t result = CypherPak_FindFile( reader, szVirtualPath, index );
     if ( result != pak_error_t::OK ) {
         return result;
     }
 
-    return CypherPak_ReadFileByIndex( reader, index, buffer, buffer_size, out_bytes_read );
+    return CypherPak_ReadFileByIndex( reader, index, buffer, nBufferSize, nOutBytesRead );
 }
 
 pak_error_t CypherPak_Verify(
@@ -902,34 +902,34 @@ pak_error_t CypherPak_Verify(
     }
 
     if ( ( flags & CYPHER_PAK_VERIFY_HEADER ) != 0u ) {
-        const pak_error_t header_result = CypherPak_ValidateHeader( reader.header );
-        if ( header_result != pak_error_t::OK ) {
-            return header_result;
+        const pak_error_t headerResult = CypherPak_ValidateHeader( reader.header );
+        if ( headerResult != pak_error_t::OK ) {
+            return headerResult;
         }
     }
     if ( ( flags & CYPHER_PAK_VERIFY_INDEX ) != 0u ) {
-        const pak_error_t index_result = ValidateLoadedIndex( reader );
-        if ( index_result != pak_error_t::OK ) {
-            return index_result;
+        const pak_error_t nIndexResult = ValidateLoadedIndex( reader );
+        if ( nIndexResult != pak_error_t::OK ) {
+            return nIndexResult;
         }
     }
     if ( ( flags & CYPHER_PAK_VERIFY_FILE_HASHES ) != 0u ) {
-        for ( common::u32 i = 0u; i < reader.file_count; ++i ) {
+        for ( common::u32 i = 0u; i < reader.nFileCount; ++i ) {
             const pak_disk_file_entry_t &entry = reader.entries[i];
             if ( ( entry.flags & CYPHER_PAK_ENTRY_HAS_HASH ) == 0u ) {
                 continue;
             }
 
             common::u64 hash = 0u;
-            const pak_error_t hash_result = HashFileRange(
-                static_cast<std::FILE *>( reader.native_file ),
-                entry.data_offset,
-                entry.stored_size,
+            const pak_error_t hashResult = HashFileRange(
+                static_cast<std::FILE *>( reader.pNativeFile ),
+                entry.nDataOffset,
+                entry.nStoredSize,
                 hash );
-            if ( hash_result != pak_error_t::OK ) {
-                return hash_result;
+            if ( hashResult != pak_error_t::OK ) {
+                return hashResult;
             }
-            if ( hash != entry.content_hash ) {
+            if ( hash != entry.contentHash ) {
                 return pak_error_t::ERR_CHECKSUM_MISMATCH;
             }
         }
