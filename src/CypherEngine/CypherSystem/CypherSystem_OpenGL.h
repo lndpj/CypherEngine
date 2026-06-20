@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
+#include "CypherSystem_Platform.h"
 
 #include <glad/gl.h>       // OpenGL function declarations loaded by GLAD.
 #include <SDL3/SDL.h>      // SDL_GL context attribute constants.
