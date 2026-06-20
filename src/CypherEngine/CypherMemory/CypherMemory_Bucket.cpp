@@ -26,36 +26,36 @@ namespace {
 
 constexpr common::usize CYPHER_MEMORY_BUCKET_INVALID_CLASS_INDEX = std::numeric_limits<common::usize>::max();
 
-common::u32 CypherMemory_BucketPoolFlags( const common::u32 bucket_flags )
+common::u32 CypherMemory_BucketPoolFlags( const common::u32 nBucketFlags )
 {
-    common::u32 pool_flags = CYPHER_MEMORY_POOL_FLAG_NONE;
+    common::u32 nPoolFlags = CYPHER_MEMORY_POOL_FLAG_NONE;
 
-    if ( ( bucket_flags & CYPHER_MEMORY_BUCKET_FLAG_ZERO_ON_ALLOC ) != 0u ) {
-        pool_flags |= CYPHER_MEMORY_POOL_FLAG_ZERO_ON_ALLOC;
+    if ( ( nBucketFlags & CYPHER_MEMORY_BUCKET_FLAG_ZERO_ON_ALLOC ) != 0u ) {
+        nPoolFlags |= CYPHER_MEMORY_POOL_FLAG_ZERO_ON_ALLOC;
     }
 
-    if ( ( bucket_flags & CYPHER_MEMORY_BUCKET_FLAG_CLEAR_ON_FREE ) != 0u ) {
-        pool_flags |= CYPHER_MEMORY_POOL_FLAG_CLEAR_ON_FREE;
+    if ( ( nBucketFlags & CYPHER_MEMORY_BUCKET_FLAG_CLEAR_ON_FREE ) != 0u ) {
+        nPoolFlags |= CYPHER_MEMORY_POOL_FLAG_CLEAR_ON_FREE;
     }
 
-    if ( ( bucket_flags & CYPHER_MEMORY_BUCKET_FLAG_CLEAR_ON_RESET ) != 0u ) {
-        pool_flags |= CYPHER_MEMORY_POOL_FLAG_CLEAR_ON_RESET;
+    if ( ( nBucketFlags & CYPHER_MEMORY_BUCKET_FLAG_CLEAR_ON_RESET ) != 0u ) {
+        nPoolFlags |= CYPHER_MEMORY_POOL_FLAG_CLEAR_ON_RESET;
     }
 
-    if ( ( bucket_flags & CYPHER_MEMORY_BUCKET_FLAG_CLEAR_ON_SHUTDOWN ) != 0u ) {
-        pool_flags |= CYPHER_MEMORY_POOL_FLAG_CLEAR_ON_SHUTDOWN;
+    if ( ( nBucketFlags & CYPHER_MEMORY_BUCKET_FLAG_CLEAR_ON_SHUTDOWN ) != 0u ) {
+        nPoolFlags |= CYPHER_MEMORY_POOL_FLAG_CLEAR_ON_SHUTDOWN;
     }
 
-    return pool_flags;
+    return nPoolFlags;
 }
 
 mem_error_t CypherMemory_BucketFailInit( bucket_t &bucket,
-                                          const bucket_desc_t &bucket_desc,
+                                          const bucket_desc_t &bucketDesc,
                                           const mem_error_t error,
                                           const char *reason )
 {
-    bucket.name = bucket_desc.name;
-    bucket.last_error = error;
+    bucket.name = bucketDesc.name;
+    bucket.lastError = error;
 
     LOG_ERROR( log::channel_t::MEMORY,
                       "bucket '%s' init failed: %s.",
@@ -68,33 +68,33 @@ mem_error_t CypherMemory_BucketFailInit( bucket_t &bucket,
 common::usize CypherMemory_BucketFindBestClass( const bucket_t &bucket,
                                                 const common::usize size,
                                                 const common::usize alignment,
-                                                const bool require_free_slot )
+                                                const bool nRequireFreeSlot )
 {
-    common::usize best_index = CYPHER_MEMORY_BUCKET_INVALID_CLASS_INDEX;
-    common::usize best_slot_size = std::numeric_limits<common::usize>::max();
+    common::usize nBestIndex = CYPHER_MEMORY_BUCKET_INVALID_CLASS_INDEX;
+    common::usize nBestSlotSize = std::numeric_limits<common::usize>::max();
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        const bucket_class_t &bucket_class = bucket.classes[class_index];
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        const bucket_class_t &bucketClass = bucket.classes[nClassIndex];
 
-        if ( bucket_class.slot_size < size ) {
+        if ( bucketClass.nSlotSize < size ) {
             continue;
         }
 
-        if ( bucket_class.pool.alignment < alignment ) {
+        if ( bucketClass.pool.alignment < alignment ) {
             continue;
         }
 
-        if ( require_free_slot && CypherMemory_PoolFreeCount( bucket_class.pool ) == 0u ) {
+        if ( nRequireFreeSlot && CypherMemory_PoolFreeCount( bucketClass.pool ) == 0u ) {
             continue;
         }
 
-        if ( bucket_class.slot_size < best_slot_size ) {
-            best_index = class_index;
-            best_slot_size = bucket_class.slot_size;
+        if ( bucketClass.nSlotSize < nBestSlotSize ) {
+            nBestIndex = nClassIndex;
+            nBestSlotSize = bucketClass.nSlotSize;
         }
     }
 
-    return best_index;
+    return nBestIndex;
 }
 
 bool CypherMemory_BucketHasCompatibleClass( const bucket_t &bucket,
@@ -106,10 +106,10 @@ bool CypherMemory_BucketHasCompatibleClass( const bucket_t &bucket,
 
 void CypherMemory_BucketRefreshPeak( bucket_t &bucket )
 {
-    const common::usize used_count = CypherMemory_BucketUsedCount( bucket );
+    const common::usize nUsedCount = CypherMemory_BucketUsedCount( bucket );
 
-    if ( used_count > bucket.peak_used_count ) {
-        bucket.peak_used_count = used_count;
+    if ( nUsedCount > bucket.nPeakUsedCount ) {
+        bucket.nPeakUsedCount = nUsedCount;
     }
 }
 
@@ -117,8 +117,8 @@ void *CypherMemory_BucketFailAlloc( bucket_t &bucket,
                                     const mem_error_t error,
                                     const char *reason )
 {
-    bucket.last_error = error;
-    ++bucket.failed_allocation_count;
+    bucket.lastError = error;
+    ++bucket.nFailedAllocationCount;
 
     LOG_ERROR( log::channel_t::MEMORY,
                       "bucket '%s' allocation failed: %s.",
@@ -137,7 +137,7 @@ bucket_desc_t CypherMemory_BucketDefaultDesc( arena_t &arena, const char *name )
     desc.name = name;
     desc.arena = &arena;
     desc.alignment = 16u;
-    desc.class_count = CYPHER_MEMORY_BUCKET_DEFAULT_CLASS_COUNT;
+    desc.nClassCount = CYPHER_MEMORY_BUCKET_DEFAULT_CLASS_COUNT;
     desc.flags = CYPHER_MEMORY_BUCKET_FLAG_NONE;
 
     desc.classes[0] = bucket_class_desc_t{ 16u, 1024u };
@@ -154,86 +154,86 @@ bucket_desc_t CypherMemory_BucketDefaultDesc( arena_t &arena, const char *name )
     return desc;
 }
 
-mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &bucket_desc )
+mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &bucketDesc )
 {
     if ( bucket.initialized ) {
-        bucket.last_error = mem_error_t::ERR_ALREADY_INITIALIZED;
+        bucket.lastError = mem_error_t::ERR_ALREADY_INITIALIZED;
         LOG_WARNING( log::channel_t::MEMORY, "bucket '%s' is already initialized.", bucket.name ? bucket.name : "<unnamed>" );
-        return bucket.last_error;
+        return bucket.lastError;
     }
 
-    if ( bucket_desc.arena == nullptr ) {
-        return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_ARGUMENT, "arena pointer is required" );
+    if ( bucketDesc.arena == nullptr ) {
+        return CypherMemory_BucketFailInit( bucket, bucketDesc, mem_error_t::ERR_INVALID_ARGUMENT, "arena pointer is required" );
     }
 
-    if ( !CypherMemory_ArenaIsInitialized( *bucket_desc.arena ) ) {
-        return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
+    if ( !CypherMemory_ArenaIsInitialized( *bucketDesc.arena ) ) {
+        return CypherMemory_BucketFailInit( bucket, bucketDesc, mem_error_t::ERR_NOT_INITIALIZED, "backing arena is not initialized" );
     }
 
-    if ( bucket_desc.class_count == 0u || bucket_desc.class_count > CYPHER_MEMORY_BUCKET_MAX_CLASSES ) {
-        return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_CAPACITY, "invalid bucket class count" );
+    if ( bucketDesc.nClassCount == 0u || bucketDesc.nClassCount > CYPHER_MEMORY_BUCKET_MAX_CLASSES ) {
+        return CypherMemory_BucketFailInit( bucket, bucketDesc, mem_error_t::ERR_INVALID_CAPACITY, "invalid bucket class count" );
     }
 
-    if ( !CypherMemory_IsPowerOfTwo( bucket_desc.alignment ) ) {
-        return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_ALIGNMENT, "invalid bucket alignment" );
+    if ( !CypherMemory_IsPowerOfTwo( bucketDesc.alignment ) ) {
+        return CypherMemory_BucketFailInit( bucket, bucketDesc, mem_error_t::ERR_INVALID_ALIGNMENT, "invalid bucket alignment" );
     }
 
-    const arena_marker_t init_marker = CypherMemory_ArenaGetMarker( *bucket_desc.arena );
+    const arena_marker_t initMarker = CypherMemory_ArenaGetMarker( *bucketDesc.arena );
 
     bucket = bucket_t{};
-    bucket.name = bucket_desc.name;
-    bucket.arena = bucket_desc.arena;
-    bucket.class_count = bucket_desc.class_count;
-    bucket.alignment = bucket_desc.alignment;
-    bucket.flags = bucket_desc.flags;
+    bucket.name = bucketDesc.name;
+    bucket.arena = bucketDesc.arena;
+    bucket.nClassCount = bucketDesc.nClassCount;
+    bucket.alignment = bucketDesc.alignment;
+    bucket.flags = bucketDesc.flags;
 
-    const common::u32 pool_flags = CypherMemory_BucketPoolFlags( bucket_desc.flags );
+    const common::u32 nPoolFlags = CypherMemory_BucketPoolFlags( bucketDesc.flags );
 
-    for ( common::usize class_index = 0u; class_index < bucket_desc.class_count; ++class_index ) {
-        const bucket_class_desc_t &class_desc = bucket_desc.classes[class_index];
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucketDesc.nClassCount; ++nClassIndex ) {
+        const bucket_class_desc_t &classDesc = bucketDesc.classes[nClassIndex];
 
-        if ( class_desc.slot_size == 0u || class_desc.slot_count == 0u ) {
-            for ( common::usize shutdown_index = 0u; shutdown_index < class_index; ++shutdown_index ) {
-                CypherMemory_PoolShutdown( bucket.classes[shutdown_index].pool );
+        if ( classDesc.nSlotSize == 0u || classDesc.nSlotCount == 0u ) {
+            for ( common::usize nShutdownIndex = 0u; nShutdownIndex < nClassIndex; ++nShutdownIndex ) {
+                CypherMemory_PoolShutdown( bucket.classes[nShutdownIndex].pool );
             }
-            CypherMemory_ArenaRewind( *bucket_desc.arena, init_marker );
+            CypherMemory_ArenaRewind( *bucketDesc.arena, initMarker );
             bucket = bucket_t{};
-            return CypherMemory_BucketFailInit( bucket, bucket_desc, mem_error_t::ERR_INVALID_CAPACITY, "invalid bucket class configuration" );
+            return CypherMemory_BucketFailInit( bucket, bucketDesc, mem_error_t::ERR_INVALID_CAPACITY, "invalid bucket class configuration" );
         }
 
-        bucket_class_t &bucket_class = bucket.classes[class_index];
-        bucket_class.slot_size = class_desc.slot_size;
-        bucket_class.slot_count = class_desc.slot_count;
+        bucket_class_t &bucketClass = bucket.classes[nClassIndex];
+        bucketClass.nSlotSize = classDesc.nSlotSize;
+        bucketClass.nSlotCount = classDesc.nSlotCount;
 
-        pool_desc_t pool_desc{};
-        pool_desc.name = bucket_desc.name;
-        pool_desc.arena = bucket_desc.arena;
-        pool_desc.slot_size = class_desc.slot_size;
-        pool_desc.slot_count = class_desc.slot_count;
-        pool_desc.alignment = bucket_desc.alignment;
-        pool_desc.flags = pool_flags;
-        pool_desc.backing = pool_backing_t::POOL_ARENA;
+        pool_desc_t poolDesc{};
+        poolDesc.name = bucketDesc.name;
+        poolDesc.arena = bucketDesc.arena;
+        poolDesc.nSlotSize = classDesc.nSlotSize;
+        poolDesc.nSlotCount = classDesc.nSlotCount;
+        poolDesc.alignment = bucketDesc.alignment;
+        poolDesc.flags = nPoolFlags;
+        poolDesc.backing = pool_backing_t::POOL_ARENA;
 
-        const mem_error_t pool_result = CypherMemory_PoolInit( bucket_class.pool, pool_desc );
-        if ( pool_result != mem_error_t::OK ) {
-            for ( common::usize shutdown_index = 0u; shutdown_index < class_index; ++shutdown_index ) {
-                CypherMemory_PoolShutdown( bucket.classes[shutdown_index].pool );
+        const mem_error_t poolResult = CypherMemory_PoolInit( bucketClass.pool, poolDesc );
+        if ( poolResult != mem_error_t::OK ) {
+            for ( common::usize nShutdownIndex = 0u; nShutdownIndex < nClassIndex; ++nShutdownIndex ) {
+                CypherMemory_PoolShutdown( bucket.classes[nShutdownIndex].pool );
             }
-            CypherMemory_ArenaRewind( *bucket_desc.arena, init_marker );
+            CypherMemory_ArenaRewind( *bucketDesc.arena, initMarker );
             bucket = bucket_t{};
-            return CypherMemory_BucketFailInit( bucket, bucket_desc, pool_result, CypherMemory_ErrorDesc( pool_result ) );
+            return CypherMemory_BucketFailInit( bucket, bucketDesc, poolResult, CypherMemory_ErrorDesc( poolResult ) );
         }
     }
 
     bucket.initialized = true;
-    bucket.last_error = mem_error_t::OK;
+    bucket.lastError = mem_error_t::OK;
 
     LOG_INFO( log::channel_t::MEMORY,
                      "bucket '%s' initialized: classes=%zu, alignment=%zu, backing_bytes=%zu.",
                      bucket.name ? bucket.name : "<unnamed>",
-                     bucket.class_count,
+                     bucket.nClassCount,
                      bucket.alignment,
-                     CypherMemory_BucketStats( bucket ).backing_bytes );
+                     CypherMemory_BucketStats( bucket ).nBackingBytes );
 
     return mem_error_t::OK;
 }
@@ -248,14 +248,14 @@ void CypherMemory_BucketShutdown( bucket_t &bucket )
                      "bucket '%s' shutdown: used=%zu, peak=%zu, allocations=%llu, frees=%llu, failed_alloc=%llu, failed_free=%llu.",
                      bucket.name ? bucket.name : "<unnamed>",
                      CypherMemory_BucketUsedCount( bucket ),
-                     bucket.peak_used_count,
-                     static_cast<unsigned long long>( bucket.allocation_count ),
-                     static_cast<unsigned long long>( bucket.free_operation_count ),
-                     static_cast<unsigned long long>( bucket.failed_allocation_count ),
-                     static_cast<unsigned long long>( bucket.failed_free_count ) );
+                     bucket.nPeakUsedCount,
+                     static_cast<unsigned long long>( bucket.nAllocationCount ),
+                     static_cast<unsigned long long>( bucket.nFreeOperationCount ),
+                     static_cast<unsigned long long>( bucket.nFailedAllocationCount ),
+                     static_cast<unsigned long long>( bucket.nFailedFreeCount ) );
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        CypherMemory_PoolShutdown( bucket.classes[class_index].pool );
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        CypherMemory_PoolShutdown( bucket.classes[nClassIndex].pool );
     }
 
     bucket = bucket_t{};
@@ -267,11 +267,11 @@ void CypherMemory_BucketReset( bucket_t &bucket )
         return;
     }
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        CypherMemory_PoolReset( bucket.classes[class_index].pool );
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        CypherMemory_PoolReset( bucket.classes[nClassIndex].pool );
     }
 
-    bucket.last_error = mem_error_t::OK;
+    bucket.lastError = mem_error_t::OK;
 }
 
 void CypherMemory_BucketResetCounters( bucket_t &bucket )
@@ -280,15 +280,15 @@ void CypherMemory_BucketResetCounters( bucket_t &bucket )
         return;
     }
 
-    bucket.peak_used_count = CypherMemory_BucketUsedCount( bucket );
-    bucket.allocation_count = 0u;
-    bucket.free_operation_count = 0u;
-    bucket.failed_allocation_count = 0u;
-    bucket.failed_free_count = 0u;
-    bucket.last_error = mem_error_t::OK;
+    bucket.nPeakUsedCount = CypherMemory_BucketUsedCount( bucket );
+    bucket.nAllocationCount = 0u;
+    bucket.nFreeOperationCount = 0u;
+    bucket.nFailedAllocationCount = 0u;
+    bucket.nFailedFreeCount = 0u;
+    bucket.lastError = mem_error_t::OK;
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        CypherMemory_PoolResetCounters( bucket.classes[class_index].pool );
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        CypherMemory_PoolResetCounters( bucket.classes[nClassIndex].pool );
     }
 }
 
@@ -297,27 +297,27 @@ bucket_stats_t CypherMemory_BucketStats( const bucket_t &bucket )
     bucket_stats_t stats{};
 
     stats.name = bucket.name;
-    stats.class_count = bucket.class_count;
-    stats.peak_used_count = bucket.peak_used_count;
-    stats.allocation_count = bucket.allocation_count;
-    stats.free_operation_count = bucket.free_operation_count;
-    stats.failed_allocation_count = bucket.failed_allocation_count;
-    stats.failed_free_count = bucket.failed_free_count;
+    stats.nClassCount = bucket.nClassCount;
+    stats.nPeakUsedCount = bucket.nPeakUsedCount;
+    stats.nAllocationCount = bucket.nAllocationCount;
+    stats.nFreeOperationCount = bucket.nFreeOperationCount;
+    stats.nFailedAllocationCount = bucket.nFailedAllocationCount;
+    stats.nFailedFreeCount = bucket.nFailedFreeCount;
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        const pool_stats_t pool_stats = CypherMemory_PoolStats( bucket.classes[class_index].pool );
-        bucket_class_stats_t &class_stats = stats.class_stats[class_index];
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        const pool_stats_t poolStats = CypherMemory_PoolStats( bucket.classes[nClassIndex].pool );
+        bucket_class_stats_t &classStats = stats.classStats[nClassIndex];
 
-        class_stats.slot_size = pool_stats.slot_size;
-        class_stats.slot_count = pool_stats.slot_count;
-        class_stats.used_count = pool_stats.used_count;
-        class_stats.free_count = pool_stats.free_count;
-        class_stats.peak_used_count = pool_stats.peak_used_count;
-        class_stats.backing_bytes = pool_stats.backing_bytes;
+        classStats.nSlotSize = poolStats.nSlotSize;
+        classStats.nSlotCount = poolStats.nSlotCount;
+        classStats.nUsedCount = poolStats.nUsedCount;
+        classStats.nFreeCount = poolStats.nFreeCount;
+        classStats.nPeakUsedCount = poolStats.nPeakUsedCount;
+        classStats.nBackingBytes = poolStats.nBackingBytes;
 
-        stats.used_count += pool_stats.used_count;
-        stats.free_count += pool_stats.free_count;
-        stats.backing_bytes += pool_stats.backing_bytes;
+        stats.nUsedCount += poolStats.nUsedCount;
+        stats.nFreeCount += poolStats.nFreeCount;
+        stats.nBackingBytes += poolStats.nBackingBytes;
     }
 
     return stats;
@@ -351,20 +351,20 @@ void *CypherMemory_BucketAllocDebug( bucket_t &bucket,
         return CypherMemory_BucketFailAlloc( bucket, mem_error_t::ERR_BUFFER_TOO_SMALL, "no bucket class can satisfy the request" );
     }
 
-    const common::usize class_index = CypherMemory_BucketFindBestClass( bucket, size, alignment, true );
-    if ( class_index == CYPHER_MEMORY_BUCKET_INVALID_CLASS_INDEX ) {
+    const common::usize nClassIndex = CypherMemory_BucketFindBestClass( bucket, size, alignment, true );
+    if ( nClassIndex == CYPHER_MEMORY_BUCKET_INVALID_CLASS_INDEX ) {
         return CypherMemory_BucketFailAlloc( bucket, mem_error_t::ERR_OUT_OF_MEMORY, "all compatible bucket classes are full" );
     }
 
-    void *memory = CypherMemory_PoolAllocSizeDebug( bucket.classes[class_index].pool, size, alignment, file, function, line );
-    bucket.last_error = CypherMemory_PoolLastError( bucket.classes[class_index].pool );
+    void *memory = CypherMemory_PoolAllocSizeDebug( bucket.classes[nClassIndex].pool, size, alignment, file, function, line );
+    bucket.lastError = CypherMemory_PoolLastError( bucket.classes[nClassIndex].pool );
 
     if ( memory == nullptr ) {
-        ++bucket.failed_allocation_count;
+        ++bucket.nFailedAllocationCount;
         return nullptr;
     }
 
-    ++bucket.allocation_count;
+    ++bucket.nAllocationCount;
     CypherMemory_BucketRefreshPeak( bucket );
 
     return memory;
@@ -388,10 +388,10 @@ void *CypherMemory_BucketAllocZeroDebug( bucket_t &bucket,
         return nullptr;
     }
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        const pool_t &pool = bucket.classes[class_index].pool;
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        const pool_t &pool = bucket.classes[nClassIndex].pool;
         if ( CypherMemory_PoolOwnsSlot( pool, memory ) ) {
-            std::memset( memory, 0, pool.slot_stride );
+            std::memset( memory, 0, pool.nSlotStride );
             break;
         }
     }
@@ -407,42 +407,42 @@ mem_error_t CypherMemory_BucketFree( bucket_t &bucket, void *ptr )
 mem_error_t CypherMemory_BucketFreeDebug( bucket_t &bucket, void *ptr, const char *file, const char *function, common::i32 line )
 {
     if ( !bucket.initialized ) {
-        bucket.last_error = mem_error_t::ERR_NOT_INITIALIZED;
-        ++bucket.failed_free_count;
-        return bucket.last_error;
+        bucket.lastError = mem_error_t::ERR_NOT_INITIALIZED;
+        ++bucket.nFailedFreeCount;
+        return bucket.lastError;
     }
 
     if ( ptr == nullptr ) {
-        bucket.last_error = mem_error_t::ERR_INVALID_POINTER;
-        ++bucket.failed_free_count;
-        return bucket.last_error;
+        bucket.lastError = mem_error_t::ERR_INVALID_POINTER;
+        ++bucket.nFailedFreeCount;
+        return bucket.lastError;
     }
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        pool_t &pool = bucket.classes[class_index].pool;
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        pool_t &pool = bucket.classes[nClassIndex].pool;
         if ( !CypherMemory_PoolOwnsSlot( pool, ptr ) ) {
             continue;
         }
 
-        const mem_error_t free_result = CypherMemory_PoolFreeDebug( pool, ptr, file, function, line );
-        bucket.last_error = free_result;
+        const mem_error_t freeResult = CypherMemory_PoolFreeDebug( pool, ptr, file, function, line );
+        bucket.lastError = freeResult;
 
-        if ( free_result == mem_error_t::OK ) {
-            ++bucket.free_operation_count;
+        if ( freeResult == mem_error_t::OK ) {
+            ++bucket.nFreeOperationCount;
         } else {
-            ++bucket.failed_free_count;
+            ++bucket.nFailedFreeCount;
         }
 
-        return free_result;
+        return freeResult;
     }
 
-    bucket.last_error = mem_error_t::ERR_INVALID_POINTER;
-    ++bucket.failed_free_count;
+    bucket.lastError = mem_error_t::ERR_INVALID_POINTER;
+    ++bucket.nFailedFreeCount;
     LOG_ERROR( log::channel_t::MEMORY,
                       "bucket '%s' free failed: pointer does not belong to any bucket class.",
                       bucket.name ? bucket.name : "<unnamed>" );
 
-    return bucket.last_error;
+    return bucket.lastError;
 }
 
 bool CypherMemory_BucketContains( const bucket_t &bucket, const void *ptr )
@@ -451,8 +451,8 @@ bool CypherMemory_BucketContains( const bucket_t &bucket, const void *ptr )
         return false;
     }
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        if ( CypherMemory_PoolContains( bucket.classes[class_index].pool, ptr ) ) {
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        if ( CypherMemory_PoolContains( bucket.classes[nClassIndex].pool, ptr ) ) {
             return true;
         }
     }
@@ -466,8 +466,8 @@ bool CypherMemory_BucketOwnsSlot( const bucket_t &bucket, const void *ptr )
         return false;
     }
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        if ( CypherMemory_PoolOwnsSlot( bucket.classes[class_index].pool, ptr ) ) {
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        if ( CypherMemory_PoolOwnsSlot( bucket.classes[nClassIndex].pool, ptr ) ) {
             return true;
         }
     }
@@ -482,7 +482,7 @@ bool CypherMemory_BucketIsInitialized( const bucket_t &bucket )
 
 mem_error_t CypherMemory_BucketLastError( const bucket_t &bucket )
 {
-    return bucket.last_error;
+    return bucket.lastError;
 }
 
 common::usize CypherMemory_BucketClassIndexForSize( const bucket_t &bucket, common::usize size, common::usize alignment )
@@ -496,37 +496,37 @@ common::usize CypherMemory_BucketClassIndexForSize( const bucket_t &bucket, comm
 
 common::usize CypherMemory_BucketUsedCount( const bucket_t &bucket )
 {
-    common::usize used_count = 0u;
+    common::usize nUsedCount = 0u;
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        used_count += CypherMemory_PoolUsedCount( bucket.classes[class_index].pool );
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        nUsedCount += CypherMemory_PoolUsedCount( bucket.classes[nClassIndex].pool );
     }
 
-    return used_count;
+    return nUsedCount;
 }
 
 common::usize CypherMemory_BucketFreeCount( const bucket_t &bucket )
 {
-    common::usize free_count = 0u;
+    common::usize nFreeCount = 0u;
 
-    for ( common::usize class_index = 0u; class_index < bucket.class_count; ++class_index ) {
-        free_count += CypherMemory_PoolFreeCount( bucket.classes[class_index].pool );
+    for ( common::usize nClassIndex = 0u; nClassIndex < bucket.nClassCount; ++nClassIndex ) {
+        nFreeCount += CypherMemory_PoolFreeCount( bucket.classes[nClassIndex].pool );
     }
 
-    return free_count;
+    return nFreeCount;
 }
 
 common::f32 CypherMemory_BucketUsageRatio( const bucket_t &bucket )
 {
-    const common::usize used_count = CypherMemory_BucketUsedCount( bucket );
-    const common::usize free_count = CypherMemory_BucketFreeCount( bucket );
-    const common::usize total_count = used_count + free_count;
+    const common::usize nUsedCount = CypherMemory_BucketUsedCount( bucket );
+    const common::usize nFreeCount = CypherMemory_BucketFreeCount( bucket );
+    const common::usize nTotalCount = nUsedCount + nFreeCount;
 
-    if ( total_count == 0u ) {
+    if ( nTotalCount == 0u ) {
         return 0.0f;
     }
 
-    return static_cast<common::f32>( used_count ) / static_cast<common::f32>( total_count );
+    return static_cast<common::f32>( nUsedCount ) / static_cast<common::f32>( nTotalCount );
 }
 
 }       // namespace cypher::engine::memory
