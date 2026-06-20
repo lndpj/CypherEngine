@@ -12,7 +12,7 @@
 
 namespace cypher::engine::memory
 {
- 
+
 enum class memory_tag_t : common::u8 {
     UNKNOWN = 0,
     CORE,
@@ -30,51 +30,51 @@ enum class memory_tag_t : common::u8 {
     EDITOR,
     TOOLS,
     TEMP,
-    COUNT 
+    COUNT
 };
 
 struct memory_tag_stats_t {
     const char *name{ nullptr };
     common::usize used{ 0u };
-    common::usize peak_used{ 0u };
-    common::u64 allocation_count{ 0u };
-    common::u64 failed_allocation_count{ 0u };
+    common::usize nPeakUsed{ 0u };
+    common::u64 nAllocationCount{ 0u };
+    common::u64 nFailedAllocationCount{ 0u };
 };
- 
+
 struct memory_arena_config_t {
     const char *name{ nullptr };
-    common::usize reserve_size{ 0u };
-    common::usize initial_commit{ 0u };
+    common::usize nReserveSize{ 0u };
+    common::usize initialCommit{ 0u };
     common::u32 flags{ CYPHER_MEMORY_ARENA_FLAG_NONE };
     arena_backing_t backing{ arena_backing_t::ARENA_VIRTUAL_MEMORY };
     memory_tag_t tag{ memory_tag_t::MEMORY };
 };
 
 struct memory_config_t {
-    memory_arena_config_t permanent_arena;
-    memory_arena_config_t frame_arena;
-    memory_arena_config_t scratch_arena;
-    memory_arena_config_t resource_arena;
-    memory_arena_config_t world_arena;
-    memory_arena_config_t render_arena;
-    memory_arena_config_t editor_arena;
+    memory_arena_config_t permanentArena;
+    memory_arena_config_t frameArena;
+    memory_arena_config_t scratchArena;
+    memory_arena_config_t resourceArena;
+    memory_arena_config_t worldArena;
+    memory_arena_config_t renderArena;
+    memory_arena_config_t editorArena;
 };
 
 struct memory_stats_t {
-    common::usize total_capacity{ 0u };
-    common::usize total_committed{ 0u };
-    common::usize total_used{ 0u };
-    common::usize peak_used{ 0u };
+    common::usize nTotalCapacity{ 0u };
+    common::usize totalCommitted{ 0u };
+    common::usize nTotalUsed{ 0u };
+    common::usize nPeakUsed{ 0u };
 
-    arena_stats_t permanent_stats{};
-    arena_stats_t frame_stats{};
-    arena_stats_t scratch_stats{};
-    arena_stats_t resource_stats{};
-    arena_stats_t world_stats{};
-    arena_stats_t render_stats{};
-    arena_stats_t editor_stats{};
+    arena_stats_t permanentStats{};
+    arena_stats_t frameStats{};
+    arena_stats_t scratchStats{};
+    arena_stats_t resourceStats{};
+    arena_stats_t worldStats{};
+    arena_stats_t renderStats{};
+    arena_stats_t editorStats{};
 
-    memory_tag_stats_t tag_stats[static_cast<common::usize>( memory_tag_t::COUNT )]{};
+    memory_tag_stats_t tagStats[static_cast<common::usize>( memory_tag_t::COUNT )]{};
 };
 
 struct memory_state_t {
@@ -82,18 +82,18 @@ struct memory_state_t {
 
     memory_config_t config{};
 
-    arena_t permanent_arena{};
-    arena_t frame_arena{};
-    arena_t scratch_arena{};
-    arena_t resource_arena{};
-    arena_t world_arena{};
-    arena_t render_arena{};
-    arena_t editor_arena{};
+    arena_t permanentArena{};
+    arena_t frameArena{};
+    arena_t scratchArena{};
+    arena_t resourceArena{};
+    arena_t worldArena{};
+    arena_t renderArena{};
+    arena_t editorArena{};
 
-    common::usize total_capacity{ 0u };
-    common::usize total_committed{ 0u };
-    common::usize total_used{ 0u };
-    common::usize peak_used{ 0u };
+    common::usize nTotalCapacity{ 0u };
+    common::usize totalCommitted{ 0u };
+    common::usize nTotalUsed{ 0u };
+    common::usize nPeakUsed{ 0u };
 };
 
 memory_config_t CypherMemory_DefaultConfig();
