@@ -19,7 +19,7 @@
 
 namespace {
 
-cypher::engine::memory::memory_state_t g_Memory{};
+cypher::engine::memory::memory_state_t s_Memory{};
 
 cypher::engine::memory::arena_desc_t CypherMemory_MakeArenaDesc( const cypher::engine::memory::memory_arena_config_t &arenaConfig )
 {
@@ -45,13 +45,13 @@ cypher::engine::memory::mem_error_t CypherMemory_InitArena(
 
 void CypherMemory_ShutdownInitializedArenas()
 {
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.editorArena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.renderArena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.worldArena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.resourceArena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.scratchArena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.frameArena );
-    cypher::engine::memory::CypherMemory_ArenaShutdown( g_Memory.permanentArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( s_Memory.editorArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( s_Memory.renderArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( s_Memory.worldArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( s_Memory.resourceArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( s_Memory.scratchArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( s_Memory.frameArena );
+    cypher::engine::memory::CypherMemory_ArenaShutdown( s_Memory.permanentArena );
 }
 
 void CypherMemory_AddArenaStats(
@@ -155,64 +155,64 @@ memory_config_t CypherMemory_DefaultConfig()
 
 mem_error_t CypherMemory_Init( const memory_config_t &config )
 {
-    if ( g_Memory.initialized ) {
+    if ( s_Memory.initialized ) {
         LOG_WARNING( log::channel_t::MEMORY, "memory system is already initialized." );
         return mem_error_t::ERR_ALREADY_INITIALIZED;
     }
 
-    g_Memory = {};
-    g_Memory.config = config;
+    s_Memory = {};
+    s_Memory.config = config;
 
-    mem_error_t result = CypherMemory_InitArena( g_Memory.permanentArena, config.permanentArena );
+    mem_error_t result = CypherMemory_InitArena( s_Memory.permanentArena, config.permanentArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_Memory = {};
+        s_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_Memory.frameArena, config.frameArena );
+    result = CypherMemory_InitArena( s_Memory.frameArena, config.frameArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_Memory = {};
+        s_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_Memory.scratchArena, config.scratchArena );
+    result = CypherMemory_InitArena( s_Memory.scratchArena, config.scratchArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_Memory = {};
+        s_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_Memory.resourceArena, config.resourceArena );
+    result = CypherMemory_InitArena( s_Memory.resourceArena, config.resourceArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_Memory = {};
+        s_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_Memory.worldArena, config.worldArena );
+    result = CypherMemory_InitArena( s_Memory.worldArena, config.worldArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_Memory = {};
+        s_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_Memory.renderArena, config.renderArena );
+    result = CypherMemory_InitArena( s_Memory.renderArena, config.renderArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_Memory = {};
+        s_Memory = {};
         return result;
     }
 
-    result = CypherMemory_InitArena( g_Memory.editorArena, config.editorArena );
+    result = CypherMemory_InitArena( s_Memory.editorArena, config.editorArena );
     if ( result != mem_error_t::OK ) {
         CypherMemory_ShutdownInitializedArenas();
-        g_Memory = {};
+        s_Memory = {};
         return result;
     }
 
-    g_Memory.initialized = true;
+    s_Memory.initialized = true;
 
     const memory_stats_t stats = CypherMemory_Stats();
     LOG_INFO( log::channel_t::MEMORY,
@@ -225,7 +225,7 @@ mem_error_t CypherMemory_Init( const memory_config_t &config )
 
 void CypherMemory_Shutdown()
 {
-    if ( !g_Memory.initialized ) {
+    if ( !s_Memory.initialized ) {
         return;
     }
 
@@ -236,61 +236,61 @@ void CypherMemory_Shutdown()
                      stats.nPeakUsed );
 
     CypherMemory_ShutdownInitializedArenas();
-    g_Memory = {};
+    s_Memory = {};
 }
 
 void CypherMemory_BeginFrame()
 {
-    if ( !g_Memory.initialized ) {
+    if ( !s_Memory.initialized ) {
         return;
     }
 
-    CypherMemory_ArenaReset( g_Memory.frameArena );
+    CypherMemory_ArenaReset( s_Memory.frameArena );
 }
 
 void CypherMemory_EndFrame()
 {
-    if ( !g_Memory.initialized ) {
+    if ( !s_Memory.initialized ) {
         return;
     }
 
-    CypherMemory_ArenaResetCounters( g_Memory.frameArena );
+    CypherMemory_ArenaResetCounters( s_Memory.frameArena );
 }
 
 bool CypherMemory_IsInitialized()
 {
-    return g_Memory.initialized;
+    return s_Memory.initialized;
 }
 
 memory_stats_t CypherMemory_Stats()
 {
     memory_stats_t stats{};
 
-    stats.permanentStats = CypherMemory_ArenaStats( g_Memory.permanentArena );
-    stats.frameStats = CypherMemory_ArenaStats( g_Memory.frameArena );
-    stats.scratchStats = CypherMemory_ArenaStats( g_Memory.scratchArena );
-    stats.resourceStats = CypherMemory_ArenaStats( g_Memory.resourceArena );
-    stats.worldStats = CypherMemory_ArenaStats( g_Memory.worldArena );
-    stats.renderStats = CypherMemory_ArenaStats( g_Memory.renderArena );
-    stats.editorStats = CypherMemory_ArenaStats( g_Memory.editorArena );
+    stats.permanentStats = CypherMemory_ArenaStats( s_Memory.permanentArena );
+    stats.frameStats = CypherMemory_ArenaStats( s_Memory.frameArena );
+    stats.scratchStats = CypherMemory_ArenaStats( s_Memory.scratchArena );
+    stats.resourceStats = CypherMemory_ArenaStats( s_Memory.resourceArena );
+    stats.worldStats = CypherMemory_ArenaStats( s_Memory.worldArena );
+    stats.renderStats = CypherMemory_ArenaStats( s_Memory.renderArena );
+    stats.editorStats = CypherMemory_ArenaStats( s_Memory.editorArena );
 
-    CypherMemory_AddArenaStats( g_Memory.permanentArena, stats, g_Memory.config.permanentArena.tag );
-    CypherMemory_AddArenaStats( g_Memory.frameArena, stats, g_Memory.config.frameArena.tag );
-    CypherMemory_AddArenaStats( g_Memory.scratchArena, stats, g_Memory.config.scratchArena.tag );
-    CypherMemory_AddArenaStats( g_Memory.resourceArena, stats, g_Memory.config.resourceArena.tag );
-    CypherMemory_AddArenaStats( g_Memory.worldArena, stats, g_Memory.config.worldArena.tag );
-    CypherMemory_AddArenaStats( g_Memory.renderArena, stats, g_Memory.config.renderArena.tag );
-    CypherMemory_AddArenaStats( g_Memory.editorArena, stats, g_Memory.config.editorArena.tag );
+    CypherMemory_AddArenaStats( s_Memory.permanentArena, stats, s_Memory.config.permanentArena.tag );
+    CypherMemory_AddArenaStats( s_Memory.frameArena, stats, s_Memory.config.frameArena.tag );
+    CypherMemory_AddArenaStats( s_Memory.scratchArena, stats, s_Memory.config.scratchArena.tag );
+    CypherMemory_AddArenaStats( s_Memory.resourceArena, stats, s_Memory.config.resourceArena.tag );
+    CypherMemory_AddArenaStats( s_Memory.worldArena, stats, s_Memory.config.worldArena.tag );
+    CypherMemory_AddArenaStats( s_Memory.renderArena, stats, s_Memory.config.renderArena.tag );
+    CypherMemory_AddArenaStats( s_Memory.editorArena, stats, s_Memory.config.editorArena.tag );
 
-    g_Memory.nTotalCapacity = stats.nTotalCapacity;
-    g_Memory.totalCommitted = stats.totalCommitted;
-    g_Memory.nTotalUsed = stats.nTotalUsed;
+    s_Memory.nTotalCapacity = stats.nTotalCapacity;
+    s_Memory.totalCommitted = stats.totalCommitted;
+    s_Memory.nTotalUsed = stats.nTotalUsed;
 
-    if ( stats.nTotalUsed > g_Memory.nPeakUsed ) {
-        g_Memory.nPeakUsed = stats.nTotalUsed;
+    if ( stats.nTotalUsed > s_Memory.nPeakUsed ) {
+        s_Memory.nPeakUsed = stats.nTotalUsed;
     }
 
-    stats.nPeakUsed = g_Memory.nPeakUsed;
+    stats.nPeakUsed = s_Memory.nPeakUsed;
 
     return stats;
 }
@@ -321,37 +321,37 @@ const char *CypherMemory_TagName( const memory_tag_t tag )
 
 arena_t &CypherMemory_PermanentArena()
 {
-    return g_Memory.permanentArena;
+    return s_Memory.permanentArena;
 }
 
 arena_t &CypherMemory_FrameArena()
 {
-    return g_Memory.frameArena;
+    return s_Memory.frameArena;
 }
 
 arena_t &CypherMemory_ScratchArena()
 {
-    return g_Memory.scratchArena;
+    return s_Memory.scratchArena;
 }
 
 arena_t &CypherMemory_ResourceArena()
 {
-    return g_Memory.resourceArena;
+    return s_Memory.resourceArena;
 }
 
 arena_t &CypherMemory_WorldArena()
 {
-    return g_Memory.worldArena;
+    return s_Memory.worldArena;
 }
 
 arena_t &CypherMemory_RenderArena()
 {
-    return g_Memory.renderArena;
+    return s_Memory.renderArena;
 }
 
 arena_t &CypherMemory_EditorArena()
 {
-    return g_Memory.editorArena;
+    return s_Memory.editorArena;
 }
 
 }       // namespace cypher::engine::memory
