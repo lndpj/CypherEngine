@@ -15,9 +15,9 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherRender/CypherRender_Mesh.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherRender/CypherRender_GL.h"
+#include "CypherRender_Mesh.h"
+#include "CypherLog.h"
+#include "CypherRender_GL.h"
 
 namespace cypher::engine::render
 {
