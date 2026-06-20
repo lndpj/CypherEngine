@@ -45,11 +45,11 @@ struct pool_desc_t {
     const char *name{ nullptr };
 
     arena_t *arena{ nullptr };
-    void *external_buffer{ nullptr };
-    common::usize external_buffer_size{ 0u };
+    void *pExternalBuffer{ nullptr };
+    common::usize nExternalBufferSize{ 0u };
 
-    common::usize slot_size{ 0u };
-    common::usize slot_count{ 0u };
+    common::usize nSlotSize{ 0u };
+    common::usize nSlotCount{ 0u };
     common::usize alignment{ CYPHER_MEMORY_DEFAULT_ALIGNMENT };
 
     common::u32 flags{ CYPHER_MEMORY_POOL_FLAG_NONE };
@@ -71,9 +71,9 @@ struct pool_operation_trace_t {
     common::i32 line{ 0 };
 
     void *ptr{ nullptr };
-    common::usize slot_index{ 0u };
+    common::usize nSlotIndex{ 0u };
 
-    common::u64 operation_index{ 0u };
+    common::u64 nOperationIndex{ 0u };
     pool_operation_t operation{ pool_operation_t::POOL_OPERATION_ALLOC };
     mem_error_t error{ mem_error_t::OK };
     bool failed{ false };
@@ -89,21 +89,21 @@ Snapshot of fixed-block pool usage.
 struct pool_stats_t {
     const char *name{ nullptr };
 
-    common::usize slot_size{ 0u };
-    common::usize slot_stride{ 0u };
-    common::usize slot_count{ 0u };
-    common::usize used_count{ 0u };
-    common::usize free_count{ 0u };
-    common::usize peak_used_count{ 0u };
+    common::usize nSlotSize{ 0u };
+    common::usize nSlotStride{ 0u };
+    common::usize nSlotCount{ 0u };
+    common::usize nUsedCount{ 0u };
+    common::usize nFreeCount{ 0u };
+    common::usize nPeakUsedCount{ 0u };
 
-    common::usize slot_bytes{ 0u };
-    common::usize metadata_bytes{ 0u };
-    common::usize backing_bytes{ 0u };
+    common::usize nSlotBytes{ 0u };
+    common::usize nMetadataBytes{ 0u };
+    common::usize nBackingBytes{ 0u };
 
-    common::u64 allocation_count{ 0u };
-    common::u64 free_operation_count{ 0u };
-    common::u64 failed_allocation_count{ 0u };
-    common::u64 failed_free_count{ 0u };
+    common::u64 nAllocationCount{ 0u };
+    common::u64 nFreeOperationCount{ 0u };
+    common::u64 nFailedAllocationCount{ 0u };
+    common::u64 nFailedFreeCount{ 0u };
 };
 
 /*
@@ -118,42 +118,42 @@ struct pool_t {
     const char *name{ nullptr };
 
     common::byte *base{ nullptr };
-    pool_free_node_t *free_list{ nullptr };
-    common::u64 *allocation_bits{ nullptr };
+    pool_free_node_t *freeList{ nullptr };
+    common::u64 *allocationBits{ nullptr };
 
-    common::usize slot_size{ 0u };
-    common::usize slot_stride{ 0u };
-    common::usize slot_count{ 0u };
+    common::usize nSlotSize{ 0u };
+    common::usize nSlotStride{ 0u };
+    common::usize nSlotCount{ 0u };
     common::usize alignment{ CYPHER_MEMORY_DEFAULT_ALIGNMENT };
 
-    common::usize slot_bytes{ 0u };
-    common::usize metadata_bytes{ 0u };
-    common::usize backing_bytes{ 0u };
-    common::usize allocation_word_count{ 0u };
+    common::usize nSlotBytes{ 0u };
+    common::usize nMetadataBytes{ 0u };
+    common::usize nBackingBytes{ 0u };
+    common::usize nAllocationWordCount{ 0u };
 
-    common::usize used_count{ 0u };
-    common::usize free_count{ 0u };
-    common::usize peak_used_count{ 0u };
+    common::usize nUsedCount{ 0u };
+    common::usize nFreeCount{ 0u };
+    common::usize nPeakUsedCount{ 0u };
 
-    common::u64 allocation_count{ 0u };
-    common::u64 free_operation_count{ 0u };
-    common::u64 failed_allocation_count{ 0u };
-    common::u64 failed_free_count{ 0u };
+    common::u64 nAllocationCount{ 0u };
+    common::u64 nFreeOperationCount{ 0u };
+    common::u64 nFailedAllocationCount{ 0u };
+    common::u64 nFailedFreeCount{ 0u };
 
     common::u32 flags{ CYPHER_MEMORY_POOL_FLAG_NONE };
     pool_backing_t backing{ pool_backing_t::POOL_ARENA };
-    mem_error_t last_error{ mem_error_t::OK };
+    mem_error_t lastError{ mem_error_t::OK };
 
-    pool_operation_trace_t operation_traces[CYPHER_MEMORY_POOL_OPERATION_TRACE_COUNT]{};
-    common::usize operation_trace_index{ 0u };
-    common::usize operation_trace_count{ 0u };
+    pool_operation_trace_t pOperationTraces[CYPHER_MEMORY_POOL_OPERATION_TRACE_COUNT]{};
+    common::usize nOperationTraceIndex{ 0u };
+    common::usize nOperationTraceCount{ 0u };
 
     bool initialized{ false };
 };
 
 using pool_allocator_t = pool_t;
 
-mem_error_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &pool_desc );
+mem_error_t CypherMemory_PoolInit( pool_t &pool, const pool_desc_t &poolDesc );
 
 void CypherMemory_PoolShutdown( pool_t &pool );
 
@@ -211,7 +211,7 @@ common::usize CypherMemory_PoolCapacity( const pool_t &pool );
 
 common::f32 CypherMemory_PoolUsageRatio( const pool_t &pool );
 
-const pool_operation_trace_t *CypherMemory_PoolOperationTraces( const pool_t &pool, common::usize &out_count );
+const pool_operation_trace_t *CypherMemory_PoolOperationTraces( const pool_t &pool, common::usize &nOutCount );
 
 template <typename T>
 T *CypherMemory_PoolAllocType( pool_t &pool )
