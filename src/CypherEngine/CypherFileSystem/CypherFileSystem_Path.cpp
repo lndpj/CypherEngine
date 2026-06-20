@@ -15,7 +15,7 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
+#include "CypherFileSystem.h"
 
 #include <cctype>           // for isalpha and other isFuncs
 #include <cstdio>           // for IO
