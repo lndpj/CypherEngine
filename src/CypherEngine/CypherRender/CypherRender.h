@@ -3,13 +3,13 @@
 
 #pragma once
 
-#include "CypherEngine/CypherHost/CypherHost_Types.h"
-#include "CypherEngine/CypherRender/CypherRender_Camera.h"
-#include "CypherEngine/CypherRender/CypherRender_Draw.h"
-#include "CypherEngine/CypherRender/CypherRender_Error.h"
-#include "CypherEngine/CypherRender/CypherRender_GL.h"
-#include "CypherEngine/CypherRender/CypherRender_Mesh.h"
-#include "CypherEngine/CypherRender/CypherRender_Shader.h"
+#include "CypherHost_Types.h"
+#include "CypherRender_Camera.h"
+#include "CypherRender_Draw.h"
+#include "CypherRender_Error.h"
+#include "CypherRender_GL.h"
+#include "CypherRender_Mesh.h"
+#include "CypherRender_Shader.h"
 
 namespace cypher::engine::render
 {
