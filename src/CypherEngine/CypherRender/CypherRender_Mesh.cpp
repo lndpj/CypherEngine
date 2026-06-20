@@ -30,62 +30,62 @@ Validates CPU mesh data, calculates simple bounds, then uploads to OpenGL.
 ================
 */
 render_error_t CypherRender_MeshCreate( const vertex_t *vertices,
-                             const common::u32 vertex_count,
+                             const common::u32 nVertexCount,
                              const common::u32 *indices,
-                             const common::u32 index_count,
-                             mesh_t &mesh_out )
+                             const common::u32 nIndexCount,
+                             mesh_t &meshOut )
 {
-    if ( vertices == nullptr || vertex_count == 0u ) {
-        LOG_ERROR( log::channel_t::RENDER, "mesh create failed: invalid vertices pointer/count=%u.", vertex_count );
+    if ( vertices == nullptr || nVertexCount == 0u ) {
+        LOG_ERROR( log::channel_t::RENDER, "mesh create failed: invalid vertices pointer/count=%u.", nVertexCount );
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    if ( indices == nullptr || index_count == 0u ) {
-        LOG_ERROR( log::channel_t::RENDER, "mesh create failed: invalid indices pointer/count=%u.", index_count );
+    if ( indices == nullptr || nIndexCount == 0u ) {
+        LOG_ERROR( log::channel_t::RENDER, "mesh create failed: invalid indices pointer/count=%u.", nIndexCount );
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    mesh_out = {};
+    meshOut = {};
 
-    mesh_out.bounds.mins = vertices[0].position;
-    mesh_out.bounds.maxs = vertices[0].position;
+    meshOut.bounds.mins = vertices[0].position;
+    meshOut.bounds.maxs = vertices[0].position;
 
-    for ( common::u32 i = 1u; i < vertex_count; ++i ) {
+    for ( common::u32 i = 1u; i < nVertexCount; ++i ) {
         const math::vec3_t &position = vertices[i].position;
 
-        if ( position.x < mesh_out.bounds.mins.x ) {
-            mesh_out.bounds.mins.x = position.x;
+        if ( position.x < meshOut.bounds.mins.x ) {
+            meshOut.bounds.mins.x = position.x;
         }
-        if ( position.y < mesh_out.bounds.mins.y ) {
-            mesh_out.bounds.mins.y = position.y;
+        if ( position.y < meshOut.bounds.mins.y ) {
+            meshOut.bounds.mins.y = position.y;
         }
-        if ( position.z < mesh_out.bounds.mins.z ) {
-            mesh_out.bounds.mins.z = position.z;
+        if ( position.z < meshOut.bounds.mins.z ) {
+            meshOut.bounds.mins.z = position.z;
         }
-        if ( position.x > mesh_out.bounds.maxs.x ) {
-            mesh_out.bounds.maxs.x = position.x;
+        if ( position.x > meshOut.bounds.maxs.x ) {
+            meshOut.bounds.maxs.x = position.x;
         }
-        if ( position.y > mesh_out.bounds.maxs.y ) {
-            mesh_out.bounds.maxs.y = position.y;
+        if ( position.y > meshOut.bounds.maxs.y ) {
+            meshOut.bounds.maxs.y = position.y;
         }
-        if ( position.z > mesh_out.bounds.maxs.z ) {
-            mesh_out.bounds.maxs.z = position.z;
+        if ( position.z > meshOut.bounds.maxs.z ) {
+            meshOut.bounds.maxs.z = position.z;
         }
     }
-    
+
     // Calling OpenGL API for creating a mesh, creating a distinction between different API's.
     const auto result = CypherRenderGL_MeshCreate(
         vertices,
-        vertex_count,
+        nVertexCount,
         indices,
-        index_count,
-        mesh_out );
+        nIndexCount,
+        meshOut );
 
     if ( result != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "mesh create failed: GL upload failed: %s.", CypherRender_ErrorDesc( result ) );
-        mesh_out = {};
+        meshOut = {};
     } else {
-        LOG_DEBUG( log::channel_t::RENDER, "mesh created: vertices=%u, indices=%u, vao=%u, vbo=%u, ebo=%u.", mesh_out.vertex_count, mesh_out.index_count, mesh_out.gl_vao, mesh_out.gl_vbo, mesh_out.gl_ebo );
+        LOG_DEBUG( log::channel_t::RENDER, "mesh created: vertices=%u, indices=%u, vao=%u, vbo=%u, ebo=%u.", meshOut.nVertexCount, meshOut.nIndexCount, meshOut.nGlVao, meshOut.nGlVbo, meshOut.nGlEbo );
     }
 
     return result;
@@ -97,7 +97,7 @@ void CypherRender_MeshDestroy( mesh_t &mesh )
         return ;
     }
 
-    LOG_DEBUG( log::channel_t::RENDER, "mesh destroyed: vao=%u, vbo=%u, ebo=%u.", mesh.gl_vao, mesh.gl_vbo, mesh.gl_ebo );
+    LOG_DEBUG( log::channel_t::RENDER, "mesh destroyed: vao=%u, vbo=%u, ebo=%u.", mesh.nGlVao, mesh.nGlVbo, mesh.nGlEbo );
     CypherRenderGL_MeshDestroy( mesh );
     mesh = {};
 
