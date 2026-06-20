@@ -1,10 +1,10 @@
 /*======================================================================
-   File: math_quat.cpp
+   File: CypherMath_Quat.cpp
    Project: rengine
    Author: ksiric <email@example.com>
    Created: 2026-05-24 14:46:51
    Last Modified by: ksiric
-   Last Modified: 2026-06-03 10:06:54
+   Last Modified: 2026-06-20 12:58:02
    ---------------------------------------------------------------------
    Description:
 
@@ -14,9 +14,9 @@
    Version: 0.1.0
  ======================================================================
 																	   */
-#include "CypherEngine/CypherMath/CypherMath_Quat.h"
-#include "CypherEngine/CypherMath/CypherMath_Mat.h"
-#include "CypherEngine/CypherMath/CypherMath_Vec.h"
+#include "CypherMath_Quat.h"
+#include "CypherMath_Mat.h"
+#include "CypherMath_Vec.h"
 
 #include <cmath>
 
