@@ -5,19 +5,19 @@ namespace cypher::engine::fs
 
 namespace {
 
-runtime_state_t g_FsRuntimeState{};
-std::recursive_mutex g_FsRuntimeMutex{};
+runtime_state_t s_FsRuntimeState{};
+std::recursive_mutex s_FsRuntimeMutex{};
 
 }       // namespace
 
 runtime_state_t &CypherFileSystem_RuntimeState()
 {
-    return g_FsRuntimeState;
+    return s_FsRuntimeState;
 }
 
 std::recursive_mutex &CypherFileSystem_RuntimeMutex()
 {
-    return g_FsRuntimeMutex;
+    return s_FsRuntimeMutex;
 }
 
 bool CypherFileSystem_HasWritePath()
