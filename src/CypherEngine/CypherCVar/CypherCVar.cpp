@@ -14,9 +14,9 @@
    Version: 0.1.0
  ======================================================================
 																	   */
-#include "CypherEngine/CypherCVar/CypherCVar.h"
-#include "CypherEngine/CypherCVar/CypherCVar_Error.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherCVar.h"
+#include "CypherCVar_Error.h"
+#include "CypherLog.h"
 
 #include <cctype>      // std::tolower for bool parsing.
 #include <cstdlib>     // atoi / atof numeric conversion.
