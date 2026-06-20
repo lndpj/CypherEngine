@@ -23,6 +23,49 @@ set(CYPHERENGINE_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 set(CYPHERENGINE_SRC_DIR "${CYPHERENGINE_ROOT_DIR}/src")
 set(CYPHERENGINE_THIRDPARTY_DIR "${CYPHERENGINE_ROOT_DIR}/thirdparty")
 
+set(CYPHERENGINE_INCLUDE_DIRS
+    "${CYPHERENGINE_SRC_DIR}"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherCommon"
+    "${CYPHERENGINE_SRC_DIR}/CypherCommon"
+    "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier0"
+    "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1"
+    "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier2"
+    "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier3"
+    "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier4"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherAI"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherAnimation"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherAudio"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherCommand"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherConfig"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherConsole"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherCVar"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherEntity"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherHost"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherInput"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherLog"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMath"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherNetwork"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPhysics"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPlatform"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherProfile"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherRender"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherResource"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherScript"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem"
+    "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherWorld"
+    "${CYPHERENGINE_SRC_DIR}/CypherClient"
+    "${CYPHERENGINE_SRC_DIR}/CypherEditor"
+    "${CYPHERENGINE_SRC_DIR}/CypherGame"
+    "${CYPHERENGINE_SRC_DIR}/CypherServer"
+    "${CYPHERENGINE_SRC_DIR}/CypherTools"
+    "${CYPHERENGINE_SRC_DIR}/rengine"
+    "${CYPHERENGINE_SRC_DIR}/rengine/math"
+)
+
 # Optional dependencies: only enabled when the corresponding files exist.
 set(CYPHERENGINE_LINK_LIBS "")
 
@@ -72,7 +115,7 @@ file(GLOB_RECURSE CYPHERENGINE_SOURCES CONFIGURE_DEPENDS
 
 if (CYPHERENGINE_SOURCES)
     add_executable(CypherEngine ${CYPHERENGINE_SOURCES})
-    target_include_directories(CypherEngine PRIVATE "${CYPHERENGINE_SRC_DIR}")
+    target_include_directories(CypherEngine PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
     if (CYPHERENGINE_LINK_LIBS)
         target_link_libraries(CypherEngine PRIVATE ${CYPHERENGINE_LINK_LIBS})
     endif()
@@ -106,7 +149,7 @@ if (CYPHERENGINE_BUILD_TESTS)
     )
 
     add_executable(cypher_filesystem_smoke ${CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES})
-    target_include_directories(cypher_filesystem_smoke PRIVATE "${CYPHERENGINE_SRC_DIR}")
+    target_include_directories(cypher_filesystem_smoke PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
     add_test(NAME cypher_filesystem_smoke COMMAND cypher_filesystem_smoke)
 
     set(CYPHERENGINE_PAK_SMOKE_SOURCES
@@ -117,7 +160,7 @@ if (CYPHERENGINE_BUILD_TESTS)
     )
 
     add_executable(cypher_pak_smoke ${CYPHERENGINE_PAK_SMOKE_SOURCES})
-    target_include_directories(cypher_pak_smoke PRIVATE "${CYPHERENGINE_SRC_DIR}")
+    target_include_directories(cypher_pak_smoke PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
     add_test(NAME cypher_pak_smoke COMMAND cypher_pak_smoke)
 endif()
 
