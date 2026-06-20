@@ -7,7 +7,7 @@
 
 namespace cypher::engine::common {
 
-using error_t = com_u32;
+using error_t = u32;
 
 /*
 ================
@@ -33,9 +33,9 @@ enum class domain_t : u16 {
     COM_DOMAIN_PAK
 };
 
-enum class common_error_t : com_u8 {
+enum class common_error_t : u8 {
 	OK = 0,
-    
+
 	ERR_FAILED,
 	ERR_INVALID_ARGUMENT,
 	ERR_INVALID_STATE,
@@ -128,16 +128,16 @@ constexpr inline const char *CypherCommon_DomainName( const domain_t domain ) {
 	}
 }
 
-constexpr inline error_t CypherCommon_ErrorMake( const domain_t domain, const com_u16 local_error_code ) {
-	return ( static_cast<error_t>( domain ) << 16u ) | static_cast<error_t>( local_error_code );
+constexpr inline error_t CypherCommon_ErrorMake( const domain_t domain, const u16 localErrorCode ) {
+	return ( static_cast<error_t>( domain ) << 16u ) | static_cast<error_t>( localErrorCode );
 }
 
 constexpr inline domain_t CypherCommon_ErrorDomain( const error_t error ) {
 	return static_cast<domain_t>( ( error >> 16u ) & 0xFFFFu );
 }
 
-constexpr inline com_u16 CypherCommon_ErrorCode( const error_t error ) {
-	return static_cast<com_u16>( error & 0xFFFFu );
+constexpr inline u16 CypherCommon_ErrorCode( const error_t error ) {
+	return static_cast<u16>( error & 0xFFFFu );
 }
 
 }
