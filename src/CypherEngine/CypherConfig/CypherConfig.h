@@ -31,7 +31,7 @@ cfg_error_t CypherConfig_LoadFile( const char *path, bool required = false );
 cfg_error_t CypherConfig_LoadDefault();
 cfg_error_t CypherConfig_LoadAutoexec();
 
-cfg_error_t CypherConfig_ExecuteLine( const char *command_line );
+cfg_error_t CypherConfig_ExecuteLine( const char *nCommandLine );
 
 }
 
