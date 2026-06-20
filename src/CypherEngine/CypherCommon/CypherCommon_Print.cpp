@@ -74,12 +74,12 @@ Formats normal engine text and writes it to stdout.
 ================
 */
 void CypherCommon_VPrintf( const char *message, va_list args ) {
-    char msg_buf[COM_MSG_MAX]{};
-    const char *safe_message = message ? message : "<null message>";
-    std::vsnprintf( msg_buf, sizeof( msg_buf ), safe_message, args );
+    char msgBuf[COM_MSG_MAX]{};
+    const char *bSafeMessage = message ? message : "<null message>";
+    std::vsnprintf( msgBuf, sizeof( msgBuf ), bSafeMessage, args );
 
     // Later this should route through registered print sinks.
-    std::fputs( msg_buf, stdout );
+    std::fputs( msgBuf, stdout );
     std::fflush( stdout );
 }
 
@@ -119,17 +119,17 @@ Formats a domain-coded engine error and writes it to stderr.
 ================
 */
 void CypherCommon_VErrorf( const error_t error, const char *message, va_list args ) {
-    char msg_buf[COM_MSG_MAX]{};
-    char msg_final[COM_MSG_MAX + 256]{};
-    const char *safe_format = message ? message : "<null error message>";
-    std::vsnprintf( msg_buf, sizeof( msg_buf ), safe_format, args );
+    char msgBuf[COM_MSG_MAX]{};
+    char msgFinal[COM_MSG_MAX + 256]{};
+    const char *bSafeFormat = message ? message : "<null error message>";
+    std::vsnprintf( msgBuf, sizeof( msgBuf ), bSafeFormat, args );
     const domain_t domain = CypherCommon_ErrorDomain( error );
 
     if ( log::CypherLog_IsInitialized() ) {
         log::record_t record{};
         record.level = log::level_t::ERR;
         record.channel = CypherCommon_LogChannelForDomain( domain );
-        record.sink_mask = log::CypherLog_DefaultSinkMaskForLevel( record.level );
+        record.nSinkMask = log::CypherLog_DefaultSinkMaskForLevel( record.level );
         record.file = "";
         record.function = "";
         record.line = 0;
@@ -140,22 +140,22 @@ void CypherCommon_VErrorf( const error_t error, const char *message, va_list arg
             sizeof( record.message ),
             "[0x%08X] %s",
             static_cast<unsigned int>( error ),
-            msg_buf
+            msgBuf
         );
 
         log::CypherLog_Emit( record );
         return;
     }
 
-    std::snprintf(msg_final,
-                  sizeof( msg_final ),
+    std::snprintf(msgFinal,
+                  sizeof( msgFinal ),
                   "[ERROR][%s][0x%08X] %s\n",
                   CypherCommon_DomainName( domain ),
                   static_cast<unsigned int>( error ),
-                  msg_buf
+                  msgBuf
                   );
 
-    std::fputs( msg_final, stderr );
+    std::fputs( msgFinal, stderr );
     std::fflush( stderr );
 }
 
