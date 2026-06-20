@@ -1,5 +1,5 @@
-#include "CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherFileSystem_Runtime.h"
+#include "CypherLog.h"
 
 namespace cypher::engine::fs
 {
