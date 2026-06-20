@@ -7,10 +7,10 @@
    Last Modified: 2026-06-12 15:49:48
    ---------------------------------------------------------------------
    Description:
-       
+
    ---------------------------------------------------------------------
-   License: 
-   Company: 
+   License:
+   Company:
    Version: 0.1.0
  ======================================================================
                                                                        */
@@ -83,16 +83,16 @@ const char *FindLastVirtualPathSeparator( const char *path )
         return nullptr;
     }
 
-    const char *last_sep = nullptr;
+    const char *lastSep = nullptr;
     const char *cursor = path;
     while ( *cursor != '\0' ) {
         if ( *cursor == '/' || *cursor == '\\' ) {
-            last_sep = cursor;
+            lastSep = cursor;
         }
         ++cursor;
     }
 
-    return last_sep;
+    return lastSep;
 }
 
 }       // namespace
@@ -105,78 +105,78 @@ namespace cypher::engine::fs
 CypherFileSystem_NormalizeVirtualPath
 ================
 */
-fs_error_t CypherFileSystem_NormalizeVirtualPath( const char *virtual_path, char *out_path, common::u32 out_path_size )
+fs_error_t CypherFileSystem_NormalizeVirtualPath( const char *szVirtualPath, char *szOutPath, common::u32 nOutPathSize )
 {
-    if ( virtual_path == nullptr || virtual_path[0] == '\0' ) {
+    if ( szVirtualPath == nullptr || szVirtualPath[0] == '\0' ) {
         return fs_error_t::ERR_INVALID_PATH;
     }
-    if ( out_path == nullptr || out_path_size == 0u ) {
+    if ( szOutPath == nullptr || nOutPathSize == 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
-    out_path[0] = '\0';
+    szOutPath[0] = '\0';
 
-    if ( virtual_path[0] == '/' || virtual_path[0] == '\\' ) {
+    if ( szVirtualPath[0] == '/' || szVirtualPath[0] == '\\' ) {
         return fs_error_t::ERR_INVALID_PATH;
     }
 
-    if ( std::isalpha(static_cast<unsigned char>( virtual_path[0] ) ) && virtual_path[1] == ':' ) {
+    if ( std::isalpha(static_cast<unsigned char>( szVirtualPath[0] ) ) && szVirtualPath[1] == ':' ) {
         return fs_error_t::ERR_INVALID_PATH;
     }
-    const char *cursor = virtual_path;
+    const char *cursor = szVirtualPath;
 
-    common::u32 write_index = 0u;
+    common::u32 nWriteIndex = 0u;
 
     while ( *cursor != '\0' ) {
         // @Skipping the characters for slashes
         while ( *cursor == '/' || *cursor == '\\' ) {
             ++cursor;
         }
-        const char *segment_start = cursor;
+        const char *segmentStart = cursor;
         while ( *cursor != '/' && *cursor != '\\' && *cursor != '\0' ) {
             ++cursor;
         }
-        const char *segment_end = cursor;
+        const char *segmentEnd = cursor;
 
-        const common::u32 segment_length = static_cast<common::u32>( segment_end - segment_start );
-        if ( segment_length == 0u ) {
+        const common::u32 nSegmentLength = static_cast<common::u32>( segmentEnd - segmentStart );
+        if ( nSegmentLength == 0u ) {
             continue;
         }
-        if ( segment_length == 1u && segment_start[0] == '.' ) {
+        if ( nSegmentLength == 1u && segmentStart[0] == '.' ) {
             continue;
         }
-        if ( segment_length == 2u && segment_start[0] == '.' && segment_start[1] == '.' ) {
-            out_path[0] = '\0';
+        if ( nSegmentLength == 2u && segmentStart[0] == '.' && segmentStart[1] == '.' ) {
+            szOutPath[0] = '\0';
             return fs_error_t::ERR_INVALID_PATH;
         }
-        if ( write_index != 0u ) {
-            if ( write_index + 1u >= out_path_size ) {
-                out_path[0] = '\0';
+        if ( nWriteIndex != 0u ) {
+            if ( nWriteIndex + 1u >= nOutPathSize ) {
+                szOutPath[0] = '\0';
                 return fs_error_t::ERR_BUFFER_TOO_SMALL;
             }
 
-            out_path[write_index] = '/';
-            ++write_index;
+            szOutPath[nWriteIndex] = '/';
+            ++nWriteIndex;
         }
         // @copying - we are copying the segment characters into this out buffer
-        for ( common::u32 i = 0u; i < segment_length; ++i ) {
-            char c = segment_start[i];
+        for ( common::u32 i = 0u; i < nSegmentLength; ++i ) {
+            char c = segmentStart[i];
             if ( IsInvalidVirtualPathChar( c ) ) {
-                out_path[0] = '\0';
+                szOutPath[0] = '\0';
                 return fs_error_t::ERR_INVALID_PATH;
             }
             c = ToLowerAscii( c );
-            if ( write_index + 1u >= out_path_size ) {
-                out_path[0] = '\0';
+            if ( nWriteIndex + 1u >= nOutPathSize ) {
+                szOutPath[0] = '\0';
                 return fs_error_t::ERR_BUFFER_TOO_SMALL;
             }
-            out_path[write_index] = c;
-            ++write_index;
+            szOutPath[nWriteIndex] = c;
+            ++nWriteIndex;
         }
 
-        out_path[write_index] = '\0';
+        szOutPath[nWriteIndex] = '\0';
     }
 
-    if ( write_index == 0u ) {
+    if ( nWriteIndex == 0u ) {
         return fs_error_t::ERR_INVALID_PATH;
     }
 
@@ -188,23 +188,23 @@ fs_error_t CypherFileSystem_NormalizeVirtualPath( const char *virtual_path, char
 CypherFileSystem_NormalizeVirtualRoot
 ================
 */
-fs_error_t CypherFileSystem_NormalizeVirtualRoot( const char *virtual_root, char *out_root, common::u32 out_size )
+fs_error_t CypherFileSystem_NormalizeVirtualRoot( const char *szVirtualRoot, char *szOutRoot, common::u32 nOutSize )
 {
-    if ( out_root == nullptr || out_size == 0u ) {
+    if ( szOutRoot == nullptr || nOutSize == 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
-    
-    out_root[0] = '\0';
 
-    if ( virtual_root == nullptr ) {
+    szOutRoot[0] = '\0';
+
+    if ( szVirtualRoot == nullptr ) {
         return fs_error_t::ERR_INVALID_ROOT;
     }
-    
-    if ( virtual_root[0] == '\0' ) {
+
+    if ( szVirtualRoot[0] == '\0' ) {
         return fs_error_t::OK;
     }
-    
-    return CypherFileSystem_NormalizeVirtualPath( virtual_root, out_root, out_size );
+
+    return CypherFileSystem_NormalizeVirtualPath( szVirtualRoot, szOutRoot, nOutSize );
 }
 
 /*
@@ -212,40 +212,40 @@ fs_error_t CypherFileSystem_NormalizeVirtualRoot( const char *virtual_root, char
 CypherFileSystem_VirtualPathStartsWithRoot
 ================
 */
-bool CypherFileSystem_VirtualPathStartsWithRoot( const char *virtual_path, const char *virtual_root, const char **out_relative_path )
+bool CypherFileSystem_VirtualPathStartsWithRoot( const char *szVirtualPath, const char *szVirtualRoot, const char **szOutRelativePath )
 {
-    if ( out_relative_path != nullptr ) {
-        *out_relative_path = nullptr;
+    if ( szOutRelativePath != nullptr ) {
+        *szOutRelativePath = nullptr;
     }
-    if ( virtual_path == nullptr || virtual_root == nullptr ) {
+    if ( szVirtualPath == nullptr || szVirtualRoot == nullptr ) {
         return false;
     }
-    if ( virtual_root[0] == '\0' ) {
-        if ( out_relative_path != nullptr ) {
-            *out_relative_path = virtual_path;
+    if ( szVirtualRoot[0] == '\0' ) {
+        if ( szOutRelativePath != nullptr ) {
+            *szOutRelativePath = szVirtualPath;
         }
         return true;
     }
-    
-    common::usize root_len = std::strlen( virtual_root );
-    
-    if ( std::strncmp( virtual_path, virtual_root, root_len ) != 0 ) {
+
+    common::usize nRootLen = std::strlen( szVirtualRoot );
+
+    if ( std::strncmp( szVirtualPath, szVirtualRoot, nRootLen ) != 0 ) {
         return false;
     }
-    char next_char = virtual_path[root_len];
-    if ( next_char != '\0' && next_char != '/' ) {
+    char nextChar = szVirtualPath[nRootLen];
+    if ( nextChar != '\0' && nextChar != '/' ) {
         return false;
     }
-    const char *relative_path = virtual_path + root_len;
-    
-    if ( relative_path[0] == '/' ) {
-        ++relative_path;
-    } 
-    
-    if ( out_relative_path != nullptr ) {
-        *out_relative_path = relative_path;
+    const char *szRelativePath = szVirtualPath + nRootLen;
+
+    if ( szRelativePath[0] == '/' ) {
+        ++szRelativePath;
     }
-    
+
+    if ( szOutRelativePath != nullptr ) {
+        *szOutRelativePath = szRelativePath;
+    }
+
     return true;
 }
 
@@ -254,213 +254,213 @@ bool CypherFileSystem_VirtualPathStartsWithRoot( const char *virtual_path, const
 CypherFileSystem_BuildPhysicalPath
 ================
 */
-fs_error_t CypherFileSystem_BuildPhysicalPath( const char *physical_root, const char *relative_path, char *out_path, common::u32 out_path_size )
+fs_error_t CypherFileSystem_BuildPhysicalPath( const char *szPhysicalRoot, const char *szRelativePath, char *szOutPath, common::u32 nOutPathSize )
 {
-    if ( out_path == nullptr || out_path_size == 0u ) {
+    if ( szOutPath == nullptr || nOutPathSize == 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
-    }    
-    out_path[0] = '\0';
-    if ( physical_root == nullptr || physical_root[0] == '\0' ) {
+    }
+    szOutPath[0] = '\0';
+    if ( szPhysicalRoot == nullptr || szPhysicalRoot[0] == '\0' ) {
         return fs_error_t::ERR_INVALID_ROOT;
     }
-    if ( relative_path == nullptr ) {
+    if ( szRelativePath == nullptr ) {
         return fs_error_t::ERR_INVALID_PATH;
     }
-    
-    if ( relative_path[0] == '\0' ) {
-        common::usize required = std::strlen( physical_root ) + 1;
-        if ( required > out_path_size ) {
+
+    if ( szRelativePath[0] == '\0' ) {
+        common::usize required = std::strlen( szPhysicalRoot ) + 1;
+        if ( required > nOutPathSize ) {
             return fs_error_t::ERR_BUFFER_TOO_SMALL;
         }
-        std::memcpy( out_path, physical_root, required );
+        std::memcpy( szOutPath, szPhysicalRoot, required );
         return fs_error_t::OK;
-    } 
-    
-    const int written = std::snprintf( out_path, out_path_size, "%s/%s", physical_root, relative_path );
-    
+    }
+
+    const int written = std::snprintf( szOutPath, nOutPathSize, "%s/%s", szPhysicalRoot, szRelativePath );
+
     if ( written < 0 ) {
-        out_path[0] = '\0';
+        szOutPath[0] = '\0';
         // @Note: here we can also have ERR_INVALID_PATH as well but lets keep IO for now.
         return fs_error_t::ERR_IO_ERROR;
     }
-    if ( static_cast<common::u32>( written ) >= out_path_size ) {
-        out_path[0] = '\0';
+    if ( static_cast<common::u32>( written ) >= nOutPathSize ) {
+        szOutPath[0] = '\0';
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
-    
+
     return fs_error_t::OK;
 }
 
-bool CypherFileSystem_IsValidVirtualPath( const char *virtual_path )
+bool CypherFileSystem_IsValidVirtualPath( const char *szVirtualPath )
 {
-    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    fs_error_t result = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
+    char szNormalizedPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    fs_error_t result = CypherFileSystem_NormalizeVirtualPath( szVirtualPath, szNormalizedPath, sizeof( szNormalizedPath ) );
     return ( result == fs_error_t::OK );
 }
 
 fs_error_t CypherFileSystem_PathJoin(
     const char *left,
     const char *right,
-    char *out_path,
-    common::u32 out_path_size )
+    char *szOutPath,
+    common::u32 nOutPathSize )
 {
-    if ( out_path == nullptr || out_path_size == 0u ) {
+    if ( szOutPath == nullptr || nOutPathSize == 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
-    out_path[0] = '\0';
+    szOutPath[0] = '\0';
     if ( left == nullptr || left[0] == '\0' ) {
         return fs_error_t::ERR_INVALID_PATH;
     }
     if ( right == nullptr || right[0] == '\0' ) {
         return fs_error_t::ERR_INVALID_PATH;
     }
-    char normalized_left[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    char normalized_right[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char normalizedLeft[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    char normalizedRight[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
 
-    fs_error_t err = CypherFileSystem_NormalizeVirtualPath( left, normalized_left, sizeof( normalized_left ) );
+    fs_error_t err = CypherFileSystem_NormalizeVirtualPath( left, normalizedLeft, sizeof( normalizedLeft ) );
     if ( err != fs_error_t::OK ) {
         return err;
     }
-    err = CypherFileSystem_NormalizeVirtualPath( right, normalized_right, sizeof( normalized_right ) );
+    err = CypherFileSystem_NormalizeVirtualPath( right, normalizedRight, sizeof( normalizedRight ) );
     if ( err != fs_error_t::OK ) {
         return err;
     }
-    const common::usize left_len = std::strlen( normalized_left );
-    const common::usize right_len = std::strlen( normalized_right );
+    const common::usize nLeftLen = std::strlen( normalizedLeft );
+    const common::usize nRightLen = std::strlen( normalizedRight );
 
-    const common::usize required = left_len + 1u + right_len + 1u;
-    if ( required > out_path_size ) {
+    const common::usize required = nLeftLen + 1u + nRightLen + 1u;
+    if ( required > nOutPathSize ) {
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
     // @safetyFirst! safe now we can safely copy things
-    std::memcpy( out_path, normalized_left, left_len );
-    out_path[left_len] = '/';
-    std::memcpy( out_path + left_len + 1, normalized_right, right_len + 1 );
+    std::memcpy( szOutPath, normalizedLeft, nLeftLen );
+    szOutPath[nLeftLen] = '/';
+    std::memcpy( szOutPath + nLeftLen + 1, normalizedRight, nRightLen + 1 );
 
     return fs_error_t::OK;
 }
 
-const char *CypherFileSystem_PathBasename( const char *virtual_path )
+const char *CypherFileSystem_PathBasename( const char *szVirtualPath )
 {
-    if ( virtual_path == nullptr ) {
+    if ( szVirtualPath == nullptr ) {
         return nullptr;
     }
-    const char *last_separator = FindLastVirtualPathSeparator( virtual_path );
-    if ( last_separator != nullptr ) {
-        return last_separator + 1;
+    const char *lastSeparator = FindLastVirtualPathSeparator( szVirtualPath );
+    if ( lastSeparator != nullptr ) {
+        return lastSeparator + 1;
     }
 
-    return virtual_path;
+    return szVirtualPath;
 }
 
 fs_error_t CypherFileSystem_PathDirname(
-    const char *virtual_path,
-    char *out_path,
-    common::u32 out_path_size )
+    const char *szVirtualPath,
+    char *szOutPath,
+    common::u32 nOutPathSize )
 {
-    if ( out_path == nullptr || out_path_size == 0u ) {
+    if ( szOutPath == nullptr || nOutPathSize == 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
-    out_path[0] = '\0';
-    if ( virtual_path == nullptr || virtual_path[0] == '\0' ) {
+    szOutPath[0] = '\0';
+    if ( szVirtualPath == nullptr || szVirtualPath[0] == '\0' ) {
         return fs_error_t::ERR_INVALID_PATH;
     }
-    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    fs_error_t err = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
+    char szNormalizedPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    fs_error_t err = CypherFileSystem_NormalizeVirtualPath( szVirtualPath, szNormalizedPath, sizeof( szNormalizedPath ) );
     if ( err != fs_error_t::OK ) {
         return err;
     }
-    const char *last_slash = FindLastVirtualPathSeparator( normalized_path );
-    if ( last_slash == nullptr ) {
-        out_path[0] = '\0';
+    const char *lastSlash = FindLastVirtualPathSeparator( szNormalizedPath );
+    if ( lastSlash == nullptr ) {
+        szOutPath[0] = '\0';
         return fs_error_t::OK;
     }
-    const common::usize dirname_len = static_cast<common::usize>( last_slash - normalized_path );
-    if ( dirname_len + 1u > out_path_size ) {
+    const common::usize nDirnameLen = static_cast<common::usize>( lastSlash - szNormalizedPath );
+    if ( nDirnameLen + 1u > nOutPathSize ) {
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
-    std::memcpy( out_path, normalized_path, dirname_len );
-    out_path[dirname_len] = '\0';
+    std::memcpy( szOutPath, szNormalizedPath, nDirnameLen );
+    szOutPath[nDirnameLen] = '\0';
 
     return fs_error_t::OK;
 }
 
-const char *CypherFileSystem_PathExtension( const char *virtual_path )
+const char *CypherFileSystem_PathExtension( const char *szVirtualPath )
 {
-    if ( virtual_path == nullptr ) {
+    if ( szVirtualPath == nullptr ) {
         return nullptr;
     }
 
-    const char *basename = CypherFileSystem_PathBasename( virtual_path );
+    const char *basename = CypherFileSystem_PathBasename( szVirtualPath );
     const char *cursor = basename;
-    const char *last_dot = nullptr;
+    const char *lastDot = nullptr;
 
     while ( *cursor != '\0' ) {
         if ( *cursor == '.' ) {
-            last_dot = cursor;
+            lastDot = cursor;
         }
         ++cursor;
     }
 
-    if ( last_dot == nullptr || last_dot == basename ) {
+    if ( lastDot == nullptr || lastDot == basename ) {
         return cursor;
     }
 
-    return last_dot;
+    return lastDot;
 }
 
 fs_error_t CypherFileSystem_PathWithoutExtension(
-    const char *virtual_path,
-    char *out_path,
-    common::u32 out_path_size )
+    const char *szVirtualPath,
+    char *szOutPath,
+    common::u32 nOutPathSize )
 {
-    if ( out_path == nullptr || out_path_size == 0u ) {
+    if ( szOutPath == nullptr || nOutPathSize == 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
 
-    out_path[0] = '\0';
+    szOutPath[0] = '\0';
 
-    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    const fs_error_t err = CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) );
+    char szNormalizedPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    const fs_error_t err = CypherFileSystem_NormalizeVirtualPath( szVirtualPath, szNormalizedPath, sizeof( szNormalizedPath ) );
     if ( err != fs_error_t::OK ) {
         return err;
     }
 
-    const char *extension = CypherFileSystem_PathExtension( normalized_path );
-    const common::usize copy_len = ( extension != nullptr && extension[0] != '\0' )
-        ? static_cast<common::usize>( extension - normalized_path )
-        : std::strlen( normalized_path );
+    const char *extension = CypherFileSystem_PathExtension( szNormalizedPath );
+    const common::usize nCopyLen = ( extension != nullptr && extension[0] != '\0' )
+        ? static_cast<common::usize>( extension - szNormalizedPath )
+        : std::strlen( szNormalizedPath );
 
-    if ( copy_len + 1u > out_path_size ) {
+    if ( nCopyLen + 1u > nOutPathSize ) {
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
-    std::memcpy( out_path, normalized_path, copy_len );
-    out_path[copy_len] = '\0';
+    std::memcpy( szOutPath, szNormalizedPath, nCopyLen );
+    szOutPath[nCopyLen] = '\0';
     return fs_error_t::OK;
 }
 
-bool CypherFileSystem_PathHasExtension( const char *virtual_path, const char *extension )
+bool CypherFileSystem_PathHasExtension( const char *szVirtualPath, const char *extension )
 {
-    if ( virtual_path == nullptr || extension == nullptr || extension[0] == '\0' ) {
+    if ( szVirtualPath == nullptr || extension == nullptr || extension[0] == '\0' ) {
         return false;
     }
 
-    char normalized_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    if ( CypherFileSystem_NormalizeVirtualPath( virtual_path, normalized_path, sizeof( normalized_path ) ) != fs_error_t::OK ) {
+    char szNormalizedPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    if ( CypherFileSystem_NormalizeVirtualPath( szVirtualPath, szNormalizedPath, sizeof( szNormalizedPath ) ) != fs_error_t::OK ) {
         return false;
     }
 
-    char normalized_extension[CYPHER_FILESYSTEM_MAX_EXTENSION_LENGTH]{};
-    common::u32 write_index = 0u;
+    char szNormalizedExtension[CYPHER_FILESYSTEM_MAX_EXTENSION_LENGTH]{};
+    common::u32 nWriteIndex = 0u;
 
     if ( extension[0] != '.' ) {
-        normalized_extension[write_index++] = '.';
+        szNormalizedExtension[nWriteIndex++] = '.';
     }
 
     const char *cursor = extension;
     if ( cursor[0] == '.' ) {
-        normalized_extension[write_index++] = '.';
+        szNormalizedExtension[nWriteIndex++] = '.';
         ++cursor;
     }
 
@@ -469,17 +469,17 @@ bool CypherFileSystem_PathHasExtension( const char *virtual_path, const char *ex
         if ( c == '/' || c == '\\' || IsInvalidVirtualPathChar( c ) ) {
             return false;
         }
-        if ( write_index + 1u >= sizeof( normalized_extension ) ) {
+        if ( nWriteIndex + 1u >= sizeof( szNormalizedExtension ) ) {
             return false;
         }
-        normalized_extension[write_index++] = ToLowerAscii( c );
+        szNormalizedExtension[nWriteIndex++] = ToLowerAscii( c );
         ++cursor;
     }
 
-    normalized_extension[write_index] = '\0';
+    szNormalizedExtension[nWriteIndex] = '\0';
 
-    const char *path_extension = CypherFileSystem_PathExtension( normalized_path );
-    return path_extension != nullptr && std::strcmp( path_extension, normalized_extension ) == 0;
+    const char *szPathExtension = CypherFileSystem_PathExtension( szNormalizedPath );
+    return szPathExtension != nullptr && std::strcmp( szPathExtension, szNormalizedExtension ) == 0;
 }
 
 }       // namespace cypher::engine::fs
