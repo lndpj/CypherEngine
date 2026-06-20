@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherLog/CypherLog_Error.h"
-#include "CypherEngine/CypherLog/CypherLog_Types.h"
+#include "CypherLog_Error.h"
+#include "CypherLog_Types.h"
 
 #include <cstdarg>     // va_list for log formatting.
 
