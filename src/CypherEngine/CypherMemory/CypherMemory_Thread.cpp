@@ -13,8 +13,8 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherMemory/CypherMemory_Thread.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherMemory_Thread.h"
+#include "CypherLog.h"
 
 namespace cypher::engine::memory
 {
