@@ -3,6 +3,7 @@
 #include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
 
 #include <algorithm>        // std::sort for deterministic snapshot comparison.
+#include <cstddef>          // offsetof
 #include <cstring>          // memcpy etc...
 #include <chrono>           // for system_clock etc...
 #include <string>           // for std::string etc...
@@ -39,7 +40,7 @@ struct windows_watch_t {
     HANDLE hEvent{ nullptr };                            // native Windows OS event handle reference for kernel/
                                                     // user object
     OVERLAPPED overlapped{};                          //
-    unsigned char buffer[64u * 1024u]{};            // buffer into which the changes will be written
+    alignas( std::max_align_t ) unsigned char buffer[64u * 1024u]{}; // buffer into which the changes will be written
     bool bReadPending{ false };                     // one currently active ReadDirectoryChangesW
     bool bWatchFile{ false };
 
@@ -68,7 +69,7 @@ struct linux_watch_t {
     int fd{ -1 };
     bool bWatchFile{ false };
     bool recursive{ false };
-    unsigned char buffer[64u * 1024u]{};
+    alignas( std::max_align_t ) unsigned char buffer[64u * 1024u]{};
 
     linux_watch_dir_t dirs[LINUX_MAX_WATCH_DIRS]{};
     common::u32 nDirCount{ 0u };
@@ -811,21 +812,36 @@ static fs_error_t WindowsParseNativeEvents(
         return fs_error_t::ERR_INVALID_HANDLE;
     }
 
-    common::u32 offset = 0u;
-    while ( offset < nBytesReturned ) {
-        const FILE_NOTIFY_INFORMATION *info =
-            reinterpret_cast<const FILE_NOTIFY_INFORMATION *>( winWatch->buffer + offset );
+    constexpr common::u32 nHeaderSize = static_cast<common::u32>( offsetof( FILE_NOTIFY_INFORMATION, FileName ) );
+    common::u32 nOffset = 0u;
+    while ( nOffset < nBytesReturned ) {
+        if ( nBytesReturned - nOffset < nHeaderSize ) {
+            return fs_error_t::ERR_IO_ERROR;
+        }
+
+        FILE_NOTIFY_INFORMATION info{};
+        std::memcpy( &info, winWatch->buffer + nOffset, nHeaderSize );
+
+        if ( ( info.FileNameLength % sizeof( wchar_t ) ) != 0u ) {
+            return fs_error_t::ERR_IO_ERROR;
+        }
+        if ( info.FileNameLength > nBytesReturned - nOffset - nHeaderSize ) {
+            return fs_error_t::ERR_IO_ERROR;
+        }
+
+        const wchar_t *pFileName =
+            reinterpret_cast<const wchar_t *>( winWatch->buffer + nOffset + nHeaderSize );
 
         char szRelativePath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-        const int nWcharCount = static_cast<int>( info->FileNameLength / sizeof( wchar_t ) );
-        fs_error_t result = WindowsWideSpanToUtf8( info->FileName, nWcharCount, szRelativePath, sizeof( szRelativePath ) );
+        const int nWcharCount = static_cast<int>( info.FileNameLength / sizeof( wchar_t ) );
+        fs_error_t result = WindowsWideSpanToUtf8( pFileName, nWcharCount, szRelativePath, sizeof( szRelativePath ) );
         if ( result != fs_error_t::OK ) {
             return result;
         }
 
         result = WindowsEmitNativeAction(
             *winWatch,
-            info->Action,
+            info.Action,
             szRelativePath,
             events,
             nMaxEvents,
@@ -835,10 +851,13 @@ static fs_error_t WindowsParseNativeEvents(
             return result;
         }
 
-        if ( info->NextEntryOffset == 0u ) {
+        if ( info.NextEntryOffset == 0u ) {
             break;
         }
-        offset += info->NextEntryOffset;
+        if ( info.NextEntryOffset < nHeaderSize || info.NextEntryOffset > nBytesReturned - nOffset ) {
+            return fs_error_t::ERR_IO_ERROR;
+        }
+        nOffset += info.NextEntryOffset;
     }
 
     return fs_error_t::OK;
@@ -1086,28 +1105,30 @@ static fs_error_t LinuxBuildEventVirtualPath(
     linux_watch_t &linuxWatch,
     const linux_watch_dir_t &dir,
     const inotify_event &nativeEvent,
+    const char *szNativeName,
     char *szOutVirtualPath,
     common::u32 nOutVirtualPathSize )
 {
-    if ( linuxWatch.bWatchFile || nativeEvent.len == 0u || nativeEvent.name[0] == '\0' ) {
+    if ( linuxWatch.bWatchFile || nativeEvent.len == 0u || szNativeName == nullptr || szNativeName[0] == '\0' ) {
         return CypherFileSystem_NormalizeVirtualPath( dir.szVirtualPath, szOutVirtualPath, nOutVirtualPathSize );
     }
 
-    return BuildWatchEventVirtualPath( dir.szVirtualPath, nativeEvent.name, szOutVirtualPath, nOutVirtualPathSize );
+    return BuildWatchEventVirtualPath( dir.szVirtualPath, szNativeName, szOutVirtualPath, nOutVirtualPathSize );
 }
 
 static fs_error_t LinuxMaybeAddMovedOrCreatedDirectory(
     linux_watch_t &linuxWatch,
     const linux_watch_dir_t &parentDir,
-    const inotify_event &nativeEvent )
+    const inotify_event &nativeEvent,
+    const char *szNativeName )
 {
     if ( !linuxWatch.recursive || ( nativeEvent.mask & IN_ISDIR ) == 0 || nativeEvent.len == 0u ) {
         return fs_error_t::OK;
     }
 
-    const std::filesystem::path szPhysicalPath = std::filesystem::path( parentDir.szPhysicalPath ) / nativeEvent.name;
+    const std::filesystem::path szPhysicalPath = std::filesystem::path( parentDir.szPhysicalPath ) / szNativeName;
     char szVirtualPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    fs_error_t result = BuildWatchEventVirtualPath( parentDir.szVirtualPath, nativeEvent.name, szVirtualPath, sizeof( szVirtualPath ) );
+    fs_error_t result = BuildWatchEventVirtualPath( parentDir.szVirtualPath, szNativeName, szVirtualPath, sizeof( szVirtualPath ) );
     if ( result != fs_error_t::OK ) {
         return result;
     }
@@ -1119,12 +1140,13 @@ static fs_error_t LinuxEmitNativeEvent(
     linux_watch_t &linuxWatch,
     linux_watch_dir_t &dir,
     const inotify_event &nativeEvent,
+    const char *szNativeName,
     watch_event_t *events,
     common::u32 nMaxEvents,
     common::u32 &nOutEventCount )
 {
     char szVirtualPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    fs_error_t result = LinuxBuildEventVirtualPath( linuxWatch, dir, nativeEvent, szVirtualPath, sizeof( szVirtualPath ) );
+    fs_error_t result = LinuxBuildEventVirtualPath( linuxWatch, dir, nativeEvent, szNativeName, szVirtualPath, sizeof( szVirtualPath ) );
     if ( result != fs_error_t::OK ) {
         return result;
     }
@@ -1139,7 +1161,7 @@ static fs_error_t LinuxEmitNativeEvent(
     }
 
     if ( ( nativeEvent.mask & IN_MOVED_TO ) != 0u ) {
-        result = LinuxMaybeAddMovedOrCreatedDirectory( linuxWatch, dir, nativeEvent );
+        result = LinuxMaybeAddMovedOrCreatedDirectory( linuxWatch, dir, nativeEvent, szNativeName );
         if ( result != fs_error_t::OK ) {
             return result;
         }
@@ -1157,7 +1179,7 @@ static fs_error_t LinuxEmitNativeEvent(
     }
 
     if ( ( nativeEvent.mask & IN_CREATE ) != 0u ) {
-        result = LinuxMaybeAddMovedOrCreatedDirectory( linuxWatch, dir, nativeEvent );
+        result = LinuxMaybeAddMovedOrCreatedDirectory( linuxWatch, dir, nativeEvent, szNativeName );
         if ( result != fs_error_t::OK ) {
             return result;
         }
@@ -1201,17 +1223,35 @@ static fs_error_t LinuxPollNativeWatch(
             return fs_error_t::OK;
         }
 
-        ssize_t offset = 0;
-        while ( offset < nBytesRead ) {
-            const inotify_event *nativeEvent =
-                reinterpret_cast<const inotify_event *>( linuxWatch->buffer + offset );
+        ssize_t nOffset = 0;
+        while ( nOffset < nBytesRead ) {
+            if ( nBytesRead - nOffset < static_cast<ssize_t>( sizeof( inotify_event ) ) ) {
+                return fs_error_t::ERR_IO_ERROR;
+            }
 
-            linux_watch_dir_t *dir = LinuxFindWatchDir( *linuxWatch, nativeEvent->wd );
-            if ( dir != nullptr && ( nativeEvent->mask & IN_IGNORED ) == 0u ) {
+            inotify_event nativeEvent{};
+            std::memcpy( &nativeEvent, linuxWatch->buffer + nOffset, sizeof( nativeEvent ) );
+
+            if ( static_cast<ssize_t>( nativeEvent.len ) > nBytesRead - nOffset - static_cast<ssize_t>( sizeof( inotify_event ) ) ) {
+                return fs_error_t::ERR_IO_ERROR;
+            }
+
+            char szNativeName[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+            if ( nativeEvent.len != 0u ) {
+                if ( nativeEvent.len >= sizeof( szNativeName ) ) {
+                    return fs_error_t::ERR_BUFFER_TOO_SMALL;
+                }
+                std::memcpy( szNativeName, linuxWatch->buffer + nOffset + sizeof( inotify_event ), nativeEvent.len );
+                szNativeName[sizeof( szNativeName ) - 1u] = '\0';
+            }
+
+            linux_watch_dir_t *dir = LinuxFindWatchDir( *linuxWatch, nativeEvent.wd );
+            if ( dir != nullptr && ( nativeEvent.mask & IN_IGNORED ) == 0u ) {
                 const fs_error_t result = LinuxEmitNativeEvent(
                     *linuxWatch,
                     *dir,
-                    *nativeEvent,
+                    nativeEvent,
+                    szNativeName,
                     events,
                     nMaxEvents,
                     nOutEventCount );
@@ -1220,7 +1260,7 @@ static fs_error_t LinuxPollNativeWatch(
                 }
             }
 
-            offset += static_cast<ssize_t>( sizeof( inotify_event ) + nativeEvent->len );
+            nOffset += static_cast<ssize_t>( sizeof( inotify_event ) + nativeEvent.len );
         }
     }
 }
