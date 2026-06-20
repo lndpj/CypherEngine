@@ -24,7 +24,7 @@
 
 namespace cypher::engine::cvar {
 
-registry_t g_cvar_registry;
+registry_t g_CvarRegistry;
 
 /*
 ================
@@ -32,13 +32,13 @@ CypherCVar_Init
 ================
 */
 cvar_error_t CypherCVar_Init() {
-	if ( g_cvar_registry.initialized ) {
+	if ( g_CvarRegistry.initialized ) {
 		LOG_WARNING( log::channel_t::CVAR, "cvar system init requested while already initialized." );
 		return cvar_error_t::ERR_IS_INIT;
 	}
 
-	g_cvar_registry = {};
-	g_cvar_registry.initialized = true;
+	g_CvarRegistry = {};
+	g_CvarRegistry.initialized = true;
 
 	LOG_INFO( log::channel_t::CVAR, "cvar system initialized." );
 
@@ -83,8 +83,8 @@ CypherCVar_Register
 Adds a cvar with default string and cached numeric views.
 ================
 */
-cvar_error_t CypherCVar_Register( const char *name, const char *default_value, flags_t flags ) {
-	if ( !g_cvar_registry.initialized ) {
+cvar_error_t CypherCVar_Register( const char *name, const char *defaultValue, flags_t flags ) {
+	if ( !g_CvarRegistry.initialized ) {
 		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': cvar system is not initialized.", name ? name : "<null>" );
 		return cvar_error_t::ERR_NOT_INIT;
 	}
@@ -94,21 +94,21 @@ cvar_error_t CypherCVar_Register( const char *name, const char *default_value, f
 		return cvar_error_t::ERR_INVALID_CVAR;
 	}
 
-	if ( default_value == nullptr || default_value[0] == '\0' ) {
+	if ( defaultValue == nullptr || defaultValue[0] == '\0' ) {
 		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': invalid default value.", name );
 		return cvar_error_t::ERR_INVALID_DEFAULT_VALUE;
 	}
 
-	common::u32 flags_bits = static_cast<common::u32>( flags );
+	common::u32 nFlagsBits = static_cast<common::u32>( flags );
 
-	if ( ( flags_bits & CYPHER_CVAR_MODIFIED ) != 0u ) {
+	if ( ( nFlagsBits & CYPHER_CVAR_MODIFIED ) != 0u ) {
 		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': registration passed runtime modified flag.", name );
 		return cvar_error_t::ERR_INVALID_FLAG;
 	}
 
 	// CYPHER_CVAR_MODIFIED is runtime-owned; registration only accepts authoring flags.
-	if ( ( flags_bits & ~CYPHER_CVAR_REGISTER_ALLOWED_FLAGS ) != 0 ) {
-		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': invalid flags 0x%x.", name, flags_bits );
+	if ( ( nFlagsBits & ~CYPHER_CVAR_REGISTER_ALLOWED_FLAGS ) != 0 ) {
+		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': invalid flags 0x%x.", name, nFlagsBits );
 		return cvar_error_t::ERR_INVALID_FLAG;
 	}
 
@@ -119,25 +119,25 @@ cvar_error_t CypherCVar_Register( const char *name, const char *default_value, f
 		return cvar_error_t::ERR_CVAR_ALREADY_EXISTS;
 	}
 
-	if ( g_cvar_registry.cvar_count >= CYPHER_CVAR_MAX_CVARS ) {
+	if ( g_CvarRegistry.nCvarCount >= CYPHER_CVAR_MAX_CVARS ) {
 		LOG_ERROR( log::channel_t::CVAR, "cvar register failed for '%s': registry full (%u).", name, CYPHER_CVAR_MAX_CVARS );
 		return cvar_error_t::ERR_REGISTRY_FULL;
 	}
 
-	cvar_t &entry = g_cvar_registry.cvars[g_cvar_registry.cvar_count];
+	cvar_t &entry = g_CvarRegistry.cvars[g_CvarRegistry.nCvarCount];
 
 	entry.name = name;
-	std::strncpy( entry.value_string, default_value, sizeof( entry.value_string ) - 1 );
-	std::strncpy( entry.default_string, default_value, sizeof( entry.default_string ) - 1 );
-	entry.value_string[sizeof( entry.value_string ) - 1] = '\0';
-	entry.default_string[sizeof( entry.default_string ) - 1] = '\0';
-	entry.value_int = std::atoi( default_value );
-	entry.value_float = std::atof( default_value );
+	std::strncpy( entry.valueString, defaultValue, sizeof( entry.valueString ) - 1 );
+	std::strncpy( entry.defaultString, defaultValue, sizeof( entry.defaultString ) - 1 );
+	entry.valueString[sizeof( entry.valueString ) - 1] = '\0';
+	entry.defaultString[sizeof( entry.defaultString ) - 1] = '\0';
+	entry.valueInt = std::atoi( defaultValue );
+	entry.valueFloat = std::atof( defaultValue );
 	entry.flags = flags;
-	entry.value_bool = CypherCVar_ParseBool( entry.value_string );
-	g_cvar_registry.cvar_count++;
+	entry.valueBool = CypherCVar_ParseBool( entry.valueString );
+	g_CvarRegistry.nCvarCount++;
 
-	LOG_DEBUG( log::channel_t::CVAR, "registered cvar '%s' default='%s' flags=0x%x.", name, default_value, flags_bits );
+	LOG_DEBUG( log::channel_t::CVAR, "registered cvar '%s' default='%s' flags=0x%x.", name, defaultValue, nFlagsBits );
 
 	return cvar_error_t::OK;
 }
@@ -150,7 +150,7 @@ Changes a cvar string and updates its cached int/float/bool values.
 ================
 */
 cvar_error_t CypherCVar_Set( const char *name, const char *value ) {
-	if ( !g_cvar_registry.initialized ) {
+	if ( !g_CvarRegistry.initialized ) {
 		LOG_ERROR( log::channel_t::CVAR, "cvar set failed for '%s': cvar system is not initialized.", name ? name : "<null>" );
 		return cvar_error_t::ERR_NOT_INIT;
 	}
@@ -159,49 +159,49 @@ cvar_error_t CypherCVar_Set( const char *name, const char *value ) {
         LOG_ERROR( log::channel_t::CVAR, "cvar set failed: invalid cvar name." );
         return cvar_error_t::ERR_INVALID_CVAR;
 	}
-    
+
     if ( value == nullptr ) {
         LOG_ERROR( log::channel_t::CVAR, "cvar set failed for '%s': value is null.", name );
         return cvar_error_t::ERR_INVALID_CVAR;
-        
+
     }
-    
+
     cvar_t *target = nullptr;
 
     // Linear for now; later this can become a hash table without changing API.
-    for ( common::u32 i = 0; i < g_cvar_registry.cvar_count; ++i ) {
-        if ( std::strcmp( g_cvar_registry.cvars[i].name, name ) == 0 ) {
-            target = &g_cvar_registry.cvars[i];
+    for ( common::u32 i = 0; i < g_CvarRegistry.nCvarCount; ++i ) {
+        if ( std::strcmp( g_CvarRegistry.cvars[i].name, name ) == 0 ) {
+            target = &g_CvarRegistry.cvars[i];
             break;
         }
     }
     if ( target == nullptr ) {
         LOG_WARNING( log::channel_t::CVAR, "cvar set failed: '%s' not found.", name );
         return cvar_error_t::ERR_CVAR_NOT_FOUND;
-    } 
+    }
     if ( ( static_cast<common::u32>( target->flags ) & CYPHER_CVAR_READONLY ) != 0 ) {
         LOG_WARNING( log::channel_t::CVAR, "cvar set blocked: '%s' is read-only.", name );
         return cvar_error_t::ERR_READONLY;
     }
-    
+
     // Cheat protection will later be controlled by server/game authority.
-    const bool cheats_enabled = false;
-    if ( ( static_cast<common::u32>( target->flags ) & CYPHER_CVAR_CHEAT ) != 0 && !cheats_enabled ) {
+    const bool bCheatsEnabled = false;
+    if ( ( static_cast<common::u32>( target->flags ) & CYPHER_CVAR_CHEAT ) != 0 && !bCheatsEnabled ) {
         LOG_WARNING( log::channel_t::CVAR, "cvar set blocked: '%s' is cheat-protected.", name );
         return cvar_error_t::ERR_CHEAT_PROTECTED;
     }
-    
-    std::strncpy( target->value_string, value, sizeof( target->value_string ) - 1 );
-    target->value_string[sizeof( target->value_string ) - 1u] = '\0';
-    
-    target->value_int = static_cast<common::u32>( std::atoi( target->value_string ) );
-    target->value_float = static_cast<common::f32>( std::atof( target->value_string ) );
-    target->value_bool = CypherCVar_ParseBool( target->value_string );
-    
+
+    std::strncpy( target->valueString, value, sizeof( target->valueString ) - 1 );
+    target->valueString[sizeof( target->valueString ) - 1u] = '\0';
+
+    target->valueInt = static_cast<common::u32>( std::atoi( target->valueString ) );
+    target->valueFloat = static_cast<common::f32>( std::atof( target->valueString ) );
+    target->valueBool = CypherCVar_ParseBool( target->valueString );
+
     target->flags = static_cast<flags_t>( static_cast<common::u32>( target->flags ) | CYPHER_CVAR_MODIFIED );
 
-    LOG_DEBUG( log::channel_t::CVAR, "cvar '%s' set to '%s'.", name, target->value_string );
-    
+    LOG_DEBUG( log::channel_t::CVAR, "cvar '%s' set to '%s'.", name, target->valueString );
+
     return cvar_error_t::OK;
 }
 
@@ -211,13 +211,13 @@ CypherCVar_Shutdown
 ================
 */
 cvar_error_t CypherCVar_Shutdown() {
-    if ( !g_cvar_registry.initialized ) {
+    if ( !g_CvarRegistry.initialized ) {
         LOG_WARNING( log::channel_t::CVAR, "cvar system shutdown requested while not initialized." );
         return cvar_error_t::ERR_NOT_INIT;
     }
-    LOG_INFO( log::channel_t::CVAR, "cvar system shutdown: cvars=%u.", g_cvar_registry.cvar_count );
-    g_cvar_registry = {};
-    
+    LOG_INFO( log::channel_t::CVAR, "cvar system shutdown: cvars=%u.", g_CvarRegistry.nCvarCount );
+    g_CvarRegistry = {};
+
     return cvar_error_t::OK;
 }
 
@@ -227,26 +227,26 @@ CypherCVar_Find
 ================
 */
 const cvar_t *CypherCVar_Find( const char *name ) {
-    if ( !g_cvar_registry.initialized ) {
+    if ( !g_CvarRegistry.initialized ) {
         return nullptr;
     }
-    
+
     if ( name == nullptr || name[0] == '\0' ) {
         return nullptr;
     }
-    
+
     const cvar_t *cvar = nullptr;
-    
-    for ( common::u32 i = 0; i < g_cvar_registry.cvar_count; ++i ) {
-        if ( g_cvar_registry.cvars[i].name == nullptr ) { 
+
+    for ( common::u32 i = 0; i < g_CvarRegistry.nCvarCount; ++i ) {
+        if ( g_CvarRegistry.cvars[i].name == nullptr ) {
             continue;
         }
-        if ( std::strcmp( g_cvar_registry.cvars[i].name, name ) == 0 ) {
-            cvar = &g_cvar_registry.cvars[i];
+        if ( std::strcmp( g_CvarRegistry.cvars[i].name, name ) == 0 ) {
+            cvar = &g_CvarRegistry.cvars[i];
             return cvar;
-        } 
+        }
     }
-    
+
     return cvar;
 }
 
@@ -256,21 +256,21 @@ CypherCVar_GetString
 ================
 */
 const char *CypherCVar_GetString( const char *name ) {
-    if ( !g_cvar_registry.initialized ) {
+    if ( !g_CvarRegistry.initialized ) {
         return nullptr;
     }
-    
+
     if ( name == nullptr || name[0] == '\0' ) {
         return nullptr;
     }
-    
+
     const cvar_t *cvar = CypherCVar_Find( name );
-    
+
     if ( cvar == nullptr ) {
         return "";
-    } 
-    
-    return cvar->value_string;
+    }
+
+    return cvar->valueString;
 }
 
 /*
@@ -279,21 +279,21 @@ CypherCVar_GetInt
 ================
 */
 common::u32 CypherCVar_GetInt( const char *name ) {
-    if ( !g_cvar_registry.initialized ) {
+    if ( !g_CvarRegistry.initialized ) {
         return (common::u32)0u;
     }
-    
+
     if ( name == nullptr || name[0] == '\0' ) {
         return (common::u32)0u;
     }
-    
+
     const cvar_t *cvar = CypherCVar_Find( name );
-    
+
     if ( cvar == nullptr ) {
         return (common::u32)0u;
     }
-    
-    return cvar->value_int;
+
+    return cvar->valueInt;
 }
 
 /*
@@ -302,21 +302,21 @@ CypherCVar_GetFloat
 ================
 */
 common::f32 CypherCVar_GetFloat( const char *name ) {
-    if ( !g_cvar_registry.initialized ) {
+    if ( !g_CvarRegistry.initialized ) {
         return (common::f32)0.0f;
     }
-    
+
     if ( name == nullptr || name[0] == '\0' ) {
         return (common::f32)0.0f;
     }
-    
+
     const cvar_t *cvar = CypherCVar_Find( name );
-    
+
     if ( cvar == nullptr ) {
         return (common::f32)0.0f;
     }
-    
-    return cvar->value_float;
+
+    return cvar->valueFloat;
 }
 
 /*
@@ -325,21 +325,21 @@ CypherCVar_GetBool
 ================
 */
 bool CypherCVar_GetBool( const char *name ) {
-    if ( !g_cvar_registry.initialized ) {
+    if ( !g_CvarRegistry.initialized ) {
         return false;
     }
-    
+
     if ( name == nullptr || name[0] == '\0' ) {
         return false;
     }
-    
+
     const cvar_t *cvar = CypherCVar_Find( name );
-    
+
     if ( cvar == nullptr ) {
         return false;
     }
-    
-    return cvar->value_bool;
+
+    return cvar->valueBool;
 }
 
 } // namespace cypher::engine::cvar
