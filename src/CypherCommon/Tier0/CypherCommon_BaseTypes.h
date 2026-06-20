@@ -103,9 +103,73 @@ constexpr frame_index_t CY_INVALID_FRAME_INDEX = std::numeric_limits<frame_index
 Common Size Constants
 ================
 */
+constexpr usize CY_BITS_PER_BYTE = 8u;
 constexpr usize CY_KB = 1024u;
 constexpr usize CY_MB = CY_KB * 1024u;
 constexpr usize CY_GB = CY_MB * 1024u;
+constexpr usize CY_TB = CY_GB * 1024u;
+
+constexpr usize CY_CACHE_LINE_SIZE = 64u;
+constexpr usize CY_INVALID_SIZE = std::numeric_limits<usize>::max();
+
+/*
+================
+Semantic Storage Types
+================
+*/
+using b32       = u32;
+
+using flags32_t = u32;
+using flags64_t = u64;
+
+using hash32_t  = u32;
+using hash64_t  = u64;
+using crc32_t   = u32;
+using fourcc_t  = u32;
+
+using offset_t  = u64;
+using byte_count_t = u64;
+using alignment_t = usize;
+
+using version_t = u32;
+using format_version_t = u32;
+
+/*
+================
+Invalid Semantic Values
+================
+*/
+constexpr hash32_t CY_INVALID_HASH32 = 0u;
+constexpr hash64_t CY_INVALID_HASH64 = 0u;
+constexpr crc32_t CY_INVALID_CRC32 = 0u;
+constexpr fourcc_t CY_INVALID_FOURCC = 0u;
+
+constexpr offset_t CY_INVALID_OFFSET = std::numeric_limits<offset_t>::max();
+constexpr version_t CY_INVALID_VERSION = 0u;
+constexpr format_version_t CY_INVALID_FORMAT_VERSION = 0u;
+
+/*
+================
+Primitive Limits
+================
+*/
+constexpr u8 CY_U8_MAX = std::numeric_limits<u8>::max();
+constexpr u8 CY_U8_MIN = std::numeric_limits<u8>::min();
+constexpr u16 CY_U16_MAX = std::numeric_limits<u16>::max();
+constexpr u16 CY_U16_MIN = std::numeric_limits<u16>::min();
+constexpr u32 CY_U32_MAX = std::numeric_limits<u32>::max();
+constexpr u32 CY_U32_MIN = std::numeric_limits<u32>::min();
+constexpr u64 CY_U64_MAX = std::numeric_limits<u64>::max();
+constexpr u64 CY_U64_MIN = std::numeric_limits<u64>::min();
+
+constexpr i8 CY_I8_MAX = std::numeric_limits<i8>::max();
+constexpr i8 CY_I8_MIN = std::numeric_limits<i8>::min();
+constexpr i16 CY_I16_MAX = std::numeric_limits<i16>::max();
+constexpr i16 CY_I16_MIN = std::numeric_limits<i16>::min();
+constexpr i32 CY_I32_MAX = std::numeric_limits<i32>::max();
+constexpr i32 CY_I32_MIN = std::numeric_limits<i32>::min();
+constexpr i64 CY_I64_MAX = std::numeric_limits<i64>::max();
+constexpr i64 CY_I64_MIN = std::numeric_limits<i64>::min();
 
 /*
 ================
@@ -129,6 +193,10 @@ static_assert( sizeof( byte ) == 1, "byte must be 1 byte." );
 static_assert( sizeof( b8 ) == 1, "b8 must be 1 byte." );
 static_assert( std::is_signed_v<i8>, "i8 must be signed." );
 static_assert( std::is_unsigned_v<u8>, "u8 must be unsigned." );
+
+static_assert( sizeof( b32 ) == 4, "b32 must be 4 bytes." );
+static_assert( sizeof( uintptr ) >= sizeof( void * ), "uintptr must hold a pointer." );
+static_assert( sizeof( intptr ) >= sizeof( void * ), "intptr must hold a pointer." );
 
 } // namespace cypher::common
 
