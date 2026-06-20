@@ -34,7 +34,7 @@ struct runtime_state_t {
 	bool initialized{ false };
 };
 
-runtime_state_t g_CfgRuntimeState;
+static runtime_state_t s_CfgRuntimeState;
 
 constexpr const char *CYPHER_CONFIG_DEFAULT_PATH  = "config/default.cfg";
 constexpr const char *CYPHER_CONFIG_AUTOEXEC_PATH = "config/autoexec.cfg";
@@ -45,12 +45,12 @@ CypherConfig_Init
 ================
 */
 cfg_error_t CypherConfig_Init() {
-	if ( g_CfgRuntimeState.initialized ) {
+	if ( s_CfgRuntimeState.initialized ) {
 		LOG_WARNING( log::channel_t::CFG, "config system init requested while already initialized." );
 		return cfg_error_t::ERR_IS_INIT;
 	}
-	g_CfgRuntimeState = {};
-	g_CfgRuntimeState.initialized = true;
+	s_CfgRuntimeState = {};
+	s_CfgRuntimeState.initialized = true;
 	LOG_INFO( log::channel_t::CFG, "config system initialized." );
 	return cfg_error_t::OK;
 }
@@ -61,12 +61,12 @@ CypherConfig_Shutdown
 ================
 */
 cfg_error_t CypherConfig_Shutdown() {
-	if ( !g_CfgRuntimeState.initialized ) {
+	if ( !s_CfgRuntimeState.initialized ) {
 		LOG_WARNING( log::channel_t::CFG, "config system shutdown requested while not initialized." );
 		return cfg_error_t::ERR_NOT_INIT;
 	}
 	LOG_INFO( log::channel_t::CFG, "config system shutdown." );
-	g_CfgRuntimeState = {};
+	s_CfgRuntimeState = {};
 	return cfg_error_t::OK;
 }
 
@@ -82,7 +82,7 @@ cfg_error_t CypherConfig_LoadFile( const char *path, const bool required ) {
 		LOG_ERROR( log::channel_t::CFG, "config load failed: invalid path." );
 		return cfg_error_t::ERR_INVALID_PATH;
 	}
-	if ( !g_CfgRuntimeState.initialized ) {
+	if ( !s_CfgRuntimeState.initialized ) {
 		LOG_ERROR( log::channel_t::CFG, "config load failed for '%s': config system is not initialized.", path );
 		return cfg_error_t::ERR_NOT_INIT;
 	}
@@ -178,7 +178,7 @@ CypherConfig_LoadDefault
 ================
 */
 cfg_error_t CypherConfig_LoadDefault() {
-	if ( !g_CfgRuntimeState.initialized ) {
+	if ( !s_CfgRuntimeState.initialized ) {
 		return cfg_error_t::ERR_NOT_INIT;
 	}
 	return CypherConfig_LoadFile( CYPHER_CONFIG_DEFAULT_PATH, true );
@@ -190,7 +190,7 @@ CypherConfig_LoadAutoexec
 ================
 */
 cfg_error_t CypherConfig_LoadAutoexec() {
-	if ( !g_CfgRuntimeState.initialized ) {
+	if ( !s_CfgRuntimeState.initialized ) {
 		return cfg_error_t::ERR_NOT_INIT;
 	}
 	return CypherConfig_LoadFile( CYPHER_CONFIG_AUTOEXEC_PATH, false );
@@ -204,7 +204,7 @@ Executes one trimmed cfg line: exec, set/seta, or regular command.
 ================
 */
 cfg_error_t CypherConfig_ExecuteLine( const char *nCommandLine ) {
-	if ( !g_CfgRuntimeState.initialized ) {
+	if ( !s_CfgRuntimeState.initialized ) {
 		return cfg_error_t::ERR_INVALID_LINE;
 	}
 
