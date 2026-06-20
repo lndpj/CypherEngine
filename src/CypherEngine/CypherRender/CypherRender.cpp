@@ -14,11 +14,11 @@
    Version: 0.1.0
  ======================================================================
 																	   */
-#include "CypherEngine/CypherRender/CypherRender.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherRender/CypherRender_Camera.h"
-#include "CypherEngine/CypherRender/CypherRender_Draw.h"
-#include "CypherEngine/CypherRender/CypherRender_GL.h"
+#include "CypherRender.h"
+#include "CypherLog.h"
+#include "CypherRender_Camera.h"
+#include "CypherRender_Draw.h"
+#include "CypherRender_GL.h"
 
 namespace cypher::engine::render {
 
