@@ -13,19 +13,19 @@ namespace cypher::engine::fs
 
 namespace {
 
-bool CopyString( char *out, const common::u32 out_size, const char *text )
+bool CopyString( char *out, const common::u32 nOutSize, const char *text )
 {
-    if ( out == nullptr || out_size == 0u || text == nullptr ) {
+    if ( out == nullptr || nOutSize == 0u || text == nullptr ) {
         return false;
     }
 
-    const common::usize text_len = std::strlen( text );
-    if ( text_len + 1u > out_size ) {
+    const common::usize nTextLen = std::strlen( text );
+    if ( nTextLen + 1u > nOutSize ) {
         out[0] = '\0';
         return false;
     }
 
-    std::memcpy( out, text, text_len + 1u );
+    std::memcpy( out, text, nTextLen + 1u );
     return true;
 }
 
@@ -34,14 +34,14 @@ bool IsHiddenEntryName( const char *name )
     return name != nullptr && name[0] == '.';
 }
 
-bool EntryAlreadyAdded( const directory_entry_t *entries, const common::u32 entry_count, const char *virtual_path )
+bool EntryAlreadyAdded( const directory_entry_t *entries, const common::u32 nEntryCount, const char *szVirtualPath )
 {
-    if ( entries == nullptr || virtual_path == nullptr ) {
+    if ( entries == nullptr || szVirtualPath == nullptr ) {
         return false;
     }
 
-    for ( common::u32 i = 0u; i < entry_count; ++i ) {
-        if ( std::strcmp( entries[i].virtual_path, virtual_path ) == 0 ) {
+    for ( common::u32 i = 0u; i < nEntryCount; ++i ) {
+        if ( std::strcmp( entries[i].szVirtualPath, szVirtualPath ) == 0 ) {
             return true;
         }
     }
@@ -50,45 +50,45 @@ bool EntryAlreadyAdded( const directory_entry_t *entries, const common::u32 entr
 }
 
 fs_error_t BuildVirtualChildPath(
-    const char *virtual_dir,
-    const char *child_name,
-    char *out_path,
-    const common::u32 out_path_size )
+    const char *virtualDir,
+    const char *szChildName,
+    char *szOutPath,
+    const common::u32 nOutPathSize )
 {
-    if ( virtual_dir == nullptr || virtual_dir[0] == '\0' ) {
-        return CopyString( out_path, out_path_size, child_name ) ? fs_error_t::OK : fs_error_t::ERR_BUFFER_TOO_SMALL;
+    if ( virtualDir == nullptr || virtualDir[0] == '\0' ) {
+        return CopyString( szOutPath, nOutPathSize, szChildName ) ? fs_error_t::OK : fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
-    return CypherFileSystem_PathJoin( virtual_dir, child_name, out_path, out_path_size );
+    return CypherFileSystem_PathJoin( virtualDir, szChildName, szOutPath, nOutPathSize );
 }
 
 fs_error_t FillEntryFromPhysicalPath(
-    const char *virtual_path,
-    const char *physical_path,
-    directory_entry_t &out_entry )
+    const char *szVirtualPath,
+    const char *szPhysicalPath,
+    directory_entry_t &entryOut )
 {
-    out_entry = {};
+    entryOut = {};
 
-    if ( !CopyString( out_entry.virtual_path, sizeof( out_entry.virtual_path ), virtual_path ) ) {
+    if ( !CopyString( entryOut.szVirtualPath, sizeof( entryOut.szVirtualPath ), szVirtualPath ) ) {
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
-    const char *basename = CypherFileSystem_PathBasename( virtual_path );
-    if ( basename == nullptr || !CopyString( out_entry.name, sizeof( out_entry.name ), basename ) ) {
+    const char *basename = CypherFileSystem_PathBasename( szVirtualPath );
+    if ( basename == nullptr || !CopyString( entryOut.name, sizeof( entryOut.name ), basename ) ) {
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
     std::error_code ec{};
-    const bool is_directory = std::filesystem::is_directory( physical_path, ec );
+    const bool bIsDirectory = std::filesystem::is_directory( szPhysicalPath, ec );
     if ( ec ) {
         return fs_error_t::ERR_IO_ERROR;
     }
 
-    out_entry.type = is_directory ? directory_entry_type_t::DIRECTORY : directory_entry_type_t::FILE;
-    if ( !is_directory ) {
-        out_entry.size = static_cast<common::u64>( std::filesystem::file_size( physical_path, ec ) );
+    entryOut.type = bIsDirectory ? directory_entry_type_t::DIRECTORY : directory_entry_type_t::FILE;
+    if ( !bIsDirectory ) {
+        entryOut.size = static_cast<common::u64>( std::filesystem::file_size( szPhysicalPath, ec ) );
         if ( ec ) {
-            out_entry.size = 0u;
+            entryOut.size = 0u;
             return fs_error_t::ERR_IO_ERROR;
         }
     }
@@ -122,127 +122,127 @@ fs_error_t PakErrorToFs( const pak::pak_error_t error )
 fs_error_t AddDirectoryEntry(
     const directory_entry_t &entry,
     directory_entry_t *entries,
-    const common::u32 max_entries,
-    common::u32 &out_entry_count,
-    bool &out_overflow )
+    const common::u32 nMaxEntries,
+    common::u32 &nOutEntryCount,
+    bool &overflowOut )
 {
-    if ( EntryAlreadyAdded( entries, out_entry_count < max_entries ? out_entry_count : max_entries, entry.virtual_path ) ) {
+    if ( EntryAlreadyAdded( entries, nOutEntryCount < nMaxEntries ? nOutEntryCount : nMaxEntries, entry.szVirtualPath ) ) {
         return fs_error_t::OK;
     }
 
-    if ( out_entry_count < max_entries && entries != nullptr ) {
-        entries[out_entry_count] = entry;
+    if ( nOutEntryCount < nMaxEntries && entries != nullptr ) {
+        entries[nOutEntryCount] = entry;
     } else {
-        out_overflow = true;
+        overflowOut = true;
     }
 
-    ++out_entry_count;
+    ++nOutEntryCount;
     return fs_error_t::OK;
 }
 
 fs_error_t AddMountedChildRoot(
-    const char *requested_root,
-    const char *mounted_root,
+    const char *szRequestedRoot,
+    const char *szMountedRoot,
     directory_entry_t *entries,
-    const common::u32 max_entries,
-    common::u32 &out_entry_count,
-    bool &out_overflow )
+    const common::u32 nMaxEntries,
+    common::u32 &nOutEntryCount,
+    bool &overflowOut )
 {
-    const char *relative_path = nullptr;
-    if ( requested_root[0] != '\0' && !CypherFileSystem_VirtualPathStartsWithRoot( mounted_root, requested_root, &relative_path ) ) {
+    const char *szRelativePath = nullptr;
+    if ( szRequestedRoot[0] != '\0' && !CypherFileSystem_VirtualPathStartsWithRoot( szMountedRoot, szRequestedRoot, &szRelativePath ) ) {
         return fs_error_t::OK;
     }
 
-    if ( requested_root[0] == '\0' ) {
-        relative_path = mounted_root;
+    if ( szRequestedRoot[0] == '\0' ) {
+        szRelativePath = szMountedRoot;
     }
-    if ( relative_path == nullptr || relative_path[0] == '\0' ) {
+    if ( szRelativePath == nullptr || szRelativePath[0] == '\0' ) {
         return fs_error_t::OK;
     }
 
-    char child_name[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    common::u32 write_index = 0u;
-    const char *cursor = relative_path;
+    char szChildName[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    common::u32 nWriteIndex = 0u;
+    const char *cursor = szRelativePath;
     while ( *cursor != '\0' && *cursor != '/' ) {
-        if ( write_index + 1u >= sizeof( child_name ) ) {
+        if ( nWriteIndex + 1u >= sizeof( szChildName ) ) {
             return fs_error_t::ERR_BUFFER_TOO_SMALL;
         }
-        child_name[write_index++] = *cursor++;
+        szChildName[nWriteIndex++] = *cursor++;
     }
-    child_name[write_index] = '\0';
+    szChildName[nWriteIndex] = '\0';
 
-    char child_virtual_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    fs_error_t result = BuildVirtualChildPath( requested_root, child_name, child_virtual_path, sizeof( child_virtual_path ) );
+    char szChildVirtualPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    fs_error_t result = BuildVirtualChildPath( szRequestedRoot, szChildName, szChildVirtualPath, sizeof( szChildVirtualPath ) );
     if ( result != fs_error_t::OK ) {
         return result;
     }
 
     directory_entry_t entry{};
-    if ( !CopyString( entry.name, sizeof( entry.name ), child_name ) ||
-         !CopyString( entry.virtual_path, sizeof( entry.virtual_path ), child_virtual_path ) ) {
+    if ( !CopyString( entry.name, sizeof( entry.name ), szChildName ) ||
+         !CopyString( entry.szVirtualPath, sizeof( entry.szVirtualPath ), szChildVirtualPath ) ) {
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
     entry.type = directory_entry_type_t::DIRECTORY;
-    return AddDirectoryEntry( entry, entries, max_entries, out_entry_count, out_overflow );
+    return AddDirectoryEntry( entry, entries, nMaxEntries, nOutEntryCount, overflowOut );
 }
 
 fs_error_t AddPackagePathChild(
-    const char *requested_root,
-    const char *relative_dir,
-    const pak::pak_file_info_t &file_info,
+    const char *szRequestedRoot,
+    const char *relativeDir,
+    const pak::pak_file_info_t &fileInfo,
     directory_entry_t *entries,
-    const common::u32 max_entries,
-    common::u32 &out_entry_count,
-    bool &out_overflow,
-    bool &out_found_source )
+    const common::u32 nMaxEntries,
+    common::u32 &nOutEntryCount,
+    bool &overflowOut,
+    bool &szOutFoundSource )
 {
-    const char *tail = file_info.virtual_path;
+    const char *tail = fileInfo.szVirtualPath;
 
-    if ( relative_dir != nullptr && relative_dir[0] != '\0' ) {
-        const common::usize relative_len = std::strlen( relative_dir );
-        if ( std::strncmp( file_info.virtual_path, relative_dir, relative_len ) != 0 ||
-             file_info.virtual_path[relative_len] != '/' ) {
+    if ( relativeDir != nullptr && relativeDir[0] != '\0' ) {
+        const common::usize nRelativeLen = std::strlen( relativeDir );
+        if ( std::strncmp( fileInfo.szVirtualPath, relativeDir, nRelativeLen ) != 0 ||
+             fileInfo.szVirtualPath[nRelativeLen] != '/' ) {
             return fs_error_t::OK;
         }
-        tail = file_info.virtual_path + relative_len + 1u;
+        tail = fileInfo.szVirtualPath + nRelativeLen + 1u;
     }
 
     if ( tail == nullptr || tail[0] == '\0' ) {
         return fs_error_t::OK;
     }
 
-    out_found_source = true;
+    szOutFoundSource = true;
 
-    char child_name[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    common::u32 write_index = 0u;
+    char szChildName[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    common::u32 nWriteIndex = 0u;
     const char *cursor = tail;
     while ( *cursor != '\0' && *cursor != '/' ) {
-        if ( write_index + 1u >= sizeof( child_name ) ) {
+        if ( nWriteIndex + 1u >= sizeof( szChildName ) ) {
             return fs_error_t::ERR_BUFFER_TOO_SMALL;
         }
-        child_name[write_index++] = *cursor++;
+        szChildName[nWriteIndex++] = *cursor++;
     }
-    child_name[write_index] = '\0';
+    szChildName[nWriteIndex] = '\0';
 
-    const bool child_is_directory = *cursor == '/';
+    const bool bChildIsDirectory = *cursor == '/';
 
-    char child_virtual_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    fs_error_t result = BuildVirtualChildPath( requested_root, child_name, child_virtual_path, sizeof( child_virtual_path ) );
+    char szChildVirtualPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    fs_error_t result = BuildVirtualChildPath( szRequestedRoot, szChildName, szChildVirtualPath, sizeof( szChildVirtualPath ) );
     if ( result != fs_error_t::OK ) {
         return result;
     }
 
     directory_entry_t entry{};
-    if ( !CopyString( entry.name, sizeof( entry.name ), child_name ) ||
-         !CopyString( entry.virtual_path, sizeof( entry.virtual_path ), child_virtual_path ) ) {
+    if ( !CopyString( entry.name, sizeof( entry.name ), szChildName ) ||
+         !CopyString( entry.szVirtualPath, sizeof( entry.szVirtualPath ), szChildVirtualPath ) ) {
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
-    entry.type = child_is_directory ? directory_entry_type_t::DIRECTORY : directory_entry_type_t::FILE;
-    entry.size = child_is_directory ? 0u : file_info.unpacked_size;
-    entry.modified_time = static_cast<std::time_t>( file_info.modified_time_utc );
+    entry.type = bChildIsDirectory ? directory_entry_type_t::DIRECTORY : directory_entry_type_t::FILE;
+    entry.size = bChildIsDirectory ? 0u : fileInfo.nUnpackedSize;
+    entry.nModifiedTime = static_cast<std::time_t>( fileInfo.modifiedTimeUtc );
 
-    return AddDirectoryEntry( entry, entries, max_entries, out_entry_count, out_overflow );
+    return AddDirectoryEntry( entry, entries, nMaxEntries, nOutEntryCount, overflowOut );
 }
 
 bool MatchWildcard( const char *text, const char *pattern )
@@ -252,7 +252,7 @@ bool MatchWildcard( const char *text, const char *pattern )
     }
 
     const char *star = nullptr;
-    const char *text_after_star = nullptr;
+    const char *szTextAfterStar = nullptr;
 
     while ( *text != '\0' ) {
         if ( *pattern == '?' || *pattern == *text ) {
@@ -263,13 +263,13 @@ bool MatchWildcard( const char *text, const char *pattern )
 
         if ( *pattern == '*' ) {
             star = pattern++;
-            text_after_star = text;
+            szTextAfterStar = text;
             continue;
         }
 
         if ( star != nullptr ) {
             pattern = star + 1;
-            text = ++text_after_star;
+            text = ++szTextAfterStar;
             continue;
         }
 
@@ -303,18 +303,18 @@ bool IsInvalidFindPatternChar( const char c )
     }
 }
 
-fs_error_t NormalizeFindPattern( const char *pattern, char *out_pattern, const common::u32 out_pattern_size )
+fs_error_t NormalizeFindPattern( const char *pattern, char *patternOut, const common::u32 nOutPatternSize )
 {
     if ( pattern == nullptr || pattern[0] == '\0' ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
-    if ( out_pattern == nullptr || out_pattern_size == 0u ) {
+    if ( patternOut == nullptr || nOutPatternSize == 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
 
-    out_pattern[0] = '\0';
+    patternOut[0] = '\0';
 
-    common::u32 write_index = 0u;
+    common::u32 nWriteIndex = 0u;
     const char *cursor = pattern;
     while ( *cursor != '\0' ) {
         char c = *cursor;
@@ -327,84 +327,84 @@ fs_error_t NormalizeFindPattern( const char *pattern, char *out_pattern, const c
         if ( c >= 'A' && c <= 'Z' ) {
             c = static_cast<char>( c - 'A' + 'a' );
         }
-        if ( write_index + 1u >= out_pattern_size ) {
-            out_pattern[0] = '\0';
+        if ( nWriteIndex + 1u >= nOutPatternSize ) {
+            patternOut[0] = '\0';
             return fs_error_t::ERR_BUFFER_TOO_SMALL;
         }
-        out_pattern[write_index++] = c;
+        patternOut[nWriteIndex++] = c;
         ++cursor;
     }
 
-    out_pattern[write_index] = '\0';
+    patternOut[nWriteIndex] = '\0';
     return fs_error_t::OK;
 }
 
 fs_error_t FindFilesRecursive(
-    const char *virtual_root,
+    const char *szVirtualRoot,
     const char *pattern,
     const common::u32 flags,
     directory_entry_t *entries,
-    const common::u32 max_entries,
-    common::u32 &out_entry_count,
-    bool &out_overflow )
+    const common::u32 nMaxEntries,
+    common::u32 &nOutEntryCount,
+    bool &overflowOut )
 {
-    common::u32 child_count = 0u;
-    fs_error_t result = CypherFileSystem_ListDirectory( virtual_root, nullptr, 0u, child_count );
+    common::u32 nChildCount = 0u;
+    fs_error_t result = CypherFileSystem_ListDirectory( szVirtualRoot, nullptr, 0u, nChildCount );
     if ( result == fs_error_t::ERR_PATH_NOT_FOUND ) {
         return fs_error_t::OK;
     }
     if ( result != fs_error_t::OK && result != fs_error_t::ERR_BUFFER_TOO_SMALL ) {
         return result;
     }
-    if ( child_count == 0u ) {
+    if ( nChildCount == 0u ) {
         return fs_error_t::OK;
     }
 
-    std::vector<directory_entry_t> children( child_count );
+    std::vector<directory_entry_t> children( nChildCount );
     while ( true ) {
-        common::u32 listed_child_count = 0u;
+        common::u32 nListedChildCount = 0u;
         result = CypherFileSystem_ListDirectory(
-            virtual_root,
+            szVirtualRoot,
             children.data(),
             static_cast<common::u32>( children.size() ),
-            listed_child_count );
+            nListedChildCount );
 
         if ( result == fs_error_t::ERR_BUFFER_TOO_SMALL ) {
-            children.resize( listed_child_count );
+            children.resize( nListedChildCount );
             continue;
         }
         if ( result != fs_error_t::OK ) {
             return result;
         }
 
-        children.resize( listed_child_count );
+        children.resize( nListedChildCount );
         break;
     }
 
-    const common::u32 match_flags = ( flags & ( CYPHER_FILESYSTEM_FIND_FILES | CYPHER_FILESYSTEM_FIND_DIRECTORIES ) ) != 0u
+    const common::u32 nMatchFlags = ( flags & ( CYPHER_FILESYSTEM_FIND_FILES | CYPHER_FILESYSTEM_FIND_DIRECTORIES ) ) != 0u
         ? flags
         : flags | CYPHER_FILESYSTEM_FIND_FILES | CYPHER_FILESYSTEM_FIND_DIRECTORIES;
 
     for ( common::u32 i = 0u; i < static_cast<common::u32>( children.size() ); ++i ) {
         const directory_entry_t &child = children[i];
-        const bool is_hidden = IsHiddenEntryName( child.name );
-        if ( is_hidden && ( flags & CYPHER_FILESYSTEM_FIND_INCLUDE_HIDDEN ) == 0u ) {
+        const bool bIsHidden = IsHiddenEntryName( child.name );
+        if ( bIsHidden && ( flags & CYPHER_FILESYSTEM_FIND_INCLUDE_HIDDEN ) == 0u ) {
             continue;
         }
 
-        const bool type_matches =
-            ( child.type == directory_entry_type_t::FILE && ( match_flags & CYPHER_FILESYSTEM_FIND_FILES ) != 0u ) ||
-            ( child.type == directory_entry_type_t::DIRECTORY && ( match_flags & CYPHER_FILESYSTEM_FIND_DIRECTORIES ) != 0u );
+        const bool typeMatches =
+            ( child.type == directory_entry_type_t::FILE && ( nMatchFlags & CYPHER_FILESYSTEM_FIND_FILES ) != 0u ) ||
+            ( child.type == directory_entry_type_t::DIRECTORY && ( nMatchFlags & CYPHER_FILESYSTEM_FIND_DIRECTORIES ) != 0u );
 
-        if ( type_matches && MatchWildcard( child.name, pattern ) ) {
-            result = AddDirectoryEntry( child, entries, max_entries, out_entry_count, out_overflow );
+        if ( typeMatches && MatchWildcard( child.name, pattern ) ) {
+            result = AddDirectoryEntry( child, entries, nMaxEntries, nOutEntryCount, overflowOut );
             if ( result != fs_error_t::OK ) {
                 return result;
             }
         }
 
         if ( child.type == directory_entry_type_t::DIRECTORY && ( flags & CYPHER_FILESYSTEM_FIND_RECURSIVE ) != 0u ) {
-            result = FindFilesRecursive( child.virtual_path, pattern, flags, entries, max_entries, out_entry_count, out_overflow );
+            result = FindFilesRecursive( child.szVirtualPath, pattern, flags, entries, nMaxEntries, nOutEntryCount, overflowOut );
             if ( result != fs_error_t::OK ) {
                 return result;
             }
@@ -417,127 +417,127 @@ fs_error_t FindFilesRecursive(
 }       // namespace
 
 fs_error_t CypherFileSystem_ListDirectory(
-    const char *virtual_path,
+    const char *szVirtualPath,
     directory_entry_t *entries,
-    common::u32 max_entries,
-    common::u32 &out_entry_count )
+    common::u32 nMaxEntries,
+    common::u32 &nOutEntryCount )
 {
     runtime_state_t &state = CypherFileSystem_RuntimeState();
     std::lock_guard<std::recursive_mutex> lock( CypherFileSystem_RuntimeMutex() );
-    out_entry_count = 0u;
+    nOutEntryCount = 0u;
 
     if ( !state.initialized ) {
         return fs_error_t::ERR_NOT_INIT;
     }
-    if ( entries == nullptr && max_entries != 0u ) {
+    if ( entries == nullptr && nMaxEntries != 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
 
-    char normalized_root[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-    const fs_error_t root_result = CypherFileSystem_NormalizeVirtualRoot( virtual_path, normalized_root, sizeof( normalized_root ) );
-    if ( root_result != fs_error_t::OK ) {
-        return root_result;
+    char szNormalizedRoot[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+    const fs_error_t rootResult = CypherFileSystem_NormalizeVirtualRoot( szVirtualPath, szNormalizedRoot, sizeof( szNormalizedRoot ) );
+    if ( rootResult != fs_error_t::OK ) {
+        return rootResult;
     }
 
-    bool found_source = false;
+    bool bFoundSource = false;
     bool overflow = false;
 
-    for ( common::u32 i = 0u; i < state.mount_count; ++i ) {
+    for ( common::u32 i = 0u; i < state.nMountCount; ++i ) {
         const mount_t &mount = state.mounts[i];
 
-        const char *relative_path = nullptr;
+        const char *szRelativePath = nullptr;
         if ( mount.type == mount_type_t::CYPHER_FILESYSTEM_DIRECTORY &&
-             CypherFileSystem_VirtualPathStartsWithRoot( normalized_root, mount.virtual_root, &relative_path ) ) {
-            char physical_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-            fs_error_t result = CypherFileSystem_BuildPhysicalPath( mount.physical_root, relative_path, physical_path, sizeof( physical_path ) );
+             CypherFileSystem_VirtualPathStartsWithRoot( szNormalizedRoot, mount.szVirtualRoot, &szRelativePath ) ) {
+            char szPhysicalPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+            fs_error_t result = CypherFileSystem_BuildPhysicalPath( mount.szPhysicalRoot, szRelativePath, szPhysicalPath, sizeof( szPhysicalPath ) );
             if ( result != fs_error_t::OK ) {
                 return result;
             }
 
             std::error_code ec{};
-            if ( !std::filesystem::exists( physical_path, ec ) ) {
+            if ( !std::filesystem::exists( szPhysicalPath, ec ) ) {
                 if ( ec ) {
                     return fs_error_t::ERR_IO_ERROR;
                 }
                 continue;
             }
-            if ( !std::filesystem::is_directory( physical_path, ec ) || ec ) {
+            if ( !std::filesystem::is_directory( szPhysicalPath, ec ) || ec ) {
                 return ec ? fs_error_t::ERR_IO_ERROR : fs_error_t::ERR_NOT_DIRECTORY;
             }
 
-            found_source = true;
-            for ( const std::filesystem::directory_entry &physical_entry : std::filesystem::directory_iterator( physical_path, ec ) ) {
+            bFoundSource = true;
+            for ( const std::filesystem::directory_entry &physicalEntry : std::filesystem::directory_iterator( szPhysicalPath, ec ) ) {
                 if ( ec ) {
                     return fs_error_t::ERR_IO_ERROR;
                 }
 
-                const std::string raw_name = physical_entry.path().filename().string();
-                char normalized_name[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-                if ( CypherFileSystem_NormalizeVirtualPath( raw_name.c_str(), normalized_name, sizeof( normalized_name ) ) != fs_error_t::OK ) {
+                const std::string szRawName = physicalEntry.path().filename().string();
+                char szNormalizedName[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+                if ( CypherFileSystem_NormalizeVirtualPath( szRawName.c_str(), szNormalizedName, sizeof( szNormalizedName ) ) != fs_error_t::OK ) {
                     continue;
                 }
 
-                char child_virtual_path[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
-                result = BuildVirtualChildPath( normalized_root, normalized_name, child_virtual_path, sizeof( child_virtual_path ) );
+                char szChildVirtualPath[CYPHER_FILESYSTEM_MAX_PATH_LENGTH]{};
+                result = BuildVirtualChildPath( szNormalizedRoot, szNormalizedName, szChildVirtualPath, sizeof( szChildVirtualPath ) );
                 if ( result != fs_error_t::OK ) {
                     return result;
                 }
 
                 directory_entry_t entry{};
-                result = FillEntryFromPhysicalPath( child_virtual_path, physical_entry.path().string().c_str(), entry );
+                result = FillEntryFromPhysicalPath( szChildVirtualPath, physicalEntry.path().string().c_str(), entry );
                 if ( result != fs_error_t::OK ) {
                     return result;
                 }
 
-                result = AddDirectoryEntry( entry, entries, max_entries, out_entry_count, overflow );
+                result = AddDirectoryEntry( entry, entries, nMaxEntries, nOutEntryCount, overflow );
                 if ( result != fs_error_t::OK ) {
                     return result;
                 }
             }
         } else if ( mount.type == mount_type_t::CYPHER_FILESYSTEM_PACKAGE &&
-                    CypherFileSystem_VirtualPathStartsWithRoot( normalized_root, mount.virtual_root, &relative_path ) ) {
-            pak::pak_reader_t *reader = static_cast<pak::pak_reader_t *>( mount.package_reader );
+                    CypherFileSystem_VirtualPathStartsWithRoot( szNormalizedRoot, mount.szVirtualRoot, &szRelativePath ) ) {
+            pak::pak_reader_t *reader = static_cast<pak::pak_reader_t *>( mount.pPackageReader );
             if ( reader == nullptr ) {
                 continue;
             }
 
-            common::u32 package_file_count = 0u;
-            pak::pak_error_t count_result = pak::CypherPak_GetFileCount( *reader, package_file_count );
-            if ( count_result != pak::pak_error_t::OK ) {
-                return PakErrorToFs( count_result );
+            common::u32 nPackageFileCount = 0u;
+            pak::pak_error_t nCountResult = pak::CypherPak_GetFileCount( *reader, nPackageFileCount );
+            if ( nCountResult != pak::pak_error_t::OK ) {
+                return PakErrorToFs( nCountResult );
             }
 
-            for ( common::u32 package_index = 0u; package_index < package_file_count; ++package_index ) {
-                pak::pak_file_info_t file_info{};
-                const pak::pak_error_t info_result = pak::CypherPak_GetFileInfo( *reader, package_index, file_info );
-                if ( info_result != pak::pak_error_t::OK ) {
-                    return PakErrorToFs( info_result );
+            for ( common::u32 nPackageIndex = 0u; nPackageIndex < nPackageFileCount; ++nPackageIndex ) {
+                pak::pak_file_info_t fileInfo{};
+                const pak::pak_error_t infoResult = pak::CypherPak_GetFileInfo( *reader, nPackageIndex, fileInfo );
+                if ( infoResult != pak::pak_error_t::OK ) {
+                    return PakErrorToFs( infoResult );
                 }
 
                 fs_error_t result = AddPackagePathChild(
-                    normalized_root,
-                    relative_path,
-                    file_info,
+                    szNormalizedRoot,
+                    szRelativePath,
+                    fileInfo,
                     entries,
-                    max_entries,
-                    out_entry_count,
+                    nMaxEntries,
+                    nOutEntryCount,
                     overflow,
-                    found_source );
+                    bFoundSource );
                 if ( result != fs_error_t::OK ) {
                     return result;
                 }
             }
-        } else if ( CypherFileSystem_VirtualPathStartsWithRoot( mount.virtual_root, normalized_root, nullptr ) ) {
-            found_source = true;
-            const fs_error_t result = AddMountedChildRoot( normalized_root, mount.virtual_root, entries, max_entries, out_entry_count, overflow );
+        } else if ( CypherFileSystem_VirtualPathStartsWithRoot( mount.szVirtualRoot, szNormalizedRoot, nullptr ) ) {
+            bFoundSource = true;
+            const fs_error_t result = AddMountedChildRoot( szNormalizedRoot, mount.szVirtualRoot, entries, nMaxEntries, nOutEntryCount, overflow );
             if ( result != fs_error_t::OK ) {
                 return result;
             }
         }
     }
 
-    if ( !found_source ) {
-        state.stats.failed_lookup_count++;
+    if ( !bFoundSource ) {
+        state.stats.nFailedLookupCount++;
         return fs_error_t::ERR_PATH_NOT_FOUND;
     }
 
@@ -545,39 +545,39 @@ fs_error_t CypherFileSystem_ListDirectory(
 }
 
 fs_error_t CypherFileSystem_FindFiles(
-    const char *virtual_root,
+    const char *szVirtualRoot,
     const char *pattern,
     common::u32 flags,
     directory_entry_t *entries,
-    common::u32 max_entries,
-    common::u32 &out_entry_count )
+    common::u32 nMaxEntries,
+    common::u32 &nOutEntryCount )
 {
     std::lock_guard<std::recursive_mutex> lock( CypherFileSystem_RuntimeMutex() );
-    out_entry_count = 0u;
+    nOutEntryCount = 0u;
 
     if ( !CypherFileSystem_RuntimeState().initialized ) {
         return fs_error_t::ERR_NOT_INIT;
     }
-    if ( entries == nullptr && max_entries != 0u ) {
+    if ( entries == nullptr && nMaxEntries != 0u ) {
         return fs_error_t::ERR_INVALID_ARGUMENT;
     }
 
-    char normalized_pattern[CYPHER_FILESYSTEM_MAX_PATTERN_LENGTH]{};
-    fs_error_t result = NormalizeFindPattern( pattern, normalized_pattern, sizeof( normalized_pattern ) );
+    char normalizedPattern[CYPHER_FILESYSTEM_MAX_PATTERN_LENGTH]{};
+    fs_error_t result = NormalizeFindPattern( pattern, normalizedPattern, sizeof( normalizedPattern ) );
     if ( result != fs_error_t::OK ) {
         return result;
     }
 
     bool overflow = false;
-    result = FindFilesRecursive( virtual_root, normalized_pattern, flags, entries, max_entries, out_entry_count, overflow );
+    result = FindFilesRecursive( szVirtualRoot, normalizedPattern, flags, entries, nMaxEntries, nOutEntryCount, overflow );
     if ( result != fs_error_t::OK ) {
         return result;
     }
 
-    const common::u32 sort_count = out_entry_count < max_entries ? out_entry_count : max_entries;
+    const common::u32 nSortCount = nOutEntryCount < nMaxEntries ? nOutEntryCount : nMaxEntries;
     if ( entries != nullptr && ( flags & CYPHER_FILESYSTEM_FIND_SORT_BY_NAME ) != 0u ) {
-        std::sort( entries, entries + sort_count, []( const directory_entry_t &a, const directory_entry_t &b ) {
-            return std::strcmp( a.virtual_path, b.virtual_path ) < 0;
+        std::sort( entries, entries + nSortCount, []( const directory_entry_t &a, const directory_entry_t &b ) {
+            return std::strcmp( a.szVirtualPath, b.szVirtualPath ) < 0;
         } );
     }
 
