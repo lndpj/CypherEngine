@@ -1,5 +1,5 @@
-#include "CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.h"
-#include "CypherEngine/CypherPak/CypherPak.h"
+#include "CypherFileSystem_Runtime.h"
+#include "CypherPak.h"
 
 #include <algorithm>
 #include <cstring>
