@@ -19,18 +19,18 @@ Command Types
 Commands bind a text name to a callback used by configs, console and tools.
 ================
 */
-using command_fn_t = void (*)( void *extra_data, common::u32 argc, char **argv );
+using command_fn_t = void (*)( void *pExtraData, common::u32 argc, char **argv );
 
 struct cmd_t {
     const char  *name;
-    command_fn_t    callback_fn;
-    void        *extra_data;
+    command_fn_t    pCallbackFn;
+    void        *pExtraData;
     const char  *description;
 };
 
 struct registry_t {
-    cmd_t cmd_commands[CYPHER_COMMAND_MAX_COMMANDS];
-    common::u32 cmd_count;
+    cmd_t cmdCommands[CYPHER_COMMAND_MAX_COMMANDS];
+    common::u32 nCmdCount;
     bool initialized;
 };
 
@@ -43,13 +43,13 @@ cmd_error_t CypherCommand_Init( );
 
 void CypherCommand_Shutdown();
 
-cmd_error_t CypherCommand_Register( const char *cmd_name, command_fn_t callback_fn, void *extra_data, const char *cmd_description );
+cmd_error_t CypherCommand_Register( const char *szCmdName, command_fn_t pCallbackFn, void *pExtraData, const char *szCmdDescription );
 
-const cmd_t *CypherCommand_Find( const char *cmd_name );
+const cmd_t *CypherCommand_Find( const char *szCmdName );
 
-cmd_error_t CypherCommand_Parse( char *command_line, common::u32 &argc, char **argv );
+cmd_error_t CypherCommand_Parse( char *nCommandLine, common::u32 &argc, char **argv );
 
-cmd_error_t CypherCommand_Execute( const char *command_line );
+cmd_error_t CypherCommand_Execute( const char *nCommandLine );
 
 }
 
