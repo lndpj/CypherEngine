@@ -15,9 +15,9 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherMemory/CypherMemory_Arena.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
+#include "CypherMemory_Arena.h"
+#include "CypherLog.h"
+#include "CypherSystem_Platform.h"
 
 #include <cstdlib>          // for malloc func
 #include <cstring>          // for string memset
