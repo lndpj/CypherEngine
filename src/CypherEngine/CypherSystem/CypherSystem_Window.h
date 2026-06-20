@@ -6,7 +6,7 @@
 #include "CypherEngine/CypherCommon/CypherCommon.h"
 #include "CypherEngine/CypherSystem/CypherSystem_Error.h"
 
-namespace cypher::engine::sys 
+namespace cypher::engine::sys
 {
 
 /*
@@ -25,14 +25,14 @@ struct window_desc_t {
 };
 
 struct window_t {
-    void *native_window{ nullptr };
-    
+    void *pNativeWindow{ nullptr };
+
     common::u32 width{ 0u };
     common::u32 height{ 0u };
-    
+
     bool fullscreen{ false};
     bool vsync{ true };
-    bool should_close{ false };
+    bool bShouldClose{ false };
     bool valid{ false };
 };
 
@@ -41,14 +41,14 @@ struct window_t {
 System Window API
 ================
 */
-sys_error_t CypherSystem_CreateWindow( const window_desc_t &window_description, window_t &out_window );
+sys_error_t CypherSystem_CreateWindow( const window_desc_t &szWindowDescription, window_t &windowOut );
 
 void CypherSystem_DestroyWindow( window_t &window );
 
 void CypherSystem_PollWindowEvents( window_t &window );
 
-bool CypherSystem_WindowShouldClose( const window_t &window ); 
-    
+bool CypherSystem_WindowShouldClose( const window_t &window );
+
 }       // namespace cypher::engine::sys
 
 #endif // CYPHER_ENGINE_SYSTEM_WINDOW_H
