@@ -36,10 +36,10 @@ mat4_t CypherMath_QuatToMat4( const quat_t &q );
 
 vec3_t CypherMath_QuatRotateVec3( const quat_t &q, const vec3_t &v );
 
-quat_t CypherMath_QuatNLerp( const quat_t &q1, const quat_t &q2, const common::f32 t );    
+quat_t CypherMath_QuatNLerp( const quat_t &q1, const quat_t &q2, const common::f32 t );
 
-quat_t CypherMath_QuatSlerp( const quat_t &q1, const quat_t &q2, const common::f32 t );    
-    
+quat_t CypherMath_QuatSlerp( const quat_t &q1, const quat_t &q2, const common::f32 t );
+
 }       // namespace cypher::engine::math
 
 #endif // CYPHER_ENGINE_MATH_QUAT_H
