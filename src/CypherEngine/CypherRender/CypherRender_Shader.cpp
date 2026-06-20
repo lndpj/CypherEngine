@@ -28,8 +28,8 @@ namespace cypher::engine::render
 
 namespace
 {
-char g_vertex_shader_source[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
-char g_fragment_shader_source[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
+char g_VertexShaderSource[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
+char g_FragmentShaderSource[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
 }
 
 /*
@@ -37,9 +37,9 @@ char g_fragment_shader_source[CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE + 1u]{};
 CypherRender_ShaderRegistryInit
 ================
 */
-void CypherRender_ShaderRegistryInit( shader_registry_t &shader_registry )
+void CypherRender_ShaderRegistryInit( shader_registry_t &szShaderRegistry )
 {
-    shader_registry = {};
+    szShaderRegistry = {};
 
     return ;
 }
@@ -51,13 +51,13 @@ CypherRender_ShaderRegistryShutdown
 Destroys all loaded GL shader programs before clearing the registry.
 ================
 */
-void CypherRender_ShaderRegistryShutdown( shader_registry_t &shader_registry )
+void CypherRender_ShaderRegistryShutdown( shader_registry_t &szShaderRegistry )
 {
-    for ( common::u32 i = 0u; i < shader_registry.shader_count; ++i ) {
-        CypherRender_ShaderUnload( shader_registry.shaders[i] );
+    for ( common::u32 i = 0u; i < szShaderRegistry.nShaderCount; ++i ) {
+        CypherRender_ShaderUnload( szShaderRegistry.shaders[i] );
     }
 
-    shader_registry = {};
+    szShaderRegistry = {};
 
     return ;
 }
@@ -69,7 +69,7 @@ CypherRender_ShaderLoad
 Loads shader source through the file system and creates a GL shader program.
 ================
 */
-render_error_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, const char *name, const char *vertex_path, const char *fragment_path, shader_t **out_shader )
+render_error_t CypherRender_ShaderLoad( shader_registry_t &szShaderRegistry, const char *name, const char *szVertexPath, const char *szFragmentPath, shader_t **szOutShader )
 {
     if ( name == nullptr || name[0] == '\0' ) {
         LOG_ERROR( log::channel_t::RENDER, "shader load failed: invalid shader name." );
@@ -77,88 +77,88 @@ render_error_t CypherRender_ShaderLoad( shader_registry_t &shader_registry, cons
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    if ( vertex_path == nullptr || vertex_path[0] == '\0' ) {
+    if ( szVertexPath == nullptr || szVertexPath[0] == '\0' ) {
         LOG_ERROR( log::channel_t::RENDER, "shader load failed: invalid vertex shader path." );
         COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_ShaderLoad: failed passing invalid vertex shader path.\n" );
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    if ( fragment_path == nullptr || fragment_path[0] == '\0' ) {
+    if ( szFragmentPath == nullptr || szFragmentPath[0] == '\0' ) {
         LOG_ERROR( log::channel_t::RENDER, "shader load failed: invalid fragment shader path." );
         COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_ShaderLoad: failed passing invalid fragment shader path.\n" );
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    if ( out_shader == nullptr ) {
+    if ( szOutShader == nullptr ) {
         LOG_ERROR( log::channel_t::RENDER, "shader load failed for '%s': out_shader is null.", name );
         COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_ShaderLoad: failed, the out_shader is nullptr.\n" );
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    shader_t *existing_shader = CypherRender_ShaderFind( shader_registry, name );
-    if ( existing_shader != nullptr ) {
-        *out_shader = existing_shader;
-        LOG_DEBUG( log::channel_t::RENDER, "shader '%s' already loaded; reusing program=%u.", name, existing_shader->gl_shader_program_id );
+    shader_t *szExistingShader = CypherRender_ShaderFind( szShaderRegistry, name );
+    if ( szExistingShader != nullptr ) {
+        *szOutShader = szExistingShader;
+        LOG_DEBUG( log::channel_t::RENDER, "shader '%s' already loaded; reusing program=%u.", name, szExistingShader->nGlShaderProgramId );
         return render_error_t::OK;
     }
 
-    if ( shader_registry.shader_count >= CYPHER_RENDER_MAX_SHADERS ) {
+    if ( szShaderRegistry.nShaderCount >= CYPHER_RENDER_MAX_SHADERS ) {
         LOG_ERROR( log::channel_t::RENDER, "shader load failed for '%s': registry full (%u).", name, CYPHER_RENDER_MAX_SHADERS );
-        COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_SHADER_REGISTRY_FULL), "CypherRender_ShaderLoad: shader_registry is full; [{ %d out of %d }] ", shader_registry.shader_count, CYPHER_RENDER_MAX_SHADERS );
+        COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_SHADER_REGISTRY_FULL), "CypherRender_ShaderLoad: shader_registry is full; [{ %d out of %d }] ", szShaderRegistry.nShaderCount, CYPHER_RENDER_MAX_SHADERS );
         return render_error_t::ERR_SHADER_REGISTRY_FULL;
     }
 
-    shader_t *shader = &shader_registry.shaders[shader_registry.shader_count];
+    shader_t *shader = &szShaderRegistry.shaders[szShaderRegistry.nShaderCount];
     *shader = {};
 
-    shader->shader_id = shader_registry.shader_count + 1u;
+    shader->nShaderId = szShaderRegistry.nShaderCount + 1u;
     std::strncpy( shader->name, name, CYPHER_RENDER_MAX_SHADER_NAME - 1u );
-    std::strncpy( shader->vertex_path, vertex_path, CYPHER_RENDER_MAX_SHADER_PATH - 1u );
-    std::strncpy( shader->fragment_path, fragment_path, CYPHER_RENDER_MAX_SHADER_PATH - 1u );
+    std::strncpy( shader->szVertexPath, szVertexPath, CYPHER_RENDER_MAX_SHADER_PATH - 1u );
+    std::strncpy( shader->szFragmentPath, szFragmentPath, CYPHER_RENDER_MAX_SHADER_PATH - 1u );
 
-    char *vertex_source = g_vertex_shader_source;
-    char *fragment_source = g_fragment_shader_source;
+    char *szVertexSource = g_VertexShaderSource;
+    char *szFragmentSource = g_FragmentShaderSource;
 
-    common::u64 vertex_bytes_read{ 0u };
-    common::u64 fragment_bytes_read{ 0u };
+    common::u64 nVertexBytesRead{ 0u };
+    common::u64 nFragmentBytesRead{ 0u };
 
-    const auto vertex_read_result = fs::CypherFileSystem_ReadEntireFile( vertex_path, vertex_source, CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE, vertex_bytes_read );
+    const auto vertexReadResult = fs::CypherFileSystem_ReadEntireFile( szVertexPath, szVertexSource, CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE, nVertexBytesRead );
 
-    if ( vertex_read_result != fs::fs_error_t::OK ) {
-        LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: vertex source '%s' read failed: %s.", name, vertex_path, fs::CypherFileSystem_ErrorDesc( vertex_read_result ) );
-        COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_SHADER_LOAD ), "CypherRender_ShaderLoad: failed reading vertex shader '%s'.\n", vertex_path );
+    if ( vertexReadResult != fs::fs_error_t::OK ) {
+        LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: vertex source '%s' read failed: %s.", name, szVertexPath, fs::CypherFileSystem_ErrorDesc( vertexReadResult ) );
+        COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_SHADER_LOAD ), "CypherRender_ShaderLoad: failed reading vertex shader '%s'.\n", szVertexPath );
         return render_error_t::ERR_SHADER_LOAD;
     }
-    vertex_source[vertex_bytes_read] = '\0';
+    szVertexSource[nVertexBytesRead] = '\0';
 
-    const auto fragment_read_result = fs::CypherFileSystem_ReadEntireFile( fragment_path, fragment_source, CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE, fragment_bytes_read );
-    if ( fragment_read_result != fs::fs_error_t::OK ) {
-        LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: fragment source '%s' read failed: %s.", name, fragment_path, fs::CypherFileSystem_ErrorDesc( fragment_read_result ) );
-        COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_SHADER_LOAD ), "CypherRender_ShaderLoad: failed reading fragment shader '%s'.\n", fragment_path );
+    const auto fragmentReadResult = fs::CypherFileSystem_ReadEntireFile( szFragmentPath, szFragmentSource, CYPHER_RENDER_MAX_SHADER_SOURCE_SIZE, nFragmentBytesRead );
+    if ( fragmentReadResult != fs::fs_error_t::OK ) {
+        LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: fragment source '%s' read failed: %s.", name, szFragmentPath, fs::CypherFileSystem_ErrorDesc( fragmentReadResult ) );
+        COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_SHADER_LOAD ), "CypherRender_ShaderLoad: failed reading fragment shader '%s'.\n", szFragmentPath );
         return render_error_t::ERR_SHADER_LOAD;
     }
-    fragment_source[fragment_bytes_read] = '\0';
+    szFragmentSource[nFragmentBytesRead] = '\0';
 
-    const auto shader_program_result = CypherRenderGL_CreateShaderProgram( vertex_source, fragment_source, shader->gl_shader_program_id );
+    const auto shaderProgramResult = CypherRenderGL_CreateShaderProgram( szVertexSource, szFragmentSource, shader->nGlShaderProgramId );
 
-    if ( shader_program_result != render_error_t::OK ) {
-        LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: GL program creation failed: %s.", name, CypherRender_ErrorDesc( shader_program_result ) );
-        COM_ERRORF( CypherRender_ErrorCode( shader_program_result), "CypherRender_ShaderLoad: CypherRenderGL_CreateShaderProgram: failed creating shader program '%s'.\n", name );
+    if ( shaderProgramResult != render_error_t::OK ) {
+        LOG_ERROR( log::channel_t::RENDER, "shader '%s' load failed: GL program creation failed: %s.", name, CypherRender_ErrorDesc( shaderProgramResult ) );
+        COM_ERRORF( CypherRender_ErrorCode( shaderProgramResult), "CypherRender_ShaderLoad: CypherRenderGL_CreateShaderProgram: failed creating shader program '%s'.\n", name );
         *shader = {};
-        return shader_program_result;
+        return shaderProgramResult;
     }
 
     shader->loaded = true;
-    shader_registry.shader_count++;
-    *out_shader = shader;
+    szShaderRegistry.nShaderCount++;
+    *szOutShader = shader;
 
     LOG_INFO( log::channel_t::RENDER, "shader '%s' loaded: program=%u, vertex='%s' (%llu bytes), fragment='%s' (%llu bytes).",
                      name,
-                     shader->gl_shader_program_id,
-                     vertex_path,
-                     static_cast<unsigned long long>( vertex_bytes_read ),
-                     fragment_path,
-                     static_cast<unsigned long long>( fragment_bytes_read ) );
+                     shader->nGlShaderProgramId,
+                     szVertexPath,
+                     static_cast<unsigned long long>( nVertexBytesRead ),
+                     szFragmentPath,
+                     static_cast<unsigned long long>( nFragmentBytesRead ) );
 
     return render_error_t::OK;
 }
@@ -174,7 +174,7 @@ shader_t *CypherRender_ShaderFind( shader_registry_t &registry, const char *name
         return nullptr;
     }
 
-    for ( int i = 0; i < registry.shader_count; ++i ) {
+    for ( int i = 0; i < registry.nShaderCount; ++i ) {
         if ( std::strcmp( registry.shaders[i].name, name ) == 0 ) {
             return &registry.shaders[i];
         }
@@ -190,13 +190,13 @@ CypherRender_ShaderBind
 */
 render_error_t CypherRender_ShaderBind( const shader_t &shader )
 {
-    if ( shader.gl_shader_program_id == 0  || !shader.loaded ) {
-        LOG_ERROR( log::channel_t::RENDER, "shader bind failed: invalid shader program id=%u loaded=%u.", shader.gl_shader_program_id, shader.loaded ? 1u : 0u );
-        COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_BindShader: Invalid shader program id passed; %d\n", shader.gl_shader_program_id );
+    if ( shader.nGlShaderProgramId == 0  || !shader.loaded ) {
+        LOG_ERROR( log::channel_t::RENDER, "shader bind failed: invalid shader program id=%u loaded=%u.", shader.nGlShaderProgramId, shader.loaded ? 1u : 0u );
+        COM_ERRORF( CypherRender_ErrorCode( render_error_t::ERR_INVALID_FUNC_PARAMETER ), "CypherRender_BindShader: Invalid shader program id passed; %d\n", shader.nGlShaderProgramId );
         return render_error_t::ERR_SHADER_LOAD;
     }
 
-    return CypherRenderGL_BindShaderProgram( shader.gl_shader_program_id );
+    return CypherRenderGL_BindShaderProgram( shader.nGlShaderProgramId );
 }
 
 /*
@@ -210,25 +210,25 @@ void CypherRender_ShaderUnload( shader_t &shader )
         return ;
     }
 
-    if ( shader.gl_shader_program_id != 0u ) {
-        CypherRenderGL_DestroyShaderProgram( shader.gl_shader_program_id );
+    if ( shader.nGlShaderProgramId != 0u ) {
+        CypherRenderGL_DestroyShaderProgram( shader.nGlShaderProgramId );
     }
 
     shader = {};
     return ;
 }
 
-render_error_t CypherRender_ShaderSetMat4( const shader_t &shader, const char *uniform_name, const math::mat4_t &matrix )
+render_error_t CypherRender_ShaderSetMat4( const shader_t &shader, const char *szUniformName, const math::mat4_t &matrix )
 {
-    if ( !shader.loaded || shader.gl_shader_program_id == 0u ) {
+    if ( !shader.loaded || shader.nGlShaderProgramId == 0u ) {
         return render_error_t::ERR_SHADER_BIND;
     }
-    
-    if ( uniform_name == nullptr || uniform_name[0] == '\0' ) {
+
+    if ( szUniformName == nullptr || szUniformName[0] == '\0' ) {
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
-    
-    return CypherRenderGL_SetUniformMat4( shader.gl_shader_program_id, uniform_name, matrix );
+
+    return CypherRenderGL_SetUniformMat4( shader.nGlShaderProgramId, szUniformName, matrix );
 }
 
 }       // namespace cypher::engine::render
