@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Error.h"
+#include "CypherCommon.h"
+#include "CypherMemory_Error.h"
 #include <cassert>
 #include <limits>
 
