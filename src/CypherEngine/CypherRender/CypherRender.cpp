@@ -25,10 +25,10 @@ namespace cypher::engine::render {
 // @NOTE will be replaced by arena allocators soon
 namespace
 {
-draw_item_t g_MainDrawItems[CYPHER_RENDER_DRAW_ITEMS_LIST_MAX]{};
+draw_item_t s_MainDrawItems[CYPHER_RENDER_DRAW_ITEMS_LIST_MAX]{};
 }
 
-render_runtime_state_t g_RenderRuntimeState{};
+static render_runtime_state_t s_RenderRuntimeState{};
 
 /*
 ================
@@ -57,32 +57,32 @@ render_error_t CypherRender_Init( const sys::window_t &window, const host::windo
 		return render_error_t::ERR_INVALID_VIEWPORT;
 	}
 
-	g_RenderRuntimeState.window = &window;
-	g_RenderRuntimeState.nViewportWidth = pWindowConfig.viewport.width;
-	g_RenderRuntimeState.nViewportHeight = pWindowConfig.viewport.height;
-	g_RenderRuntimeState.pGlState = {};
-	g_RenderRuntimeState.szShaderRegistry = {};
-	g_RenderRuntimeState.inFrame = false;
+	s_RenderRuntimeState.window = &window;
+	s_RenderRuntimeState.nViewportWidth = pWindowConfig.viewport.width;
+	s_RenderRuntimeState.nViewportHeight = pWindowConfig.viewport.height;
+	s_RenderRuntimeState.pGlState = {};
+	s_RenderRuntimeState.szShaderRegistry = {};
+	s_RenderRuntimeState.inFrame = false;
 
     CypherRender_DrawListInit(
-        g_RenderRuntimeState.mainDrawList,
-        g_MainDrawItems,
+        s_RenderRuntimeState.mainDrawList,
+        s_MainDrawItems,
         CYPHER_RENDER_DRAW_ITEMS_LIST_MAX );
 
 	LOG_INFO(
 		log::channel_t::RENDER,
 		"renderer initialized with viewport %ux%u.",
-		g_RenderRuntimeState.nViewportWidth,
-		g_RenderRuntimeState.nViewportHeight );
+		s_RenderRuntimeState.nViewportWidth,
+		s_RenderRuntimeState.nViewportHeight );
 
-	const auto glResult = CypherRenderGL_Init( window, pWindowConfig.vsync, g_RenderRuntimeState.pGlState );
+	const auto glResult = CypherRenderGL_Init( window, pWindowConfig.vsync, s_RenderRuntimeState.pGlState );
 	if ( glResult != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "renderer backend initialization failed: %s.", CypherRender_ErrorDesc( glResult ) );
-		g_RenderRuntimeState = {};
+		s_RenderRuntimeState = {};
 		return glResult;
 	}
 
-	CypherRender_ShaderRegistryInit( g_RenderRuntimeState.szShaderRegistry );
+	CypherRender_ShaderRegistryInit( s_RenderRuntimeState.szShaderRegistry );
 
     camera_desc_t cameraDesc{};
     cameraDesc.cameraProjectionMode = camera_projection_mode_t::PERSPECTIVE;
@@ -91,9 +91,9 @@ render_error_t CypherRender_Init( const sys::window_t &window, const host::windo
     cameraDesc.fovYRadians   = CYPHER_RENDER_DEFAULT_FOV_Y_RADIANS;
     cameraDesc.farZ           = CYPHER_RENDER_DEFAULT_FAR_Z;
     cameraDesc.nearZ          = CYPHER_RENDER_DEFAULT_NEAR_Z;
-    CypherRender_CameraInit( g_RenderRuntimeState.activeCamera, cameraDesc );
+    CypherRender_CameraInit( s_RenderRuntimeState.activeCamera, cameraDesc );
 
-    g_RenderRuntimeState.initialized = true;
+    s_RenderRuntimeState.initialized = true;
 
 	return render_error_t::OK;
 }
@@ -109,10 +109,10 @@ void CypherRender_Shutdown() {
 		return;
 	}
 
-	CypherRender_ShaderRegistryShutdown( g_RenderRuntimeState.szShaderRegistry );
-	CypherRenderGL_Shutdown( g_RenderRuntimeState.pGlState );
+	CypherRender_ShaderRegistryShutdown( s_RenderRuntimeState.szShaderRegistry );
+	CypherRenderGL_Shutdown( s_RenderRuntimeState.pGlState );
 
-	g_RenderRuntimeState = {};
+	s_RenderRuntimeState = {};
 
 	LOG_INFO( log::channel_t::RENDER, "renderer shutdown complete." );
 }
@@ -130,21 +130,21 @@ render_error_t CypherRender_BeginFrame( const common::f32 nDeltaTimeSeconds ) {
 		return render_error_t::ERR_NOT_INIT;
 	}
 
-	if ( g_RenderRuntimeState.inFrame ) {
+	if ( s_RenderRuntimeState.inFrame ) {
         LOG_ERROR( log::channel_t::RENDER, "begin frame failed: frame is already active." );
 		return render_error_t::ERR_FRAME_ALREADY_ACTIVE;
 	}
 
-	const auto glResult = CypherRenderGL_BeginFrame( *g_RenderRuntimeState.window );
+	const auto glResult = CypherRenderGL_BeginFrame( *s_RenderRuntimeState.window );
 	if ( glResult != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "begin frame failed: GL begin failed: %s.", CypherRender_ErrorDesc( glResult ) );
 		return render_error_t::ERR_BEGIN_DRAW;
 	}
 
-    CypherRender_DrawListClear( g_RenderRuntimeState.mainDrawList );
+    CypherRender_DrawListClear( s_RenderRuntimeState.mainDrawList );
 
 	(void)nDeltaTimeSeconds;
-	g_RenderRuntimeState.inFrame = true;
+	s_RenderRuntimeState.inFrame = true;
 
 	return render_error_t::OK;
 }
@@ -162,14 +162,14 @@ render_error_t CypherRender_RenderFrame() {
 		return render_error_t::ERR_NOT_INIT;
 	}
 
-	if ( !g_RenderRuntimeState.inFrame ) {
+	if ( !s_RenderRuntimeState.inFrame ) {
         LOG_ERROR( log::channel_t::RENDER, "render frame failed: frame is not active." );
 		return render_error_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
     return CypherRender_DrawListDraw(
-        g_RenderRuntimeState.mainDrawList,
-        g_RenderRuntimeState.activeCamera );
+        s_RenderRuntimeState.mainDrawList,
+        s_RenderRuntimeState.activeCamera );
 }
 
 /*
@@ -185,18 +185,18 @@ render_error_t CypherRender_EndFrame() {
 		return render_error_t::ERR_NOT_INIT;
 	}
 
-	if ( !g_RenderRuntimeState.inFrame ) {
+	if ( !s_RenderRuntimeState.inFrame ) {
         LOG_ERROR( log::channel_t::RENDER, "end frame failed: frame is not active." );
 		return render_error_t::ERR_FRAME_NOT_ACTIVE;
 	}
 
-	const auto glResult = CypherRenderGL_EndFrame( *g_RenderRuntimeState.window );
+	const auto glResult = CypherRenderGL_EndFrame( *s_RenderRuntimeState.window );
 	if ( glResult != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "end frame failed: GL end failed: %s.", CypherRender_ErrorDesc( glResult ) );
 		return render_error_t::ERR_END_DRAW;
 	}
 
-	g_RenderRuntimeState.inFrame = false;
+	s_RenderRuntimeState.inFrame = false;
 
 	return render_error_t::OK;
 }
@@ -216,12 +216,12 @@ render_error_t CypherRender_SubmitDrawItem( const draw_item_t &drawItem )
         return render_error_t::ERR_NOT_INIT;
     }
 
-    if ( !g_RenderRuntimeState.inFrame ) {
+    if ( !s_RenderRuntimeState.inFrame ) {
         LOG_ERROR( log::channel_t::RENDER, "submit draw item failed: frame is not active." );
         return render_error_t::ERR_FRAME_NOT_ACTIVE;
     }
 
-    return CypherRender_DrawListSubmit( g_RenderRuntimeState.mainDrawList, drawItem );
+    return CypherRender_DrawListSubmit( s_RenderRuntimeState.mainDrawList, drawItem );
 }
 
 /*
@@ -230,7 +230,7 @@ CypherRender_IsInitialized
 ================
 */
 bool CypherRender_IsInitialized() {
-	return g_RenderRuntimeState.initialized;
+	return s_RenderRuntimeState.initialized;
 }
 
 } // namespace cypher::engine::render
