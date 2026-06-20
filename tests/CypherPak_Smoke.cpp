@@ -1,4 +1,4 @@
-#include "CypherEngine/CypherPak/CypherPak.h"
+#include "CypherPak.h"
 
 #include <cstdio>
 #include <cstring>
