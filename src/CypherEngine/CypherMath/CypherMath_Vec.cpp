@@ -15,7 +15,7 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherMath/CypherMath_Vec.h"
+#include "CypherMath_Vec.h"
 
 #include <cmath>    // std::sqrt / std::fabs
 
