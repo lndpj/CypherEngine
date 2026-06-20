@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherSystem/CypherSystem_Error.h"
-#include "CypherEngine/CypherCommon/CypherCommon.h"
+#include "CypherSystem_Error.h"
+#include "CypherCommon.h"
 
 #include <ctime>       // std::time_t / std::tm for local time conversion.
 
