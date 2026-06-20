@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
-#include "CypherEngine/CypherMemory/CypherMemory_Pool.h"
+#include "CypherCommon.h"
+#include "CypherMemory_Pool.h"
 
 namespace cypher::engine::memory
 {
