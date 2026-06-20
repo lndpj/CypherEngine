@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherPak/CypherPak_Error.h"
-#include "CypherEngine/CypherPak/CypherPak_Format.h"
+#include "CypherPak_Error.h"
+#include "CypherPak_Format.h"
 
 namespace cypher::engine::pak
 {
