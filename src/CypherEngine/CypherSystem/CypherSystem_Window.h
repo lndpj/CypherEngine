@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Error.h"
+#include "CypherCommon.h"
+#include "CypherSystem_Error.h"
 
 namespace cypher::engine::sys
 {
