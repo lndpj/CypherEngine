@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
-#include "CypherEngine/CypherFileSystem/CypherFileSystem_Error.h"
+#include "CypherCommon.h"
+#include "CypherFileSystem_Error.h"
 
 #include <ctime>       // std::time_t file timestamps.
 
