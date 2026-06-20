@@ -19,8 +19,8 @@ constexpr common::u32 CYPHER_MEMORY_BUCKET_FLAG_CLEAR_ON_RESET    = 1u << 2u;
 constexpr common::u32 CYPHER_MEMORY_BUCKET_FLAG_CLEAR_ON_SHUTDOWN = 1u << 3u;
 
 struct bucket_class_desc_t {
-    common::usize slot_size{ 0u };
-    common::usize slot_count{ 0u };
+    common::usize nSlotSize{ 0u };
+    common::usize nSlotCount{ 0u };
 };
 
 struct bucket_desc_t {
@@ -28,7 +28,7 @@ struct bucket_desc_t {
     arena_t *arena{ nullptr };
 
     common::usize alignment{ CYPHER_MEMORY_DEFAULT_ALIGNMENT };
-    common::usize class_count{ 0u };
+    common::usize nClassCount{ 0u };
     bucket_class_desc_t classes[CYPHER_MEMORY_BUCKET_MAX_CLASSES]{};
 
     common::u32 flags{ CYPHER_MEMORY_BUCKET_FLAG_NONE };
@@ -36,34 +36,34 @@ struct bucket_desc_t {
 
 struct bucket_class_t {
     pool_t pool{};
-    common::usize slot_size{ 0u };
-    common::usize slot_count{ 0u };
+    common::usize nSlotSize{ 0u };
+    common::usize nSlotCount{ 0u };
 };
 
 struct bucket_class_stats_t {
-    common::usize slot_size{ 0u };
-    common::usize slot_count{ 0u };
-    common::usize used_count{ 0u };
-    common::usize free_count{ 0u };
-    common::usize peak_used_count{ 0u };
-    common::usize backing_bytes{ 0u };
+    common::usize nSlotSize{ 0u };
+    common::usize nSlotCount{ 0u };
+    common::usize nUsedCount{ 0u };
+    common::usize nFreeCount{ 0u };
+    common::usize nPeakUsedCount{ 0u };
+    common::usize nBackingBytes{ 0u };
 };
 
 struct bucket_stats_t {
     const char *name{ nullptr };
 
-    common::usize class_count{ 0u };
-    common::usize used_count{ 0u };
-    common::usize free_count{ 0u };
-    common::usize peak_used_count{ 0u };
-    common::usize backing_bytes{ 0u };
+    common::usize nClassCount{ 0u };
+    common::usize nUsedCount{ 0u };
+    common::usize nFreeCount{ 0u };
+    common::usize nPeakUsedCount{ 0u };
+    common::usize nBackingBytes{ 0u };
 
-    common::u64 allocation_count{ 0u };
-    common::u64 free_operation_count{ 0u };
-    common::u64 failed_allocation_count{ 0u };
-    common::u64 failed_free_count{ 0u };
+    common::u64 nAllocationCount{ 0u };
+    common::u64 nFreeOperationCount{ 0u };
+    common::u64 nFailedAllocationCount{ 0u };
+    common::u64 nFailedFreeCount{ 0u };
 
-    bucket_class_stats_t class_stats[CYPHER_MEMORY_BUCKET_MAX_CLASSES]{};
+    bucket_class_stats_t classStats[CYPHER_MEMORY_BUCKET_MAX_CLASSES]{};
 };
 
 struct bucket_t {
@@ -71,18 +71,18 @@ struct bucket_t {
     arena_t *arena{ nullptr };
 
     bucket_class_t classes[CYPHER_MEMORY_BUCKET_MAX_CLASSES]{};
-    common::usize class_count{ 0u };
+    common::usize nClassCount{ 0u };
     common::usize alignment{ CYPHER_MEMORY_DEFAULT_ALIGNMENT };
 
-    common::usize peak_used_count{ 0u };
+    common::usize nPeakUsedCount{ 0u };
 
-    common::u64 allocation_count{ 0u };
-    common::u64 free_operation_count{ 0u };
-    common::u64 failed_allocation_count{ 0u };
-    common::u64 failed_free_count{ 0u };
+    common::u64 nAllocationCount{ 0u };
+    common::u64 nFreeOperationCount{ 0u };
+    common::u64 nFailedAllocationCount{ 0u };
+    common::u64 nFailedFreeCount{ 0u };
 
     common::u32 flags{ CYPHER_MEMORY_BUCKET_FLAG_NONE };
-    mem_error_t last_error{ mem_error_t::OK };
+    mem_error_t lastError{ mem_error_t::OK };
     bool initialized{ false };
 };
 
@@ -90,7 +90,7 @@ using bucket_allocator_t = bucket_t;
 
 bucket_desc_t CypherMemory_BucketDefaultDesc( arena_t &arena, const char *name = nullptr );
 
-mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &bucket_desc );
+mem_error_t CypherMemory_BucketInit( bucket_t &bucket, const bucket_desc_t &bucketDesc );
 
 void CypherMemory_BucketShutdown( bucket_t &bucket );
 
