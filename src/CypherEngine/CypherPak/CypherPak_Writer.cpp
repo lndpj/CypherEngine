@@ -23,7 +23,7 @@ constexpr common::u64 FNV1A64_OFFSET = 14695981039346656037ull;
 constexpr common::u64 FNV1A64_PRIME = 1099511628211ull;
 constexpr common::u64 IO_CHUNK_SIZE = 64u * 1024u;
 
-std::atomic<common::u32> g_NextWriterHandle{ 1u };
+std::atomic<common::u32> s_NextWriterHandle{ 1u };
 
 struct source_file_copy_t {
     std::string szVirtualPath;
@@ -53,9 +53,9 @@ struct writer_state_t {
 
 pak_handle_t AllocateWriterHandle()
 {
-    common::u32 handle = g_NextWriterHandle.fetch_add( 1u );
+    common::u32 handle = s_NextWriterHandle.fetch_add( 1u );
     if ( handle == CYPHER_PAK_INVALID_HANDLE ) {
-        handle = g_NextWriterHandle.fetch_add( 1u );
+        handle = s_NextWriterHandle.fetch_add( 1u );
     }
     return handle;
 }
