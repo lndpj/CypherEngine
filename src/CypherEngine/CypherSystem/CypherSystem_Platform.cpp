@@ -51,7 +51,7 @@
 namespace cypher::engine::sys
 {
 
-runtime_state_t g_SysRuntimeState;
+static runtime_state_t s_SysRuntimeState;
 
 namespace {
 
@@ -177,7 +177,7 @@ Copies startup info and builds platform paths.
 ================
 */
 sys_error_t CypherSystem_Init( const init_info_t &infoInit ) {
-    if ( g_SysRuntimeState.initialized ) {
+    if ( s_SysRuntimeState.initialized ) {
         return sys_error_t::ERR_IS_INIT;
     }
     if ( infoInit.szAppName == nullptr || infoInit.szAppName[0] == '\0' ) {
@@ -186,31 +186,31 @@ sys_error_t CypherSystem_Init( const init_info_t &infoInit ) {
     if ( infoInit.szOrganizationName == nullptr || infoInit.szOrganizationName[0] == '\0' ) {
         return sys_error_t::ERR_INVALID_ARGUMENT;
     }
-    g_SysRuntimeState = {};
+    s_SysRuntimeState = {};
 
     std::strncpy(
-                 g_SysRuntimeState.szAppName,
+                 s_SysRuntimeState.szAppName,
                  infoInit.szAppName,
-                 sizeof( g_SysRuntimeState.szAppName ) - 1u
+                 sizeof( s_SysRuntimeState.szAppName ) - 1u
     );
 
     std::strncpy(
-                 g_SysRuntimeState.szOrganizationName,
+                 s_SysRuntimeState.szOrganizationName,
                  infoInit.szOrganizationName,
-                 sizeof( g_SysRuntimeState.szOrganizationName ) - 1u
+                 sizeof( s_SysRuntimeState.szOrganizationName ) - 1u
     );
 
-    g_SysRuntimeState.argc = infoInit.argc;
-    g_SysRuntimeState.argv = infoInit.argv;
+    s_SysRuntimeState.argc = infoInit.argc;
+    s_SysRuntimeState.argv = infoInit.argv;
 
-    sys_error_t pathsResult = CypherSystem_PlatformBuildPaths( infoInit, g_SysRuntimeState.sysPaths );
+    sys_error_t pathsResult = CypherSystem_PlatformBuildPaths( infoInit, s_SysRuntimeState.sysPaths );
 
     if ( pathsResult != sys_error_t::OK ) {
-        g_SysRuntimeState = {};
+        s_SysRuntimeState = {};
         return pathsResult;
     }
 
-    g_SysRuntimeState.initialized = true;
+    s_SysRuntimeState.initialized = true;
 
     return sys_error_t::OK;
 }
@@ -221,13 +221,13 @@ CypherSystem_Shutdown
 ================
 */
 sys_error_t CypherSystem_Shutdown() {
-    if ( !g_SysRuntimeState.initialized ) {
+    if ( !s_SysRuntimeState.initialized ) {
         return sys_error_t::ERR_NOT_INIT;
     }
 
-    g_SysRuntimeState = {};
+    s_SysRuntimeState = {};
 
-    g_SysRuntimeState.initialized = false;
+    s_SysRuntimeState.initialized = false;
 
     return sys_error_t::OK;
 }
@@ -238,7 +238,7 @@ CypherSystem_IsInitialized
 ================
 */
 bool CypherSystem_IsInitialized() {
-    return g_SysRuntimeState.initialized;
+    return s_SysRuntimeState.initialized;
 }
 
 /*
@@ -309,7 +309,7 @@ CypherSystem_LocalTime
 bool CypherSystem_LocalTime( std::time_t timeValue, std::tm &timeOut ) {
 
 #   ifdef CYPHER_PLATFORM_WINDOWS
-                return localtimeS( &timeOut, &timeValue ) == 0;
+                return localtime_s( &timeOut, &timeValue ) == 0;
 #   else
                 return localtime_r( &timeValue, &timeOut ) != nullptr;
 #   endif
@@ -322,7 +322,7 @@ CypherSystem_Paths
 ================
 */
 const paths_t &CypherSystem_Paths() {
-    return g_SysRuntimeState.sysPaths;
+    return s_SysRuntimeState.sysPaths;
 }
 
 /*
@@ -331,11 +331,11 @@ CypherSystem_GetPaths
 ================
 */
 sys_error_t CypherSystem_GetPaths( paths_t &pathsOut ) {
-    if ( !g_SysRuntimeState.initialized ) {
+    if ( !s_SysRuntimeState.initialized ) {
         return sys_error_t::ERR_NOT_INIT;
     }
 
-    pathsOut = g_SysRuntimeState.sysPaths;
+    pathsOut = s_SysRuntimeState.sysPaths;
 
     return sys_error_t::OK;
 }
