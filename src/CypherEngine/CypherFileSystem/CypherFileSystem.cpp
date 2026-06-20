@@ -15,10 +15,10 @@
  ======================================================================
 																	   */
 
-#include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
-#include "CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherPak/CypherPak.h"
+#include "CypherFileSystem.h"
+#include "CypherFileSystem_Runtime.h"
+#include "CypherLog.h"
+#include "CypherPak.h"
 
 #include <algorithm>
 #include <cstdio>           // stdio file handles and read/write operations.
