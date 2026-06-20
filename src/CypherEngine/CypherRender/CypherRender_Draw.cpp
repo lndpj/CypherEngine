@@ -39,7 +39,7 @@ render_error_t CypherRender_DrawItem( const draw_item_t &item, const camera_t &c
         return result;
     }
 
-    result = CypherRender_ShaderSetMat4( *item.shader, "u_model", item.model_matrix );
+    result = CypherRender_ShaderSetMat4( *item.shader, "u_model", item.modelMatrix );
     if ( result != render_error_t::OK ) {
         LOG_ERROR( log::channel_t::RENDER, "draw item failed: setting u_model failed: %s.", CypherRender_ErrorDesc( result ) );
         return result;
@@ -60,27 +60,27 @@ render_error_t CypherRender_DrawItem( const draw_item_t &item, const camera_t &c
     return CypherRender_MeshDraw( *item.mesh );
 }
 
-void CypherRender_DrawListInit( draw_list_t &draw_list, draw_item_t *items, common::u32 item_capacity )
+void CypherRender_DrawListInit( draw_list_t &drawList, draw_item_t *items, common::u32 nItemCapacity )
 {
-    draw_list.items = items;
-    draw_list.item_count = 0u;
-    draw_list.item_capacity = item_capacity;
+    drawList.items = items;
+    drawList.nItemCount = 0u;
+    drawList.nItemCapacity = nItemCapacity;
 
-    LOG_DEBUG( log::channel_t::RENDER, "draw list initialized: capacity=%u.", item_capacity );
+    LOG_DEBUG( log::channel_t::RENDER, "draw list initialized: capacity=%u.", nItemCapacity );
 
     return ;
 }
 
-void CypherRender_DrawListClear( draw_list_t &draw_list )
+void CypherRender_DrawListClear( draw_list_t &drawList )
 {
-    draw_list.item_count = 0u;
+    drawList.nItemCount = 0u;
 
     return ;
 }
 
-render_error_t CypherRender_DrawListSubmit( draw_list_t &draw_list, const draw_item_t &item )
+render_error_t CypherRender_DrawListSubmit( draw_list_t &drawList, const draw_item_t &item )
 {
-    if ( draw_list.items == nullptr || draw_list.item_capacity == 0u ) {
+    if ( drawList.items == nullptr || drawList.nItemCapacity == 0u ) {
         LOG_ERROR( log::channel_t::RENDER, "draw list submit failed: draw list storage is invalid." );
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
@@ -90,30 +90,30 @@ render_error_t CypherRender_DrawListSubmit( draw_list_t &draw_list, const draw_i
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    if ( draw_list.item_count >= draw_list.item_capacity ) {
-        LOG_ERROR( log::channel_t::RENDER, "draw list submit failed: list full (%u/%u).", draw_list.item_count, draw_list.item_capacity );
+    if ( drawList.nItemCount >= drawList.nItemCapacity ) {
+        LOG_ERROR( log::channel_t::RENDER, "draw list submit failed: list full (%u/%u).", drawList.nItemCount, drawList.nItemCapacity );
         return render_error_t::ERR_DRAW_LIST_FULL;
     }
 
-    draw_list.items[draw_list.item_count] = item;
-    ++draw_list.item_count;
+    drawList.items[drawList.nItemCount] = item;
+    ++drawList.nItemCount;
 
     return render_error_t::OK;
 }
 
-render_error_t CypherRender_DrawListDraw( const draw_list_t &draw_list, const camera_t &camera )
+render_error_t CypherRender_DrawListDraw( const draw_list_t &drawList, const camera_t &camera )
 {
-    if ( draw_list.item_count == 0u ) {
+    if ( drawList.nItemCount == 0u ) {
         return render_error_t::OK;
     }
 
-    if ( draw_list.items == nullptr ) {
+    if ( drawList.items == nullptr ) {
         LOG_ERROR( log::channel_t::RENDER, "draw list draw failed: draw list storage is invalid." );
         return render_error_t::ERR_INVALID_FUNC_PARAMETER;
     }
 
-    for ( common::u32 i = 0u; i < draw_list.item_count; ++i ) {
-        const render_error_t result = CypherRender_DrawItem( draw_list.items[i], camera );
+    for ( common::u32 i = 0u; i < drawList.nItemCount; ++i ) {
+        const render_error_t result = CypherRender_DrawItem( drawList.items[i], camera );
 
         if ( result != render_error_t::OK ) {
             LOG_ERROR( log::channel_t::RENDER, "draw list draw failed: item=%u error=%s.", i, CypherRender_ErrorDesc( result ) );
