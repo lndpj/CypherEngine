@@ -244,6 +244,21 @@ static fs_error_t EmitWatchEvent(
     const char *szVirtualPath,
     const char *szOldVirtualPath )
 {
+    if ( szVirtualPath == nullptr || szVirtualPath[0] == '\0' ) {
+        return fs_error_t::ERR_INVALID_PATH;
+    }
+
+    const char *szOldPath = ( szOldVirtualPath != nullptr ) ? szOldVirtualPath : "";
+    for ( common::u32 i = 0u; i < nOutEventCount; ++i ) {
+        const watch_event_t &event = events[i];
+        if ( event.type == type &&
+             std::strcmp( event.szVirtualPath, szVirtualPath ) == 0 &&
+             std::strcmp( event.szOldVirtualPath, szOldPath ) == 0 )
+        {
+            return fs_error_t::OK;
+        }
+    }
+
     if ( nOutEventCount >= nMaxEvents ) {
         return fs_error_t::ERR_BUFFER_TOO_SMALL;
     }
@@ -1539,27 +1554,13 @@ fs_error_t CypherFileSystem_PollChanges(
         if ( result != fs_error_t::OK ) {
             return result;
         }
-        if ( nOutEventCount != nNativeEventCountBefore ) {
-            result = BuildFreshWatchSnapshot( oldWatch, state.watchScratch );
-            if ( result != fs_error_t::OK ) {
-                return result;
-            }
-            CopyWatchSnapshot( oldWatch, state.watchScratch );
-            continue;
-        }
+        ( void )nNativeEventCountBefore;
 #elif defined( CYPHER_PLATFORM_LINUX )
         result = LinuxPollNativeWatch( oldWatch, events, nMaxEvents, nOutEventCount );
         if ( result != fs_error_t::OK ) {
             return result;
         }
-        if ( nOutEventCount != nNativeEventCountBefore ) {
-            result = BuildFreshWatchSnapshot( oldWatch, state.watchScratch );
-            if ( result != fs_error_t::OK ) {
-                return result;
-            }
-            CopyWatchSnapshot( oldWatch, state.watchScratch );
-            continue;
-        }
+        ( void )nNativeEventCountBefore;
 #elif defined( CYPHER_PLATFORM_MACOS )
         result = MacOSPollNativeWatch( oldWatch );
         if ( result != fs_error_t::OK ) {
