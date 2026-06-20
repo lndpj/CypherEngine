@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherMath/CypherMath_Vec.h"
-#include "CypherEngine/CypherRender/CypherRender_Config.h"
+#include "CypherMath_Vec.h"
+#include "CypherRender_Config.h"
 
 namespace cypher::engine::render
 {
