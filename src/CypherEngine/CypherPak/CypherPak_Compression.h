@@ -19,7 +19,7 @@ struct pak_compression_config_t {
     pak_compression_t method{ pak_compression_t::NONE };
     common::u32 flags{ CYPHER_PAK_COMPRESS_NONE };
     common::u32 level{ 0u };
-    common::u32 chunk_size{ 0u };
+    common::u32 nChunkSize{ 0u };
 };
 
 const char *CypherPak_CompressionName( pak_compression_t method );
@@ -28,24 +28,24 @@ bool CypherPak_CompressionSupported( pak_compression_t method );
 
 pak_error_t CypherPak_CompressBound(
     pak_compression_t method,
-    common::u64 input_size,
-    common::u64 &out_max_output_size );
+    common::u64 nInputSize,
+    common::u64 &nOutMaxOutputSize );
 
 pak_error_t CypherPak_Compress(
     const pak_compression_config_t &config,
     const void *input,
-    common::u64 input_size,
+    common::u64 nInputSize,
     void *output,
-    common::u64 output_size,
-    common::u64 &out_bytes_written );
+    common::u64 nOutputSize,
+    common::u64 &nOutBytesWritten );
 
 pak_error_t CypherPak_Decompress(
     pak_compression_t method,
     const void *input,
-    common::u64 input_size,
+    common::u64 nInputSize,
     void *output,
-    common::u64 output_size,
-    common::u64 &out_bytes_written );
+    common::u64 nOutputSize,
+    common::u64 &nOutBytesWritten );
 
 }       // namespace cypher::engine::pak
 
