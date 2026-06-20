@@ -22,24 +22,24 @@ struct scratch_scope_t {
     arena_t *arena{ nullptr };
     arena_marker_t marker{};
 
-    common::usize used_at_begin{ 0u };
-    common::u64 allocation_count_at_begin{ 0u };
-    common::u64 failed_allocation_count_at_begin{ 0u };
+    common::usize nUsedAtBegin{ 0u };
+    common::u64 nAllocationCountAtBegin{ 0u };
+    common::u64 nFailedAllocationCountAtBegin{ 0u };
 
-    mem_error_t last_error{ mem_error_t::OK };
+    mem_error_t lastError{ mem_error_t::OK };
     bool active{ false };
 };
 
 struct scratch_stats_t {
     const char *name{ nullptr };
 
-    common::usize used_at_begin{ 0u };
-    common::usize used_current{ 0u };
-    common::usize used_since_begin{ 0u };
+    common::usize nUsedAtBegin{ 0u };
+    common::usize nUsedCurrent{ 0u };
+    common::usize nUsedSinceBegin{ 0u };
     common::usize capacity{ 0u };
 
-    common::u64 allocation_count_since_begin{ 0u };
-    common::u64 failed_allocation_count_since_begin{ 0u };
+    common::u64 nAllocationCountSinceBegin{ 0u };
+    common::u64 nFailedAllocationCountSinceBegin{ 0u };
 
     bool active{ false };
 };
@@ -101,7 +101,7 @@ T *CypherMemory_ScratchAllocArray( scratch_scope_t &scope, const common::usize c
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        scope.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
+        scope.lastError = mem_error_t::ERR_INTEGER_OVERFLOW;
         return nullptr;
     }
 
@@ -117,7 +117,7 @@ T *CypherMemory_ScratchAllocArrayDebug( scratch_scope_t &scope,
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        scope.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
+        scope.lastError = mem_error_t::ERR_INTEGER_OVERFLOW;
         return nullptr;
     }
 
@@ -129,7 +129,7 @@ T *CypherMemory_ScratchAllocArrayZero( scratch_scope_t &scope, const common::usi
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        scope.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
+        scope.lastError = mem_error_t::ERR_INTEGER_OVERFLOW;
         return nullptr;
     }
 
@@ -145,7 +145,7 @@ T *CypherMemory_ScratchAllocArrayZeroDebug( scratch_scope_t &scope,
 {
     common::usize size = 0u;
     if ( !CypherMemory_MulSizeChecked( sizeof( T ), count, size ) ) {
-        scope.last_error = mem_error_t::ERR_INTEGER_OVERFLOW;
+        scope.lastError = mem_error_t::ERR_INTEGER_OVERFLOW;
         return nullptr;
     }
 
