@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "CypherEngine/CypherConfig/CypherConfig_Error.h"
+#include "CypherConfig_Error.h"
 
 namespace cypher::engine::cfg {
 
