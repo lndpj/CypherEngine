@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
+#include "CypherCommon.h"
 
 namespace cypher::engine::math
 {
