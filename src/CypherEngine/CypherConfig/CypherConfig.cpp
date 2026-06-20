@@ -34,7 +34,7 @@ struct runtime_state_t {
 	bool initialized{ false };
 };
 
-runtime_state_t g_cfg_runtime_state;
+runtime_state_t g_CfgRuntimeState;
 
 constexpr const char *CYPHER_CONFIG_DEFAULT_PATH  = "config/default.cfg";
 constexpr const char *CYPHER_CONFIG_AUTOEXEC_PATH = "config/autoexec.cfg";
@@ -45,12 +45,12 @@ CypherConfig_Init
 ================
 */
 cfg_error_t CypherConfig_Init() {
-	if ( g_cfg_runtime_state.initialized ) {
+	if ( g_CfgRuntimeState.initialized ) {
 		LOG_WARNING( log::channel_t::CFG, "config system init requested while already initialized." );
 		return cfg_error_t::ERR_IS_INIT;
 	}
-	g_cfg_runtime_state = {};
-	g_cfg_runtime_state.initialized = true;
+	g_CfgRuntimeState = {};
+	g_CfgRuntimeState.initialized = true;
 	LOG_INFO( log::channel_t::CFG, "config system initialized." );
 	return cfg_error_t::OK;
 }
@@ -61,12 +61,12 @@ CypherConfig_Shutdown
 ================
 */
 cfg_error_t CypherConfig_Shutdown() {
-	if ( !g_cfg_runtime_state.initialized ) {
+	if ( !g_CfgRuntimeState.initialized ) {
 		LOG_WARNING( log::channel_t::CFG, "config system shutdown requested while not initialized." );
 		return cfg_error_t::ERR_NOT_INIT;
 	}
 	LOG_INFO( log::channel_t::CFG, "config system shutdown." );
-	g_cfg_runtime_state = {};
+	g_CfgRuntimeState = {};
 	return cfg_error_t::OK;
 }
 
@@ -82,19 +82,19 @@ cfg_error_t CypherConfig_LoadFile( const char *path, const bool required ) {
 		LOG_ERROR( log::channel_t::CFG, "config load failed: invalid path." );
 		return cfg_error_t::ERR_INVALID_PATH;
 	}
-	if ( !g_cfg_runtime_state.initialized ) {
+	if ( !g_CfgRuntimeState.initialized ) {
 		LOG_ERROR( log::channel_t::CFG, "config load failed for '%s': config system is not initialized.", path );
 		return cfg_error_t::ERR_NOT_INIT;
 	}
 
     fs::file_t file{};
 
-    const fs::fs_error_t open_result = fs::CypherFileSystem_Open( path, fs::open_mode_t::READ_TEXT, file );
-    if ( open_result != fs::fs_error_t::OK ) {
+    const fs::fs_error_t openResult = fs::CypherFileSystem_Open( path, fs::open_mode_t::READ_TEXT, file );
+    if ( openResult != fs::fs_error_t::OK ) {
         if ( required ) {
-            LOG_ERROR( log::channel_t::CFG, "required config '%s' failed to open: %s.", path, fs::CypherFileSystem_ErrorDesc( open_result ) );
+            LOG_ERROR( log::channel_t::CFG, "required config '%s' failed to open: %s.", path, fs::CypherFileSystem_ErrorDesc( openResult ) );
         } else {
-            LOG_DEBUG( log::channel_t::CFG, "optional config '%s' not loaded: %s.", path, fs::CypherFileSystem_ErrorDesc( open_result ) );
+            LOG_DEBUG( log::channel_t::CFG, "optional config '%s' not loaded: %s.", path, fs::CypherFileSystem_ErrorDesc( openResult ) );
         }
         return required ? cfg_error_t::ERR_FILE_OPEN_FAILED : cfg_error_t::OK;
     }
@@ -114,59 +114,59 @@ cfg_error_t CypherConfig_LoadFile( const char *path, const bool required ) {
     }
 
     char buffer[CYPHER_CONFIG_MAX_FILE_SIZE]{};
-    common::u64 bytes_read{};
+    common::u64 nBytesRead{};
 
-    const fs::fs_error_t read_result = fs::CypherFileSystem_Read( file, buffer, file.size, bytes_read );
-    const fs::fs_error_t close_result = fs::CypherFileSystem_Close( file );
+    const fs::fs_error_t readResult = fs::CypherFileSystem_Read( file, buffer, file.size, nBytesRead );
+    const fs::fs_error_t closeResult = fs::CypherFileSystem_Close( file );
 
-    if ( read_result != fs::fs_error_t::OK ) {
-        LOG_ERROR( log::channel_t::CFG, "config '%s' failed: read failed: %s.", path, fs::CypherFileSystem_ErrorDesc( read_result ) );
+    if ( readResult != fs::fs_error_t::OK ) {
+        LOG_ERROR( log::channel_t::CFG, "config '%s' failed: read failed: %s.", path, fs::CypherFileSystem_ErrorDesc( readResult ) );
         return cfg_error_t::ERR_IO_ERROR;
     }
 
-    if ( close_result != fs::fs_error_t::OK ) {
-        LOG_ERROR( log::channel_t::CFG, "config '%s' failed: close failed: %s.", path, fs::CypherFileSystem_ErrorDesc( close_result ) );
+    if ( closeResult != fs::fs_error_t::OK ) {
+        LOG_ERROR( log::channel_t::CFG, "config '%s' failed: close failed: %s.", path, fs::CypherFileSystem_ErrorDesc( closeResult ) );
         return cfg_error_t::ERR_IO_ERROR;
     }
 
-    buffer[bytes_read] = '\0';
+    buffer[nBytesRead] = '\0';
     cfg_error_t result = cfg_error_t::OK;
 
-    char *line_start = buffer;
+    char *szLineStart = buffer;
 
-    while ( *line_start != '\0' ) {
-        char *line_end = line_start;
+    while ( *szLineStart != '\0' ) {
+        char *szLineEnd = szLineStart;
 
-        while ( *line_end != '\0' && *line_end != '\n' && *line_end != '\r' ) {
-            ++line_end;
+        while ( *szLineEnd != '\0' && *szLineEnd != '\n' && *szLineEnd != '\r' ) {
+            ++szLineEnd;
         }
 
-        char save_line_end = *line_end;
-        *line_end = '\0';
+        char szSaveLineEnd = *szLineEnd;
+        *szLineEnd = '\0';
 
-        const cfg_error_t line_result = CypherConfig_ExecuteLine( line_start );
+        const cfg_error_t lineResult = CypherConfig_ExecuteLine( szLineStart );
 
-        if ( line_result != cfg_error_t::OK && result == cfg_error_t::OK ) {
-            LOG_WARNING( log::channel_t::CFG, "config '%s' line failed: %s.", path, CypherConfig_ErrorDesc( line_result ) );
-            result = line_result;
+        if ( lineResult != cfg_error_t::OK && result == cfg_error_t::OK ) {
+            LOG_WARNING( log::channel_t::CFG, "config '%s' line failed: %s.", path, CypherConfig_ErrorDesc( lineResult ) );
+            result = lineResult;
         }
 
-        if ( save_line_end == '\0' ) {
+        if ( szSaveLineEnd == '\0' ) {
             break;
         }
 
-        line_start = line_end + 1;
+        szLineStart = szLineEnd + 1;
 
         // Skip the second byte of Windows CRLF line endings.
-        if ( save_line_end == '\r' && *line_start == '\n' ) {
-            ++line_start;
+        if ( szSaveLineEnd == '\r' && *szLineStart == '\n' ) {
+            ++szLineStart;
         }
     }
 
     if ( result == cfg_error_t::OK ) {
         LOG_INFO( log::channel_t::CFG, "config '%s' loaded successfully (%llu bytes).",
                          path,
-                         static_cast<unsigned long long>( bytes_read ) );
+                         static_cast<unsigned long long>( nBytesRead ) );
     }
 
     return result;
@@ -178,7 +178,7 @@ CypherConfig_LoadDefault
 ================
 */
 cfg_error_t CypherConfig_LoadDefault() {
-	if ( !g_cfg_runtime_state.initialized ) {
+	if ( !g_CfgRuntimeState.initialized ) {
 		return cfg_error_t::ERR_NOT_INIT;
 	}
 	return CypherConfig_LoadFile( CYPHER_CONFIG_DEFAULT_PATH, true );
@@ -190,7 +190,7 @@ CypherConfig_LoadAutoexec
 ================
 */
 cfg_error_t CypherConfig_LoadAutoexec() {
-	if ( !g_cfg_runtime_state.initialized ) {
+	if ( !g_CfgRuntimeState.initialized ) {
 		return cfg_error_t::ERR_NOT_INIT;
 	}
 	return CypherConfig_LoadFile( CYPHER_CONFIG_AUTOEXEC_PATH, false );
@@ -203,16 +203,16 @@ CypherConfig_ExecuteLine
 Executes one trimmed cfg line: exec, set/seta, or regular command.
 ================
 */
-cfg_error_t CypherConfig_ExecuteLine( const char *command_line ) {
-	if ( !g_cfg_runtime_state.initialized ) {
+cfg_error_t CypherConfig_ExecuteLine( const char *nCommandLine ) {
+	if ( !g_CfgRuntimeState.initialized ) {
 		return cfg_error_t::ERR_INVALID_LINE;
 	}
 
-    if ( command_line == nullptr ) {
+    if ( nCommandLine == nullptr ) {
         return cfg_error_t::ERR_INVALID_LINE;
     }
 	char line[CYPHER_CONFIG_MAX_LINE_LENGTH] {};
-	std::strncpy( line, command_line, sizeof( line ) - 1 );
+	std::strncpy( line, nCommandLine, sizeof( line ) - 1 );
 
 	char *cursor = line;
 	while ( std::isspace( static_cast<unsigned char>( *cursor ) ) ) {
@@ -221,17 +221,17 @@ cfg_error_t CypherConfig_ExecuteLine( const char *command_line ) {
 	if ( *cursor == '\0' || *cursor == '\n' || *cursor == '\r' ) {
 		return cfg_error_t::OK;
 	}
-	bool in_quotes = false;
+	bool inQuotes = false;
 	for ( char *it = cursor; *it != '\0'; ++it ) {
 		// Comments are ignored unless they are inside quoted values.
 		if ( *it == '"' ) {
-			in_quotes = !in_quotes;
+			inQuotes = !inQuotes;
 		}
-		if ( !in_quotes && it[0] == '/' && it[1] == '/' ) {
+		if ( !inQuotes && it[0] == '/' && it[1] == '/' ) {
 			*it = '\0';
 			break;
 		}
-		if ( !in_quotes && *it == '#' ) {
+		if ( !inQuotes && *it == '#' ) {
 			*it = '\0';
 			break;
 		}
@@ -257,25 +257,25 @@ cfg_error_t CypherConfig_ExecuteLine( const char *command_line ) {
 		if ( *cursor == '\0' ) {
 			return cfg_error_t::ERR_PARSE_FAILED;
 		}
-		char exec_path[CYPHER_CONFIG_MAX_PATH_LENGTH]{};
+		char szExecPath[CYPHER_CONFIG_MAX_PATH_LENGTH]{};
 		i = 0;
 		if ( *cursor == '"' ) {
 			++cursor;
-			while ( cursor[i] != '\0' && cursor[i] != '"' && ( i + 1u ) < sizeof( exec_path ) ) {
-				exec_path[i] = cursor[i];
+			while ( cursor[i] != '\0' && cursor[i] != '"' && ( i + 1u ) < sizeof( szExecPath ) ) {
+				szExecPath[i] = cursor[i];
 				++i;
 			}
 			if ( cursor[i] != '"' ) {
 				return cfg_error_t::ERR_PARSE_FAILED;
 			}
 		} else {
-			while ( cursor[i] != '\0' && !std::isspace( static_cast<unsigned char>( cursor[i] ) ) && ( i + 1u ) < sizeof( exec_path ) ) {
-				exec_path[i] = cursor[i];
+			while ( cursor[i] != '\0' && !std::isspace( static_cast<unsigned char>( cursor[i] ) ) && ( i + 1u ) < sizeof( szExecPath ) ) {
+				szExecPath[i] = cursor[i];
 				++i;
 			}
 		}
-		exec_path[i] = '\0';
-		return CypherConfig_LoadFile( exec_path, false );
+		szExecPath[i] = '\0';
+		return CypherConfig_LoadFile( szExecPath, false );
 	}
 	if ( std::strcmp( command, "set" ) == 0 || std::strcmp( command, "seta" ) == 0 ) {
 		while ( std::isspace( static_cast<unsigned char>( *cursor ) ) ) {
@@ -284,14 +284,14 @@ cfg_error_t CypherConfig_ExecuteLine( const char *command_line ) {
 		if ( *cursor == '\0' ) {
 			return cfg_error_t::ERR_PARSE_FAILED;
 		}
-		char cvar_name[256]{};
+		char szCvarName[256]{};
 		i = 0;
-		while ( *cursor != '\0' && !std::isspace( static_cast<unsigned char>( *cursor ) ) && ( i + 1u ) < sizeof( cvar_name ) ) {
-			cvar_name[i++] = *cursor++;
+		while ( *cursor != '\0' && !std::isspace( static_cast<unsigned char>( *cursor ) ) && ( i + 1u ) < sizeof( szCvarName ) ) {
+			szCvarName[i++] = *cursor++;
 		}
-		cvar_name[i] = '\0';
+		szCvarName[i] = '\0';
 
-		if ( cvar_name[0] == '\0' ) {
+		if ( szCvarName[0] == '\0' ) {
 			return cfg_error_t::ERR_PARSE_FAILED;
 		}
 		while ( std::isspace( static_cast<unsigned char>( *cursor ) ) ) {
@@ -300,28 +300,28 @@ cfg_error_t CypherConfig_ExecuteLine( const char *command_line ) {
 		if ( *cursor == '\0' ) {
 			return cfg_error_t::ERR_PARSE_FAILED;
 		}
-		char cvar_value[CYPHER_CONFIG_MAX_LINE_LENGTH]{};
+		char cvarValue[CYPHER_CONFIG_MAX_LINE_LENGTH]{};
 		i = 0;
 		if ( *cursor == '"' ) {
 			++cursor;
-			while ( cursor[i] != '\0' && cursor[i] != '"' && ( i + 1u ) < sizeof( cvar_value ) ) {
-				cvar_value[i] = cursor[i];
+			while ( cursor[i] != '\0' && cursor[i] != '"' && ( i + 1u ) < sizeof( cvarValue ) ) {
+				cvarValue[i] = cursor[i];
 				++i;
 			}
 			if ( cursor[i] != '"' ) {
 				return cfg_error_t::ERR_PARSE_FAILED;
 			}
 		} else {
-			while ( cursor[i] != '\0' && !std::isspace( static_cast<unsigned char>( cursor[i] ) ) && ( i + 1u ) < sizeof( cvar_value ) ) {
-				cvar_value[i] = cursor[i];
+			while ( cursor[i] != '\0' && !std::isspace( static_cast<unsigned char>( cursor[i] ) ) && ( i + 1u ) < sizeof( cvarValue ) ) {
+				cvarValue[i] = cursor[i];
 				++i;
 			}
 		}
-		cvar_value[i] = '\0';
-		if ( cvar_value[0] == '\0' ) {
+		cvarValue[i] = '\0';
+		if ( cvarValue[0] == '\0' ) {
 			return cfg_error_t::ERR_PARSE_FAILED;
 		}
-		if ( cvar::CypherCVar_Set( cvar_name, cvar_value ) != cvar::cvar_error_t::OK ) {
+		if ( cvar::CypherCVar_Set( szCvarName, cvarValue ) != cvar::cvar_error_t::OK ) {
 			return cfg_error_t::ERR_PARSE_FAILED;
 		}
 		return cfg_error_t::OK;
