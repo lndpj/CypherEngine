@@ -36,6 +36,12 @@ bool CheckError( fs::fs_error_t actual, fs::fs_error_t expected, const char *mes
     return false;
 }
 
+void TraceStep( const char *message )
+{
+    std::fprintf( stderr, "filesystem smoke step: %s\n", message );
+    std::fflush( stderr );
+}
+
 bool WritePhysicalTextFile( const std::filesystem::path &path, const char *text )
 {
     std::error_code ec{};
@@ -104,6 +110,8 @@ bool TraceResolvedThroughMount( const fs::resolve_trace_t &trace, const fs::moun
 
 int main()
 {
+    TraceStep( "setup temp root" );
+
     const std::filesystem::path szRootPath =
         std::filesystem::temp_directory_path() / "CypherFileSystem_Smoke";
 
@@ -117,6 +125,8 @@ int main()
     }
 
     const std::string szWritePath = szRootPath.string();
+
+    TraceStep( "init and path policy" );
 
     if ( !CheckError( fs::CypherFileSystem_Init(), fs::fs_error_t::OK, "init" ) ) {
         return 1;
@@ -180,6 +190,8 @@ int main()
         return 1;
     }
 
+    TraceStep( "basic write and read mount" );
+
     if ( !CheckError( fs::CypherFileSystem_CreateDirectory( "profiles/player1" ), fs::fs_error_t::OK, "create directory" ) ) {
         return 1;
     }
@@ -225,6 +237,8 @@ int main()
     if ( !Check( mountInfo.handle == readMount && mountInfo.priority == 0u, "mount info values" ) ) {
         return 1;
     }
+
+    TraceStep( "directory overlay mounts" );
 
     const std::filesystem::path szBaseContentPath = szRootPath / "BaseContent";
     const std::filesystem::path szModContentPath = szRootPath / "ModContent";
@@ -290,6 +304,8 @@ int main()
     if ( !Check( std::filesystem::equivalent( std::filesystem::path( szPathBuffer ), szBaseContentPath / "shared.cfg", ec ), "overlay falls back after unmount" ) ) {
         return 1;
     }
+
+    TraceStep( "package overlay" );
 
     const std::filesystem::path szPackageSourcePath = szRootPath / "PackageSource";
     const std::filesystem::path szPackageSharedPath = szPackageSourcePath / "Shared.cfg";
@@ -482,6 +498,8 @@ int main()
         return 1;
     }
 
+    TraceStep( "loose file discovery" );
+
     if ( !Check( fs::CypherFileSystem_Exists( "profiles/player1/config.cfg" ), "file exists through mount" ) ) {
         return 1;
     }
@@ -544,6 +562,8 @@ int main()
         return 1;
     }
 
+    TraceStep( "loose file operations" );
+
     const char szExtraText[] = "rate 1\n";
     if ( !CheckError( fs::CypherFileSystem_AppendEntireFile( "profiles/player1/config.cfg", szExtraText, std::strlen( szExtraText ) ), fs::fs_error_t::OK, "append entire file" ) ) {
         return 1;
@@ -589,6 +609,8 @@ int main()
         return 1;
     }
 
+    TraceStep( "async read" );
+
     std::memset( pReadBuffer, 0, sizeof( pReadBuffer ) );
 
     fs::async_request_t request = fs::CYPHER_FILESYSTEM_INVALID_ASYNC_REQUEST;
@@ -608,6 +630,8 @@ int main()
     if ( !Check( asyncResult.nBytesTransferred == nBytesRead && std::memcmp( pReadBuffer, text, std::strlen( text ) ) == 0, "read async bytes" ) ) {
         return 1;
     }
+
+    TraceStep( "async write" );
 
     const char szAsyncText[] = "async write\n";
     fs::async_request_t writeRequest = fs::CYPHER_FILESYSTEM_INVALID_ASYNC_REQUEST;
@@ -631,6 +655,8 @@ int main()
         return 1;
     }
 
+    TraceStep( "watch setup" );
+
     fs::watch_handle_t watch = fs::CYPHER_FILESYSTEM_INVALID_WATCH;
     if ( !CheckError( fs::CypherFileSystem_WatchPath( "profiles/player1", fs::CYPHER_FILESYSTEM_WATCH_DIRECTORY, watch ), fs::fs_error_t::OK, "watch directory" ) ) {
         return 1;
@@ -641,30 +667,38 @@ int main()
 
     fs::watch_event_t events[8]{};
     cypher::engine::common::u32 nWatchEventCount = 0u;
+    TraceStep( "watch poll unchanged" );
     if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 8u, nWatchEventCount ), fs::fs_error_t::OK, "poll unchanged watch" ) ) {
         return 1;
     }
+    TraceStep( "watch write file" );
     if ( !CheckError( fs::CypherFileSystem_WriteEntireFile( "profiles/player1/watched.cfg", text, std::strlen( text ) ), fs::fs_error_t::OK, "write watched file" ) ) {
         return 1;
     }
+    TraceStep( "watch poll created" );
     if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 8u, nWatchEventCount ), fs::fs_error_t::OK, "poll created watch file" ) ) {
         return 1;
     }
     if ( !Check( HasWatchEvent( events, nWatchEventCount, fs::watch_event_type_t::CREATED, "profiles/player1/watched.cfg" ), "watch reports created file" ) ) {
         return 1;
     }
+    TraceStep( "watch delete file" );
     if ( !CheckError( fs::CypherFileSystem_DeleteFile( "profiles/player1/watched.cfg" ), fs::fs_error_t::OK, "delete watched file" ) ) {
         return 1;
     }
+    TraceStep( "watch poll deleted" );
     if ( !CheckError( fs::CypherFileSystem_PollChanges( events, 8u, nWatchEventCount ), fs::fs_error_t::OK, "poll deleted watch file" ) ) {
         return 1;
     }
     if ( !Check( HasWatchEvent( events, nWatchEventCount, fs::watch_event_type_t::DELETED, "profiles/player1/watched.cfg" ), "watch reports deleted file" ) ) {
         return 1;
     }
+    TraceStep( "watch unwatch" );
     if ( !CheckError( fs::CypherFileSystem_UnwatchPath( watch ), fs::fs_error_t::OK, "unwatch directory" ) ) {
         return 1;
     }
+
+    TraceStep( "cleanup" );
 
     if ( !CheckError( fs::CypherFileSystem_MountPackage( "", "pak0.pak", fs::CYPHER_FILESYSTEM_MOUNT_READ_ONLY | fs::CYPHER_FILESYSTEM_MOUNT_OPTIONAL, 0u ), fs::fs_error_t::OK, "optional missing package mount" ) ) {
         return 1;
