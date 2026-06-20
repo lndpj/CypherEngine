@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherCommon/CypherCommon.h"
-#include "CypherEngine/CypherCommon/CypherCommon_Error.h"
+#include "CypherCommon.h"
+#include "CypherCommon_Error.h"
 
 namespace cypher::engine::cfg {
 
