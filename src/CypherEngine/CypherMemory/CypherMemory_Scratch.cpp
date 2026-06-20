@@ -25,7 +25,7 @@ void *CypherMemory_ScratchFailAlloc( scratch_scope_t &scope,
                                      const mem_error_t error,
                                      const char *reason )
 {
-    scope.last_error = error;
+    scope.lastError = error;
 
     LOG_ERROR( log::channel_t::MEMORY,
                       "scratch scope '%s' allocation failed: %s.",
@@ -40,32 +40,32 @@ void *CypherMemory_ScratchFailAlloc( scratch_scope_t &scope,
 mem_error_t CypherMemory_ScratchBegin( scratch_scope_t &scope, arena_t &arena, const char *name )
 {
     if ( scope.active ) {
-        scope.last_error = mem_error_t::ERR_ALREADY_INITIALIZED;
+        scope.lastError = mem_error_t::ERR_ALREADY_INITIALIZED;
         LOG_WARNING( log::channel_t::MEMORY,
                             "scratch scope '%s' begin failed: scope is already active.",
                             scope.name ? scope.name : "<unnamed>" );
-        return scope.last_error;
+        return scope.lastError;
     }
 
     if ( !CypherMemory_ArenaIsInitialized( arena ) ) {
         scope = {};
         scope.name = name;
         scope.arena = &arena;
-        scope.last_error = mem_error_t::ERR_NOT_INITIALIZED;
+        scope.lastError = mem_error_t::ERR_NOT_INITIALIZED;
         LOG_ERROR( log::channel_t::MEMORY,
                           "scratch scope '%s' begin failed: backing arena is not initialized.",
                           name ? name : "<unnamed>" );
-        return scope.last_error;
+        return scope.lastError;
     }
 
     scope = {};
     scope.name = name;
     scope.arena = &arena;
     scope.marker = CypherMemory_ArenaGetMarker( arena );
-    scope.used_at_begin = arena.used;
-    scope.allocation_count_at_begin = arena.allocation_count;
-    scope.failed_allocation_count_at_begin = arena.failed_allocation_count;
-    scope.last_error = mem_error_t::OK;
+    scope.nUsedAtBegin = arena.used;
+    scope.nAllocationCountAtBegin = arena.nAllocationCount;
+    scope.nFailedAllocationCountAtBegin = arena.nFailedAllocationCount;
+    scope.lastError = mem_error_t::OK;
     scope.active = true;
 
     return mem_error_t::OK;
@@ -74,24 +74,24 @@ mem_error_t CypherMemory_ScratchBegin( scratch_scope_t &scope, arena_t &arena, c
 mem_error_t CypherMemory_ScratchEnd( scratch_scope_t &scope )
 {
     if ( !scope.active ) {
-        scope.last_error = mem_error_t::ERR_NOT_INITIALIZED;
-        return scope.last_error;
+        scope.lastError = mem_error_t::ERR_NOT_INITIALIZED;
+        return scope.lastError;
     }
 
     if ( scope.arena == nullptr || !CypherMemory_ArenaIsInitialized( *scope.arena ) ) {
-        scope.last_error = mem_error_t::ERR_NOT_INITIALIZED;
+        scope.lastError = mem_error_t::ERR_NOT_INITIALIZED;
         scope.active = false;
-        return scope.last_error;
+        return scope.lastError;
     }
 
-    const mem_error_t rewind_result = CypherMemory_ArenaRewind( *scope.arena, scope.marker );
-    scope.last_error = rewind_result;
+    const mem_error_t rewindResult = CypherMemory_ArenaRewind( *scope.arena, scope.marker );
+    scope.lastError = rewindResult;
 
     const char *name = scope.name;
     scope = {};
     scope.name = name;
 
-    return rewind_result;
+    return rewindResult;
 }
 
 scratch_stats_t CypherMemory_ScratchStats( const scratch_scope_t &scope )
@@ -99,21 +99,21 @@ scratch_stats_t CypherMemory_ScratchStats( const scratch_scope_t &scope )
     scratch_stats_t stats{};
 
     stats.name = scope.name;
-    stats.used_at_begin = scope.used_at_begin;
+    stats.nUsedAtBegin = scope.nUsedAtBegin;
     stats.active = scope.active;
 
     if ( !scope.active || scope.arena == nullptr || !CypherMemory_ArenaIsInitialized( *scope.arena ) ) {
         return stats;
     }
 
-    stats.used_current = scope.arena->used;
-    stats.used_since_begin = stats.used_current >= scope.used_at_begin ? stats.used_current - scope.used_at_begin : 0u;
+    stats.nUsedCurrent = scope.arena->used;
+    stats.nUsedSinceBegin = stats.nUsedCurrent >= scope.nUsedAtBegin ? stats.nUsedCurrent - scope.nUsedAtBegin : 0u;
     stats.capacity = scope.arena->capacity;
-    stats.allocation_count_since_begin = scope.arena->allocation_count >= scope.allocation_count_at_begin
-                                             ? scope.arena->allocation_count - scope.allocation_count_at_begin
+    stats.nAllocationCountSinceBegin = scope.arena->nAllocationCount >= scope.nAllocationCountAtBegin
+                                             ? scope.arena->nAllocationCount - scope.nAllocationCountAtBegin
                                              : 0u;
-    stats.failed_allocation_count_since_begin = scope.arena->failed_allocation_count >= scope.failed_allocation_count_at_begin
-                                                    ? scope.arena->failed_allocation_count - scope.failed_allocation_count_at_begin
+    stats.nFailedAllocationCountSinceBegin = scope.arena->nFailedAllocationCount >= scope.nFailedAllocationCountAtBegin
+                                                    ? scope.arena->nFailedAllocationCount - scope.nFailedAllocationCountAtBegin
                                                     : 0u;
 
     return stats;
@@ -140,7 +140,7 @@ void *CypherMemory_ScratchAllocDebug( scratch_scope_t &scope,
     }
 
     void *memory = CypherMemory_ArenaAllocDebug( *scope.arena, size, alignment, file, function, line );
-    scope.last_error = CypherMemory_ArenaLastError( *scope.arena );
+    scope.lastError = CypherMemory_ArenaLastError( *scope.arena );
 
     return memory;
 }
@@ -166,7 +166,7 @@ void *CypherMemory_ScratchAllocZeroDebug( scratch_scope_t &scope,
     }
 
     void *memory = CypherMemory_ArenaAllocZeroDebug( *scope.arena, size, alignment, file, function, line );
-    scope.last_error = CypherMemory_ArenaLastError( *scope.arena );
+    scope.lastError = CypherMemory_ArenaLastError( *scope.arena );
 
     return memory;
 }
@@ -178,7 +178,7 @@ bool CypherMemory_ScratchIsActive( const scratch_scope_t &scope )
 
 mem_error_t CypherMemory_ScratchLastError( const scratch_scope_t &scope )
 {
-    return scope.last_error;
+    return scope.lastError;
 }
 
 }       // namespace cypher::engine::memory
