@@ -26,76 +26,76 @@ bool CypherPak_CompressionSupported( const pak_compression_t method )
 
 pak_error_t CypherPak_CompressBound(
     const pak_compression_t method,
-    const common::u64 input_size,
-    common::u64 &out_max_output_size )
+    const common::u64 nInputSize,
+    common::u64 &nOutMaxOutputSize )
 {
-    out_max_output_size = 0u;
+    nOutMaxOutputSize = 0u;
 
     if ( !CypherPak_CompressionSupported( method ) ) {
         return pak_error_t::ERR_UNSUPPORTED_COMPRESSION;
     }
 
-    out_max_output_size = input_size;
+    nOutMaxOutputSize = nInputSize;
     return pak_error_t::OK;
 }
 
 pak_error_t CypherPak_Compress(
     const pak_compression_config_t &config,
     const void *input,
-    const common::u64 input_size,
+    const common::u64 nInputSize,
     void *output,
-    const common::u64 output_size,
-    common::u64 &out_bytes_written )
+    const common::u64 nOutputSize,
+    common::u64 &nOutBytesWritten )
 {
-    out_bytes_written = 0u;
+    nOutBytesWritten = 0u;
 
     if ( !CypherPak_CompressionSupported( config.method ) ) {
         return pak_error_t::ERR_UNSUPPORTED_COMPRESSION;
     }
-    if ( input_size > 0u && input == nullptr ) {
+    if ( nInputSize > 0u && input == nullptr ) {
         return pak_error_t::ERR_INVALID_ARGUMENT;
     }
-    if ( input_size > 0u && output == nullptr ) {
+    if ( nInputSize > 0u && output == nullptr ) {
         return pak_error_t::ERR_INVALID_ARGUMENT;
     }
-    if ( output_size < input_size ) {
+    if ( nOutputSize < nInputSize ) {
         return pak_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
-    if ( input_size > 0u ) {
-        std::memcpy( output, input, static_cast<common::usize>( input_size ) );
+    if ( nInputSize > 0u ) {
+        std::memcpy( output, input, static_cast<common::usize>( nInputSize ) );
     }
-    out_bytes_written = input_size;
+    nOutBytesWritten = nInputSize;
     return pak_error_t::OK;
 }
 
 pak_error_t CypherPak_Decompress(
     const pak_compression_t method,
     const void *input,
-    const common::u64 input_size,
+    const common::u64 nInputSize,
     void *output,
-    const common::u64 output_size,
-    common::u64 &out_bytes_written )
+    const common::u64 nOutputSize,
+    common::u64 &nOutBytesWritten )
 {
-    out_bytes_written = 0u;
+    nOutBytesWritten = 0u;
 
     if ( !CypherPak_CompressionSupported( method ) ) {
         return pak_error_t::ERR_UNSUPPORTED_COMPRESSION;
     }
-    if ( input_size > 0u && input == nullptr ) {
+    if ( nInputSize > 0u && input == nullptr ) {
         return pak_error_t::ERR_INVALID_ARGUMENT;
     }
-    if ( input_size > 0u && output == nullptr ) {
+    if ( nInputSize > 0u && output == nullptr ) {
         return pak_error_t::ERR_INVALID_ARGUMENT;
     }
-    if ( output_size < input_size ) {
+    if ( nOutputSize < nInputSize ) {
         return pak_error_t::ERR_BUFFER_TOO_SMALL;
     }
 
-    if ( input_size > 0u ) {
-        std::memcpy( output, input, static_cast<common::usize>( input_size ) );
+    if ( nInputSize > 0u ) {
+        std::memcpy( output, input, static_cast<common::usize>( nInputSize ) );
     }
-    out_bytes_written = input_size;
+    nOutBytesWritten = nInputSize;
     return pak_error_t::OK;
 }
 
