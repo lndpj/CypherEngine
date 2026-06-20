@@ -67,8 +67,6 @@ struct runtime_state_t {
 
 };
 
-extern runtime_state_t g_SysRuntimeState;
-
 /*
 ================
 System API
