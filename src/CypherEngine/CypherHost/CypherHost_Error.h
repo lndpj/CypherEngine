@@ -57,7 +57,7 @@ constexpr inline const char *CypherHost_ErrorDesc( const host_error_t error ) {
 }
 
 constexpr inline common::error_t CypherHost_ErrorCode( host_error_t error ) {
-    return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_HOST, static_cast<common::com_u16>( error ) );
+    return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_HOST, static_cast<common::u16>( error ) );
 }
 
 }
