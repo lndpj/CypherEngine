@@ -1,6 +1,6 @@
-#include "CypherEngine/CypherFileSystem/CypherFileSystem_Runtime.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherPak/CypherPak.h"
+#include "CypherFileSystem_Runtime.h"
+#include "CypherLog.h"
+#include "CypherPak.h"
 
 #include <cstring>
 #include <filesystem>
