@@ -3,8 +3,8 @@
 
 #pragma once
 
-#include "CypherEngine/CypherHost/CypherHost_Error.h"
-#include "CypherEngine/CypherHost/CypherHost_Types.h"
+#include "CypherHost_Error.h"
+#include "CypherHost_Types.h"
 
 namespace cypher::engine::host
 {
