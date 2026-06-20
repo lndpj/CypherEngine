@@ -14,16 +14,16 @@
    Version: 0.1.0
  ======================================================================
 																	   */
-#include "CypherEngine/CypherCommand/CypherCommand.h"
-#include "CypherEngine/CypherCVar/CypherCVar.h"
-#include "CypherEngine/CypherCommon/CypherCommon_Print.h"
-#include "CypherEngine/CypherHost/CypherHost.h"
-#include "CypherEngine/CypherConfig/CypherConfig.h"
-#include "CypherEngine/CypherFileSystem/CypherFileSystem.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
-#include "CypherEngine/CypherMemory/CypherMemory.h"
-#include "CypherEngine/CypherRender/CypherRender.h"
-#include "CypherEngine/CypherSystem/CypherSystem_Platform.h"
+#include "CypherCommand.h"
+#include "CypherCVar.h"
+#include "CypherCommon_Print.h"
+#include "CypherHost.h"
+#include "CypherConfig.h"
+#include "CypherFileSystem.h"
+#include "CypherLog.h"
+#include "CypherMemory.h"
+#include "CypherRender.h"
+#include "CypherSystem_Platform.h"
 
 #include <cstring>     // strncpy for log path cvars.
 
