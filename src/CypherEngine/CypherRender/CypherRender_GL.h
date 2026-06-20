@@ -27,9 +27,9 @@ struct gl_state_t {
 OpenGL Context
 ================
 */
-render_error_t CypherRenderGL_Init( const sys::window_t &window, bool vsync, gl_state_t &gl_state );
+render_error_t CypherRenderGL_Init( const sys::window_t &window, bool vsync, gl_state_t &pGlState );
 
-void CypherRenderGL_Shutdown( gl_state_t &gl_state );
+void CypherRenderGL_Shutdown( gl_state_t &pGlState );
 
 render_error_t CypherRenderGL_BeginFrame( const sys::window_t &window );
 
@@ -40,11 +40,11 @@ render_error_t CypherRenderGL_EndFrame( const sys::window_t &window );
 OpenGL Shaders
 ================
 */
-render_error_t CypherRenderGL_CreateShaderProgram( const char *vertex_source, const char *fragment_source, common::u32 &out_shader_program_id );
+render_error_t CypherRenderGL_CreateShaderProgram( const char *szVertexSource, const char *szFragmentSource, common::u32 &nOutShaderProgramId );
 
-render_error_t CypherRenderGL_BindShaderProgram( const common::u32 shader_program_id );
+render_error_t CypherRenderGL_BindShaderProgram( const common::u32 nShaderProgramId );
 
-void CypherRenderGL_DestroyShaderProgram( const common::u32 shader_program_id );
+void CypherRenderGL_DestroyShaderProgram( const common::u32 nShaderProgramId );
 
 /*
 ================
@@ -52,16 +52,16 @@ OpenGL Meshes
 ================
 */
 render_error_t CypherRenderGL_MeshCreate( const vertex_t *vertices,
-                               const common::u32 vertex_count,
+                               const common::u32 nVertexCount,
                                const common::u32 *indices,
-                               const common::u32 index_count,
-                               mesh_t &mesh_out );
+                               const common::u32 nIndexCount,
+                               mesh_t &meshOut );
 
 void CypherRenderGL_MeshDestroy( mesh_t &mesh );
 
 render_error_t CypherRenderGL_MeshDraw( const mesh_t &mesh );
 
-render_error_t CypherRenderGL_SetUniformMat4( common::u32 shader_program_id, const char *uniform_name, const math::mat4_t &matrix );
+render_error_t CypherRenderGL_SetUniformMat4( common::u32 nShaderProgramId, const char *szUniformName, const math::mat4_t &matrix );
 
 }       // namespace cypher::engine::render
 
