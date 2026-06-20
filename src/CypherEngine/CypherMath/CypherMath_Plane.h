@@ -19,7 +19,7 @@ bool CypherMath_PlanePointFront( const plane_t &plane, const vec3_t &v );
 bool CypherMath_PlanePointBack( const plane_t &plane, const vec3_t &v );
 
 bool CypherMath_PlanePointOn( const plane_t &plane, const vec3_t &v, common::f32 epsilon );
-    
+
 }       // namespace cypher::engine::math
 
 #endif // CYPHER_ENGINE_MATH_PLANE_H
