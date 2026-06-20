@@ -7,10 +7,10 @@
    Last Modified: 2026-06-07 16:58:40
    ---------------------------------------------------------------------
    Description:
-       
+
    ---------------------------------------------------------------------
-   License: 
-   Company: 
+   License:
+   Company:
    Version: 0.1.0
  ======================================================================
                                                                        */
@@ -22,14 +22,14 @@
 
 namespace cypher::engine::math
 {
-    
+
 bounds_t CypherMath_BoundsClear()
 {
-    const common::f32 max_value = std::numeric_limits<common::f32>::max();
-    
+    const common::f32 nMaxValue = std::numeric_limits<common::f32>::max();
+
     return bounds_t{
-        vec3_t{ max_value, max_value, max_value },
-        vec3_t{ -max_value, -max_value, -max_value }
+        vec3_t{ nMaxValue, nMaxValue, nMaxValue },
+        vec3_t{ -nMaxValue, -nMaxValue, -nMaxValue }
     };
 }
 
@@ -75,4 +75,4 @@ bool CypherMath_BoundsIntersects( const bounds_t &b1, const bounds_t &b2 )
     return true;
 }
 
-}       // namespace cypher::engine::math   
+}       // namespace cypher::engine::math
