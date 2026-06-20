@@ -14,8 +14,8 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "CypherEngine/CypherMemory/CypherMemory.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherMemory.h"
+#include "CypherLog.h"
 
 namespace {
 
