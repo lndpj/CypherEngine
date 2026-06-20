@@ -17,7 +17,7 @@ constexpr common::f32 CYPHER_RENDER_DEFAULT_FAR_Z              = 4096.0f;
 constexpr common::f32 CYPHER_RENDER_DEFAULT_VIEWPORT_WIDTH     = 1280u;
 constexpr common::f32 CYPHER_RENDER_DEFAULT_VIEWPORT_HEIGHT    = 720u;
 constexpr common::f32 CYPHER_RENDER_DEFAULT_ASPECT_RATIO       = ( CYPHER_RENDER_DEFAULT_VIEWPORT_WIDTH / CYPHER_RENDER_DEFAULT_VIEWPORT_HEIGHT );
-    
+
 }       // namespace cypher::engine::render
 
 #endif // CYPHER_ENGINE_RENDER_CONFIG_H
