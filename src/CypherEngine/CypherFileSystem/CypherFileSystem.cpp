@@ -66,7 +66,8 @@ fs_error_t PakErrorToFs( const pak::pak_error_t error )
 
 void ClearRuntimeState( runtime_state_t &state )
 {
-	state = runtime_state_t{};
+	state.~runtime_state_t();
+	::new ( static_cast<void *>( &state ) ) runtime_state_t();
 }
 
 }       // namespace
