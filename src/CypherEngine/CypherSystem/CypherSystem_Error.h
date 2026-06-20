@@ -106,7 +106,7 @@ constexpr inline const char *CypherSystem_ErrorDesc( const sys_error_t error ) {
 }
 
 constexpr inline common::error_t CypherSystem_ErrorCode( sys_error_t error ) {
-	return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_SYS, static_cast<common::com_u16>( error ) );
+	return common::CypherCommon_ErrorMake( common::domain_t::COM_DOMAIN_SYS, static_cast<common::u16>( error ) );
 }
 
 }       // namespace cypher::engine::sys
