@@ -15,8 +15,8 @@
  ======================================================================
                                                                        */
 
-#include "CypherEngine/CypherCommon/CypherCommon_Print.h"
-#include "CypherEngine/CypherLog/CypherLog.h"
+#include "CypherCommon_Print.h"
+#include "CypherLog.h"
 
 #include <cstdarg>     // va_list handling.
 #include <cstdio>      // stdio output and formatting.
