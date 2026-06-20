@@ -14,7 +14,7 @@
    Version: 0.1.0
  ======================================================================
                                                                        */
-#include "CypherEngine/CypherHost/CypherHost.h"
+#include "CypherHost.h"
 
 #include <cstdlib>     // EXIT_SUCCESS / EXIT_FAILURE.
 
