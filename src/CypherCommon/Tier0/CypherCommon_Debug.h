@@ -26,6 +26,7 @@ Rules:
 Debugger Break / Trap
 ================
 */
+// Breaks into the debugger when available; trap terminates execution.
 #if CYPHER_COMPILER_MSVC
     #define CYPHER_DEBUG_BREAK()            __debugbreak()
     #define CYPHER_TRAP()                   __debugbreak()
@@ -44,6 +45,7 @@ Debugger Break / Trap
 Build Gated Code Helpers
 ================
 */
+// Emits a statement only for the selected build class.
 #if CYPHER_BUILD_DEBUG
     #define CYPHER_DEBUG_ONLY( statement )  do { statement; } while ( 0 )
     #define CYPHER_RELEASE_ONLY( statement ) do { } while ( 0 )
