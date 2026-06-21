@@ -12,6 +12,7 @@ No allocation and no symbol loading at Tier0.
 */
 
 #include "CypherCommon_BaseTypes.h"
+#include "CypherCommon_Defines.h"
 
 namespace cypher::common
 {
@@ -27,6 +28,7 @@ struct stack_trace_t {
     u32 frame_count;
 };
 
+// Resets a stack trace to an empty state.
 inline void ClearStackTrace( stack_trace_t &trace )
 {
     trace.frame_count = 0u;
@@ -35,10 +37,11 @@ inline void ClearStackTrace( stack_trace_t &trace )
     }
 }
 
+// Captures stack frames when platform support is implemented.
 inline u32 CaptureStackTrace( stack_trace_t &trace, u32 max_frames, u32 skip_frames )
 {
-    ( void )max_frames;
-    ( void )skip_frames;
+    CYPHER_UNUSED( max_frames );
+    CYPHER_UNUSED( skip_frames );
     ClearStackTrace( trace );
     return 0u;
 }
