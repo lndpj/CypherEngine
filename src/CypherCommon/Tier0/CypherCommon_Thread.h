@@ -25,21 +25,25 @@ using atomic_t = std::atomic<type_t>;
 
 using memory_order_t = std::memory_order;
 
+// Yields the current thread's remaining time slice.
 inline void ThreadYield()
 {
     std::this_thread::yield();
 }
 
+// Sleeps the current thread for at least the requested milliseconds.
 inline void ThreadSleepMs( u32 milliseconds )
 {
     std::this_thread::sleep_for( std::chrono::milliseconds( milliseconds ) );
 }
 
+// Returns a stable hash for the current std::thread id.
 inline u64 GetCurrentThreadIdHash()
 {
     return static_cast<u64>( std::hash<std::thread::id>{}( std::this_thread::get_id() ) );
 }
 
+// Returns detected hardware concurrency, falling back to one.
 inline u32 GetLogicalThreadCount()
 {
     const u32 thread_count = std::thread::hardware_concurrency();
