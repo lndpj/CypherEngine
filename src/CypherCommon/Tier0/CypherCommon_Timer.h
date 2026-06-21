@@ -1,0 +1,47 @@
+#ifndef CYPHER_COMMON_TIER0_TIMER_H
+#define CYPHER_COMMON_TIER0_TIMER_H
+#pragma once
+
+/*
+================
+CypherCommon Timer
+
+Monotonic timing helpers for profiling, frame timing and timeout code.
+================
+*/
+
+#include "CypherCommon_BaseTypes.h"
+
+#include <chrono>
+
+namespace cypher::common
+{
+
+using timer_tick_t = u64;
+
+constexpr f64 CYPHER_TIMER_NANOSECONDS_PER_SECOND = 1000000000.0;
+
+inline timer_tick_t TimerNowTicks()
+{
+    const auto now = std::chrono::steady_clock::now().time_since_epoch();
+    return static_cast<timer_tick_t>( std::chrono::duration_cast<std::chrono::nanoseconds>( now ).count() );
+}
+
+inline f64 TimerTicksToSeconds( timer_tick_t ticks )
+{
+    return static_cast<f64>( ticks ) / CYPHER_TIMER_NANOSECONDS_PER_SECOND;
+}
+
+inline f64 TimerElapsedSeconds( timer_tick_t start_ticks, timer_tick_t end_ticks )
+{
+    return TimerTicksToSeconds( end_ticks - start_ticks );
+}
+
+inline f64 TimerNowSeconds()
+{
+    return TimerTicksToSeconds( TimerNowTicks() );
+}
+
+} // namespace cypher::common
+
+#endif // CYPHER_COMMON_TIER0_TIMER_H
