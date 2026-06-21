@@ -16,11 +16,13 @@ Byte swapping, host/endian conversion and FourCC helpers.
 namespace cypher::common
 {
 
+// Reverses the byte order of a 16-bit integer.
 constexpr u16 ByteSwap16( u16 value )
 {
     return static_cast<u16>( ( value >> 8u ) | ( value << 8u ) );
 }
 
+// Reverses the byte order of a 32-bit integer.
 constexpr u32 ByteSwap32( u32 value )
 {
     return ( ( value & 0x000000FFu ) << 24u ) |
@@ -29,6 +31,7 @@ constexpr u32 ByteSwap32( u32 value )
            ( ( value & 0xFF000000u ) >> 24u );
 }
 
+// Reverses the byte order of a 64-bit integer.
 constexpr u64 ByteSwap64( u64 value )
 {
     return ( ( value & 0x00000000000000FFull ) << 56u ) |
@@ -41,6 +44,7 @@ constexpr u64 ByteSwap64( u64 value )
            ( ( value & 0xFF00000000000000ull ) >> 56u );
 }
 
+// Packs four ASCII characters into a little-endian FourCC value.
 constexpr u32 MakeFourCC( char a, char b, char c, char d )
 {
     return static_cast<u32>( static_cast<u8>( a ) ) |
@@ -49,6 +53,7 @@ constexpr u32 MakeFourCC( char a, char b, char c, char d )
            ( static_cast<u32>( static_cast<u8>( d ) ) << 24u );
 }
 
+// Converts host byte order to little-endian 16-bit order.
 constexpr u16 HostToLittle16( u16 value )
 {
 #if CYPHER_ENDIAN_LITTLE
@@ -58,6 +63,7 @@ constexpr u16 HostToLittle16( u16 value )
 #endif
 }
 
+// Converts host byte order to little-endian 32-bit order.
 constexpr u32 HostToLittle32( u32 value )
 {
 #if CYPHER_ENDIAN_LITTLE
@@ -67,6 +73,7 @@ constexpr u32 HostToLittle32( u32 value )
 #endif
 }
 
+// Converts host byte order to little-endian 64-bit order.
 constexpr u64 HostToLittle64( u64 value )
 {
 #if CYPHER_ENDIAN_LITTLE
@@ -76,21 +83,25 @@ constexpr u64 HostToLittle64( u64 value )
 #endif
 }
 
+// Converts little-endian 16-bit order to host byte order.
 constexpr u16 LittleToHost16( u16 value )
 {
     return HostToLittle16( value );
 }
 
+// Converts little-endian 32-bit order to host byte order.
 constexpr u32 LittleToHost32( u32 value )
 {
     return HostToLittle32( value );
 }
 
+// Converts little-endian 64-bit order to host byte order.
 constexpr u64 LittleToHost64( u64 value )
 {
     return HostToLittle64( value );
 }
 
+// Converts host byte order to big-endian 16-bit order.
 constexpr u16 HostToBig16( u16 value )
 {
 #if CYPHER_ENDIAN_BIG
@@ -100,6 +111,7 @@ constexpr u16 HostToBig16( u16 value )
 #endif
 }
 
+// Converts host byte order to big-endian 32-bit order.
 constexpr u32 HostToBig32( u32 value )
 {
 #if CYPHER_ENDIAN_BIG
@@ -109,6 +121,7 @@ constexpr u32 HostToBig32( u32 value )
 #endif
 }
 
+// Converts host byte order to big-endian 64-bit order.
 constexpr u64 HostToBig64( u64 value )
 {
 #if CYPHER_ENDIAN_BIG
@@ -118,16 +131,19 @@ constexpr u64 HostToBig64( u64 value )
 #endif
 }
 
+// Converts big-endian 16-bit order to host byte order.
 constexpr u16 BigToHost16( u16 value )
 {
     return HostToBig16( value );
 }
 
+// Converts big-endian 32-bit order to host byte order.
 constexpr u32 BigToHost32( u32 value )
 {
     return HostToBig32( value );
 }
 
+// Converts big-endian 64-bit order to host byte order.
 constexpr u64 BigToHost64( u64 value )
 {
     return HostToBig64( value );
