@@ -1,0 +1,119 @@
+#include "CypherCommon_Tier0.h"
+
+using namespace cypher::common;
+
+namespace
+{
+
+struct smoke_struct_t {
+    u32 a;
+    u32 b;
+};
+
+int Fail()
+{
+    return 1;
+}
+
+} // namespace
+
+int main()
+{
+    CYPHER_STATIC_ASSERT( sizeof( u32 ) == 4u, "u32 must be 4 bytes." );
+    CYPHER_STATIC_ASSERT( is_trivially_copyable_v<smoke_struct_t>, "smoke_struct_t must be trivially copyable." );
+
+    if ( !IsPowerOfTwo( 64u ) ) {
+        return Fail();
+    }
+    if ( IsPowerOfTwo( 0u ) ) {
+        return Fail();
+    }
+    if ( AlignUp( 13u, 8u ) != 16u ) {
+        return Fail();
+    }
+    if ( AlignDown( 17u, 8u ) != 16u ) {
+        return Fail();
+    }
+    if ( !IsAligned( 32u, 16u ) ) {
+        return Fail();
+    }
+
+    if ( Bit32( 3u ) != 8u ) {
+        return Fail();
+    }
+    if ( !HasAllFlags( 0x07u, 0x03u ) ) {
+        return Fail();
+    }
+    if ( ClearFlags( 0x07u, 0x02u ) != 0x05u ) {
+        return Fail();
+    }
+    if ( PopCount32( 0x0Fu ) != 4 ) {
+        return Fail();
+    }
+    if ( CountTrailingZeros32( 0x10u ) != 4 ) {
+        return Fail();
+    }
+    if ( RotateLeft32( 1u, 4 ) != 16u ) {
+        return Fail();
+    }
+
+    if ( ByteSwap16( 0x1122u ) != 0x2211u ) {
+        return Fail();
+    }
+    if ( ByteSwap32( 0x11223344u ) != 0x44332211u ) {
+        return Fail();
+    }
+    if ( LittleToHost32( HostToLittle32( 0xCAFEBABEu ) ) != 0xCAFEBABEu ) {
+        return Fail();
+    }
+    if ( MakeFourCC( 'C', 'Y', 'P', 'K' ) != 0x4B505943u ) {
+        return Fail();
+    }
+
+    char src[] = { 'c', 'y', 'p', 'h', 'e', 'r', '\0' };
+    char dst[sizeof( src )] = {};
+    MemCopy( dst, src, sizeof( src ) );
+    if ( !MemEqual( dst, src, sizeof( src ) ) ) {
+        return Fail();
+    }
+    MemZero( dst, sizeof( dst ) );
+    if ( dst[0] != '\0' ) {
+        return Fail();
+    }
+
+    smoke_struct_t value = { 10u, 20u };
+    ZeroStruct( value );
+    if ( value.a != 0u || value.b != 0u ) {
+        return Fail();
+    }
+
+    const timer_tick_t start_ticks = TimerNowTicks();
+    const timer_tick_t end_ticks = TimerNowTicks();
+    if ( end_ticks < start_ticks ) {
+        return Fail();
+    }
+
+    if ( GetLogicalThreadCount() == 0u ) {
+        return Fail();
+    }
+    const u64 thread_hash = GetCurrentThreadIdHash();
+    CYPHER_UNUSED( thread_hash );
+
+    stack_trace_t trace = {};
+    if ( CaptureStackTrace( trace, CYPHER_STACK_TRACE_MAX_FRAMES, 0u ) != 0u ) {
+        return Fail();
+    }
+    if ( trace.frame_count != 0u ) {
+        return Fail();
+    }
+
+    const system_info_t info = GetSystemInfo();
+    if ( info.logical_thread_count == 0u ) {
+        return Fail();
+    }
+    if ( info.pointer_size != sizeof( void * ) ) {
+        return Fail();
+    }
+
+    return 0;
+}
