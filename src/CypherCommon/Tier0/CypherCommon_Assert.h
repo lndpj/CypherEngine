@@ -27,17 +27,20 @@ using assert_handler_t = void ( * )( const char *expression,
                                      int line,
                                      const char *function_name );
 
+// Returns the process-local assert callback slot.
 inline assert_handler_t &AssertHandler()
 {
     static assert_handler_t handler = nullptr;
     return handler;
 }
 
+// Installs a higher-level assert callback without depending on logging.
 inline void SetAssertHandler( assert_handler_t handler )
 {
     AssertHandler() = handler;
 }
 
+// Dispatches an assert failure to the optional callback.
 inline void HandleAssert( const char *expression,
                           const char *message,
                           const char *file,
