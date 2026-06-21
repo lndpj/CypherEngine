@@ -128,6 +128,10 @@ option(CYPHERENGINE_BUILD_TESTS "Build CypherEngine test targets" OFF)
 if (CYPHERENGINE_BUILD_TESTS)
     enable_testing()
 
+    add_executable(cypher_common_tier0_smoke "${CYPHERENGINE_ROOT_DIR}/tests/CypherCommon_Tier0_Smoke.cpp")
+    target_include_directories(cypher_common_tier0_smoke PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
+    add_test(NAME cypher_common_tier0_smoke COMMAND cypher_common_tier0_smoke)
+
     set(CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES
         "${CYPHERENGINE_ROOT_DIR}/tests/CypherFileSystem_Smoke.cpp"
         "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem.cpp"
