@@ -28,6 +28,7 @@ struct system_info_t {
     bool_t is_64_bit;
 };
 
+// Builds a small snapshot of common target/runtime properties.
 inline system_info_t GetSystemInfo()
 {
     system_info_t info = {};
