@@ -1,35 +1,90 @@
 # CypherEngine
 
-CypherEngine is a learning-first C++20 game engine project. The goal is to build a real runtime step by step while understanding the engine architecture, tradeoffs, and data flow behind each subsystem.
+CypherEngine is a learning-first C++20 game engine project built to understand how a real engine runtime is designed from the ground up.
 
-The engine is intentionally explicit and C-style: simple structs, free functions, clear ownership, and data-oriented runtime code are preferred over deep object hierarchies or clever abstractions.
+The codebase favors C-style C++: plain structs, explicit ownership, free functions, module prefixes, data-oriented runtime code, and small subsystem boundaries instead of deep inheritance trees.
 
-## Current State
+The project studies ideas from idTech, GoldSrc/Source, early CryEngine-era architecture, and similar professional engines. Those engines are references for architecture, naming discipline, tooling expectations, and performance mindset; CypherEngine is not a fork and does not copy their implementations.
 
-The repository is still early, but the runtime foundation is now present. Current work includes:
+## What This Is
 
-- core types, logging, errors, platform helpers, and host loop ownership
-- SDL3 windowing and OpenGL bootstrap
-- renderer basics for shaders, meshes, cameras, and draw submission
-- math helpers for vectors, matrices, quaternions, bounds, rays, planes, and frustums
-- command, cvar, and config loading foundations
-- VFS path mounting and virtual-to-physical file access
-- CypherPak package format work for engine-owned asset packaging
-- early memory, resource, world, and toolchain planning
+CypherEngine is being built as a full runtime and toolchain foundation for a 3D game:
 
-CypherEngine uses Quake, idTech, GoldSrc/Source, and early CryEngine as references for ideas and architecture, not as source to copy wholesale.
+- runtime host loop and platform ownership
+- C-style common library tiers for base types, platform macros, asserts, memory operations, string helpers, containers, commands, and engine utilities
+- custom memory systems including arenas, pools, buckets, scratch allocation, and diagnostics
+- virtual filesystem with path normalization, mounts, directory operations, file watching, async I/O direction, and package integration
+- CypherPak archive format for deterministic engine-owned asset packages
+- SDL3 windowing with OpenGL/glad rendering bootstrap
+- renderer foundations for shaders, meshes, cameras, and draw submission
+- math foundations for vectors, matrices, quaternions, bounds, rays, planes, and frustums
+- config, command, cvar, logging, and error-code foundations
+- future Mason editor for world authoring, asset workflows, live preview, and engine-integrated tools
 
-## Near-Term Path
+## Dependencies
 
-The next path is deliberately small:
+The project uses CMake as the build source of truth and vcpkg for third-party dependency management.
 
-1. finish VFS and CypherPak
-2. finish memory arenas and basic pools
-3. build the resource layer for shaders, meshes, textures, and materials
-4. strengthen renderer ownership and draw submission
-5. add world loading and gameplay-facing runtime pieces
-6. build toward a playable loop
-7. add CypherStudio later, after the runtime is solid
+Current and planned dependency set:
+
+- SDL3 for windowing and platform-facing application support
+- OpenGL with vendored glad for graphics API loading
+- Catch2 for unit tests
+- Google Benchmark for performance baselines
+- FreeType and HarfBuzz for font and text shaping work
+- libpng and libjpeg-turbo for image loading support
+- OpenAL Soft for audio
+- libsodium for future cryptography/security utilities
+- LZ4 and Zstd for compression
+- xxHash for fast hashing
+- meshoptimizer for mesh processing and optimization
+- Tracy for profiling
+
+Most engine systems are intended to be written in-house for learning and control. Third-party libraries are used where they provide a proven platform layer, tooling layer, codec, profiler, or security primitive that would be wasteful or risky to replace immediately.
+
+## Build
+
+```bash
+cmake -S . -B build
+cmake --build build
+./build/bin/CypherEngine
+```
+
+With vcpkg:
+
+```bash
+cmake -S . -B build \
+  -DCMAKE_TOOLCHAIN_FILE="$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake"
+cmake --build build
+```
+
+## Tests
+
+```bash
+cmake -S . -B build \
+  -DCYPHERENGINE_BUILD_TESTS=ON \
+  -DCMAKE_TOOLCHAIN_FILE="$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake"
+cmake --build build
+ctest --test-dir build --output-on-failure --no-tests=error
+```
+
+Current tests cover the low-level common smoke checks, Tier1 string helpers, filesystem smoke coverage, and CypherPak smoke coverage.
+
+## Benchmarks
+
+```bash
+cmake -S . -B build-bench \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCYPHERENGINE_BUILD_BENCHMARKS=ON \
+  -DCMAKE_TOOLCHAIN_FILE="$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake"
+cmake --build build-bench --config Release
+./build-bench/bin/cypher_common_string_bench
+./build-bench/bin/cypher_memory_bench
+./build-bench/bin/cypher_filesystem_path_bench
+./build-bench/bin/cypher_pak_bench
+```
+
+Benchmarks are separate from the normal build. They are used to inspect real costs while developing strings, memory allocators, VFS path code, package archives, and other performance-sensitive systems.
 
 ## Documentation
 
@@ -42,12 +97,8 @@ Start with:
 - [docs/subsystems.md](docs/subsystems.md)
 - [docs/coding_style.md](docs/coding_style.md)
 
-## Build
+## License
 
-```bash
-cmake -S . -B build
-cmake --build build
-./build/bin/cypherengine
-```
+The repository currently contains a GPL-2.0 license file.
 
-CMake is the build source of truth.
+If CypherEngine is moved to a proprietary license later, the license file, README, dependency policy, and contributor policy must be changed together. A proprietary engine license is possible only if the project owner has the rights to all code being relicensed and the third-party dependencies allow the intended distribution model.
