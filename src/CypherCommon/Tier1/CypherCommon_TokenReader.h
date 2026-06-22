@@ -1,0 +1,42 @@
+#ifndef CYPHER_COMMON_TIER1_TOKENREADER_H
+#define CYPHER_COMMON_TIER1_TOKENREADER_H
+#pragma once
+
+/*
+================
+CypherCommon Token Reader
+
+Token stream reader declarations for config, tools and command parsing.
+================
+*/
+
+#include "CypherCommon_Tier0.h"
+#include "CypherCommon_StringView.h"
+
+namespace cypher::common
+{
+
+enum class token_type_t : u32 {
+    End = 0u,
+    Identifier,
+    String,
+    Number,
+    Symbol
+};
+
+struct token_t {
+    token_type_t type;
+    string_view_t text;
+    u32 line;
+    u32 column;
+};
+
+struct token_reader_t;
+
+void TokenReader_Init( token_reader_t *pReader, const char *pText );
+bool_t TokenReader_Read( token_reader_t *pReader, token_t *pOutToken );
+bool_t TokenReader_Peek( token_reader_t *pReader, token_t *pOutToken );
+
+} // namespace cypher::common
+
+#endif // CYPHER_COMMON_TIER1_TOKENREADER_H
