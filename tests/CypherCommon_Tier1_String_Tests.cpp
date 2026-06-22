@@ -92,3 +92,20 @@ TEST_CASE( "Cy string equality helpers wrap the compare functions", "[CypherComm
     REQUIRE( Cy_strniequal( "ABC", "abd", 2u ) );
     REQUIRE_FALSE( Cy_strniequal( "ABC", "abd", 3u ) );
 }
+
+TEST_CASE( "Cy_strncpy copies safely and reports required source length", "[CypherCommon][Tier1][String]" )
+{
+    char pBuffer[8]{};
+
+    REQUIRE( Cy_strncpy( pBuffer, "cypher", sizeof( pBuffer ) ) == 6u );
+    REQUIRE( Cy_strequal( pBuffer, "cypher" ) );
+
+    REQUIRE( Cy_strncpy( pBuffer, "engine-runtime", sizeof( pBuffer ) ) == 14u );
+    REQUIRE( Cy_strequal( pBuffer, "engine-" ) );
+
+    REQUIRE( Cy_strncpy( pBuffer, nullptr, sizeof( pBuffer ) ) == 0u );
+    REQUIRE( Cy_strequal( pBuffer, "" ) );
+
+    REQUIRE( Cy_strncpy( pBuffer, "abc", 0u ) == 3u );
+    REQUIRE( Cy_strncpy( nullptr, "abc", 8u ) == 3u );
+}
