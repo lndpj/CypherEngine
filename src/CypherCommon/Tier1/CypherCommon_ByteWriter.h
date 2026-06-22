@@ -1,0 +1,31 @@
+#ifndef CYPHER_COMMON_TIER1_BYTEWRITER_H
+#define CYPHER_COMMON_TIER1_BYTEWRITER_H
+#pragma once
+
+/*
+================
+CypherCommon Byte Writer
+
+Sequential byte writer declarations.
+================
+*/
+
+#include "CypherCommon_Tier0.h"
+
+namespace cypher::common
+{
+
+struct byte_writer_t {
+    byte *pData;
+    usize cbCapacity;
+    usize offset;
+};
+
+void ByteWriter_Init( byte_writer_t *pWriter, void *pData, usize cbCapacity );
+bool_t ByteWriter_Write( byte_writer_t *pWriter, const void *pSrc, usize cbData );
+bool_t ByteWriter_Seek( byte_writer_t *pWriter, usize offset );
+usize ByteWriter_BytesWritten( const byte_writer_t *pWriter );
+
+} // namespace cypher::common
+
+#endif // CYPHER_COMMON_TIER1_BYTEWRITER_H
