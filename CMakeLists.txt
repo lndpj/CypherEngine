@@ -127,10 +127,24 @@ option(CYPHERENGINE_BUILD_TESTS "Build CypherEngine test targets" OFF)
 
 if (CYPHERENGINE_BUILD_TESTS)
     enable_testing()
+    find_package(Catch2 CONFIG QUIET)
 
     add_executable(cypher_common_tier0_smoke "${CYPHERENGINE_ROOT_DIR}/tests/CypherCommon_Tier0_Smoke.cpp")
     target_include_directories(cypher_common_tier0_smoke PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
     add_test(NAME cypher_common_tier0_smoke COMMAND cypher_common_tier0_smoke)
+
+    if (Catch2_FOUND)
+        add_executable(cypher_common_tier1_string_tests
+            "${CYPHERENGINE_ROOT_DIR}/tests/CypherCommon_Tier1_String_Tests.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1/CypherCommon_Char.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1/CypherCommon_String.cpp"
+        )
+        target_include_directories(cypher_common_tier1_string_tests PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
+        target_link_libraries(cypher_common_tier1_string_tests PRIVATE Catch2::Catch2WithMain)
+        add_test(NAME cypher_common_tier1_string_tests COMMAND cypher_common_tier1_string_tests)
+    else()
+        message(STATUS "Catch2 not found. Skipping Catch2-based CypherCommon Tier1 string tests.")
+    endif()
 
     set(CYPHERENGINE_FILESYSTEM_SMOKE_SOURCES
         "${CYPHERENGINE_ROOT_DIR}/tests/CypherFileSystem_Smoke.cpp"
@@ -166,6 +180,51 @@ if (CYPHERENGINE_BUILD_TESTS)
     add_executable(cypher_pak_smoke ${CYPHERENGINE_PAK_SMOKE_SOURCES})
     target_include_directories(cypher_pak_smoke PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
     add_test(NAME cypher_pak_smoke COMMAND cypher_pak_smoke)
+endif()
+
+option(CYPHERENGINE_BUILD_BENCHMARKS "Build CypherEngine benchmark targets" OFF)
+
+if (CYPHERENGINE_BUILD_BENCHMARKS)
+    find_package(benchmark CONFIG QUIET)
+
+    if (benchmark_FOUND)
+        add_executable(cypher_common_string_bench
+            "${CYPHERENGINE_ROOT_DIR}/benchmarks/CypherCommon_String_Bench.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1/CypherCommon_Char.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1/CypherCommon_String.cpp"
+        )
+        target_include_directories(cypher_common_string_bench PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
+        target_link_libraries(cypher_common_string_bench PRIVATE benchmark::benchmark_main)
+
+        add_executable(cypher_memory_bench
+            "${CYPHERENGINE_ROOT_DIR}/benchmarks/CypherMemory_Bench.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Arena.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherMemory/CypherMemory_Pool.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherLog/CypherLog.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherLog/CypherLog_Format.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherSystem/CypherSystem_Platform.cpp"
+        )
+        target_include_directories(cypher_memory_bench PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
+        target_link_libraries(cypher_memory_bench PRIVATE benchmark::benchmark_main)
+
+        add_executable(cypher_filesystem_path_bench
+            "${CYPHERENGINE_ROOT_DIR}/benchmarks/CypherFileSystem_Path_Bench.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherFileSystem/CypherFileSystem_Path.cpp"
+        )
+        target_include_directories(cypher_filesystem_path_bench PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
+        target_link_libraries(cypher_filesystem_path_bench PRIVATE benchmark::benchmark_main)
+
+        add_executable(cypher_pak_bench
+            "${CYPHERENGINE_ROOT_DIR}/benchmarks/CypherPak_Bench.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Compression.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Reader.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherEngine/CypherPak/CypherPak_Writer.cpp"
+        )
+        target_include_directories(cypher_pak_bench PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
+        target_link_libraries(cypher_pak_bench PRIVATE benchmark::benchmark_main)
+    else()
+        message(STATUS "Google Benchmark not found. Skipping CypherEngine benchmark targets.")
+    endif()
 endif()
 
 if (EXISTS "${CYPHERENGINE_ROOT_DIR}/tools/CMakeLists.txt")
