@@ -1,5 +1,6 @@
 # Build directories
 /build/
+/build-bench/
 /build-clangd/
 /bin/
 /out/
