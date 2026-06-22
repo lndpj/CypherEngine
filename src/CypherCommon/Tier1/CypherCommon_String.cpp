@@ -184,6 +184,27 @@ bool_t Cy_strniequal( const char *pStringA, const char *pStringB, usize cchMax )
 
 usize Cy_strncpy( char *pDest, const char *pSrc, usize cchDest )
 {
+    const char *pRead = pSrc != nullptr ? pSrc : "";
+    usize cchSource = 0u;
+
+    if ( pDest != nullptr && cchDest > 0u ) {
+        usize cchWrite = 0u;
+        while ( pRead[cchSource] != '\0' ) {
+            if ( cchWrite + 1u < cchDest ) {
+                pDest[cchWrite] = pRead[cchSource];
+                ++cchWrite;
+            }
+            ++cchSource;
+        }
+        pDest[cchWrite] = '\0';
+        return cchSource;
+    }
+
+    while ( pRead[cchSource] != '\0' ) {
+        ++cchSource;
+    }
+
+    return cchSource;
 }
 
 } // namespace cypher::common
