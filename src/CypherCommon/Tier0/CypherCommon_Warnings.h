@@ -1,0 +1,69 @@
+#ifndef CYPHER_COMMON_TIER0_WARNINGS_H
+#define CYPHER_COMMON_TIER0_WARNINGS_H
+#pragma once
+
+/*
+================
+CypherCommon Warnings
+
+Compiler warning push/pop helpers used around narrow code regions and
+third-party headers.
+
+Rules:
+- Do not disable warnings globally from here.
+- Prefer fixing Cypher code over suppressing warnings.
+- Use push/pop so warning policy does not leak into unrelated files.
+================
+*/
+
+#include "CypherCommon_Platform.h"
+
+/*
+================
+Pragma Helpers
+================
+*/
+#if CYPHER_COMPILER_MSVC
+    #define CYPHER_WARNING_PUSH()                       __pragma( warning( push ) )
+    #define CYPHER_WARNING_POP()                        __pragma( warning( pop ) )
+    #define CYPHER_WARNING_DISABLE_MSVC( warning_id )   __pragma( warning( disable : warning_id ) )
+    #define CYPHER_WARNING_DISABLE_CLANG( warning_name )
+    #define CYPHER_WARNING_DISABLE_GCC( warning_name )
+#elif CYPHER_COMPILER_CLANG
+    #define CYPHER_WARNING_DO_PRAGMA( x )               _Pragma( #x )
+    #define CYPHER_WARNING_PUSH()                       CYPHER_WARNING_DO_PRAGMA( clang diagnostic push )
+    #define CYPHER_WARNING_POP()                        CYPHER_WARNING_DO_PRAGMA( clang diagnostic pop )
+    #define CYPHER_WARNING_DISABLE_MSVC( warning_id )
+    #define CYPHER_WARNING_DISABLE_CLANG( warning_name ) CYPHER_WARNING_DO_PRAGMA( clang diagnostic ignored warning_name )
+    #define CYPHER_WARNING_DISABLE_GCC( warning_name )
+#elif CYPHER_COMPILER_GCC
+    #define CYPHER_WARNING_DO_PRAGMA( x )               _Pragma( #x )
+    #define CYPHER_WARNING_PUSH()                       CYPHER_WARNING_DO_PRAGMA( GCC diagnostic push )
+    #define CYPHER_WARNING_POP()                        CYPHER_WARNING_DO_PRAGMA( GCC diagnostic pop )
+    #define CYPHER_WARNING_DISABLE_MSVC( warning_id )
+    #define CYPHER_WARNING_DISABLE_CLANG( warning_name )
+    #define CYPHER_WARNING_DISABLE_GCC( warning_name )  CYPHER_WARNING_DO_PRAGMA( GCC diagnostic ignored warning_name )
+#else
+    #error "Unsupported compiler for Cypher warning helpers."
+#endif
+
+/*
+================
+Common Warning Groups
+================
+*/
+#define CYPHER_WARNING_DISABLE_UNUSED_PARAMETER()       \
+    CYPHER_WARNING_DISABLE_MSVC( 4100 )                 \
+    CYPHER_WARNING_DISABLE_CLANG( "-Wunused-parameter" ) \
+    CYPHER_WARNING_DISABLE_GCC( "-Wunused-parameter" )
+
+#define CYPHER_WARNING_DISABLE_CONSTANT_CONDITION()     \
+    CYPHER_WARNING_DISABLE_MSVC( 4127 )                 \
+    CYPHER_WARNING_DISABLE_CLANG( "-Wconstant-logical-operand" )
+
+#define CYPHER_WARNING_DISABLE_SIGN_CONVERSION()        \
+    CYPHER_WARNING_DISABLE_MSVC( 4365 )                 \
+    CYPHER_WARNING_DISABLE_CLANG( "-Wsign-conversion" ) \
+    CYPHER_WARNING_DISABLE_GCC( "-Wsign-conversion" )
+
+#endif // CYPHER_COMMON_TIER0_WARNINGS_H
