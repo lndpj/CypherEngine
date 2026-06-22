@@ -15,12 +15,46 @@ int Fail()
     return 1;
 }
 
+CYPHER_WARNING_PUSH()
+CYPHER_WARNING_DISABLE_UNUSED_PARAMETER()
+void WarningUnusedParameterProbe( int nUnusedParameter )
+{
+}
+CYPHER_WARNING_POP()
+
 } // namespace
 
 int main()
 {
+    WarningUnusedParameterProbe( 1 );
+
     CYPHER_STATIC_ASSERT( sizeof( u32 ) == 4u, "u32 must be 4 bytes." );
     CYPHER_STATIC_ASSERT( is_trivially_copyable_v<smoke_struct_t>, "smoke_struct_t must be trivially copyable." );
+
+    const compiler_info_t compiler = Compiler_GetInfo();
+    if ( compiler.pName == nullptr || compiler.pName[0] == '\0' ) {
+        return Fail();
+    }
+    if ( Compiler_GetName() == nullptr || Compiler_GetVersion() == 0u ) {
+        return Fail();
+    }
+    if ( compiler.has_exceptions != ( CYPHER_CPP_EXCEPTIONS != 0 ) ) {
+        return Fail();
+    }
+    if ( compiler.has_rtti != ( CYPHER_CPP_RTTI != 0 ) ) {
+        return Fail();
+    }
+
+    const build_config_t build_config = BuildConfig_GetCurrent();
+    if ( BuildConfig_GetName( build_config )[0] == '\0' ) {
+        return Fail();
+    }
+    if ( BuildConfig_IsDebug() != ( CYPHER_BUILD_DEBUG != 0 ) ) {
+        return Fail();
+    }
+    if ( BuildConfig_IsRelease() != ( CYPHER_BUILD_RELEASE != 0 ) ) {
+        return Fail();
+    }
 
     if ( !IsPowerOfTwo( 64u ) ) {
         return Fail();
