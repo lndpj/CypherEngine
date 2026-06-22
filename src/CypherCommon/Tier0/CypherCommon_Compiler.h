@@ -11,6 +11,7 @@ Compiler identity and feature declarations.
 */
 
 #include "CypherCommon_BaseTypes.h"
+#include "CypherCommon_Platform.h"
 
 namespace cypher::common
 {
@@ -22,9 +23,28 @@ struct compiler_info_t {
     bool_t has_rtti;
 };
 
-compiler_info_t Compiler_GetInfo();
-const char *Compiler_GetName();
-u32 Compiler_GetVersion();
+// Returns the compiler identity detected by CypherCommon_Platform.h.
+inline compiler_info_t Compiler_GetInfo()
+{
+    compiler_info_t info = {};
+    info.pName = CYPHER_COMPILER_NAME;
+    info.version = static_cast<u32>( CYPHER_COMPILER_VERSION );
+    info.has_exceptions = CYPHER_CPP_EXCEPTIONS != 0;
+    info.has_rtti = CYPHER_CPP_RTTI != 0;
+    return info;
+}
+
+// Returns the normalized compiler name string.
+inline const char *Compiler_GetName()
+{
+    return CYPHER_COMPILER_NAME;
+}
+
+// Returns a packed compiler version value.
+inline u32 Compiler_GetVersion()
+{
+    return static_cast<u32>( CYPHER_COMPILER_VERSION );
+}
 
 } // namespace cypher::common
 
