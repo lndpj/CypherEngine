@@ -18,6 +18,7 @@ but it must not depend on any CypherEngine subsystem.
 #include "CypherCommon_BuildId.h"
 #include "CypherCommon_Defines.h"
 #include "CypherCommon_Compiler.h"
+#include "CypherCommon_Warnings.h"
 #include "CypherCommon_API.h"
 #include "CypherCommon_Annotations.h"
 #include "CypherCommon_StaticAnalysis.h"
