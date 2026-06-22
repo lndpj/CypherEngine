@@ -2,6 +2,19 @@
   "name": "cypherengine",
   "version-string": "0.1.0",
   "dependencies": [
-    "sdl3"
+    "benchmark",
+    "catch2",
+    "freetype",
+    "harfbuzz",
+    "libjpeg-turbo",
+    "libpng",
+    "libsodium",
+    "lz4",
+    "meshoptimizer",
+    "openal-soft",
+    "sdl3",
+    "tracy",
+    "xxhash",
+    "zstd"
   ]
 }
