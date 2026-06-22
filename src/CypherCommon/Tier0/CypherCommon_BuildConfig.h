@@ -11,6 +11,7 @@ Build configuration declarations shared by every module.
 */
 
 #include "CypherCommon_BaseTypes.h"
+#include "CypherCommon_Platform.h"
 
 namespace cypher::common
 {
@@ -22,10 +23,43 @@ enum class build_config_t : u32 {
     Retail
 };
 
-build_config_t BuildConfig_GetCurrent();
-const char *BuildConfig_GetName( build_config_t config );
-bool_t BuildConfig_IsDebug();
-bool_t BuildConfig_IsRelease();
+// Returns the active compile configuration.
+inline build_config_t BuildConfig_GetCurrent()
+{
+#if CYPHER_BUILD_DEBUG
+    return build_config_t::Debug;
+#else
+    return build_config_t::Release;
+#endif
+}
+
+// Returns a stable human-readable name for a build configuration.
+inline const char *BuildConfig_GetName( build_config_t config )
+{
+    switch ( config ) {
+        case build_config_t::Debug:
+            return "Debug";
+        case build_config_t::Release:
+            return "Release";
+        case build_config_t::Retail:
+            return "Retail";
+        case build_config_t::Unknown:
+        default:
+            return "Unknown";
+    }
+}
+
+// Returns true when this translation unit is compiled as a debug build.
+inline bool_t BuildConfig_IsDebug()
+{
+    return CYPHER_BUILD_DEBUG != 0;
+}
+
+// Returns true when this translation unit is compiled as a release-like build.
+inline bool_t BuildConfig_IsRelease()
+{
+    return CYPHER_BUILD_RELEASE != 0;
+}
 
 } // namespace cypher::common
 
