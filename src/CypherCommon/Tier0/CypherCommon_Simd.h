@@ -11,6 +11,7 @@ compiler or CPU feature checks through the engine.
 ================
 */
 
+#include "CypherCommon_Defines.h"
 #include "CypherCommon_BaseTypes.h"
 
 namespace cypher::common
