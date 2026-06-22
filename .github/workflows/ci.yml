@@ -53,7 +53,16 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf autoconf-archive automake libtool libltdl-dev
+          sudo apt-get install -y autoconf autoconf-archive automake libtool libtool-bin libltdl-dev
+
+      - name: Install macOS build dependencies
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install autoconf autoconf-archive automake libtool
+          if ! command -v libtoolize >/dev/null 2>&1 && command -v glibtoolize >/dev/null 2>&1; then
+            sudo ln -sf "$(command -v glibtoolize)" /usr/local/bin/libtoolize
+          fi
 
       - name: Bootstrap vcpkg
         run: |
@@ -96,7 +105,7 @@ jobs:
       - name: Install Linux build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y autoconf autoconf-archive automake libtool libltdl-dev
+          sudo apt-get install -y autoconf autoconf-archive automake libtool libtool-bin libltdl-dev
 
       - name: Bootstrap vcpkg
         run: |
