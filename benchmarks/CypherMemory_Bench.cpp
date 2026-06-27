@@ -3,6 +3,7 @@
 
 #include <benchmark/benchmark.h>
 
+#include <cstdlib>
 #include <vector>
 
 using namespace cypher::engine::memory;
@@ -113,8 +114,58 @@ void BM_Pool_AllocFree64( benchmark::State &state )
     CypherMemory_ArenaShutdown( arena );
 }
 
+void BM_MallocFree64( benchmark::State &state )
+{
+    std::vector<void *> pointers;
+    pointers.resize( kAllocCount );
+
+    for ( auto _ : state ) {
+        for ( cypher::engine::common::usize i = 0u; i < kAllocCount; ++i ) {
+            pointers[i] = std::malloc( kAllocSize );
+            if ( pointers[i] == nullptr ) {
+                state.SkipWithError( "std::malloc failed." );
+                return;
+            }
+            benchmark::DoNotOptimize( pointers[i] );
+        }
+        for ( cypher::engine::common::usize i = 0u; i < kAllocCount; ++i ) {
+            std::free( pointers[i] );
+            pointers[i] = nullptr;
+        }
+        benchmark::ClobberMemory();
+    }
+
+    state.SetItemsProcessed( state.iterations() * static_cast<benchmark::IterationCount>( kAllocCount * 2u ) );
+}
+
+void BM_CallocFree64( benchmark::State &state )
+{
+    std::vector<void *> pointers;
+    pointers.resize( kAllocCount );
+
+    for ( auto _ : state ) {
+        for ( cypher::engine::common::usize i = 0u; i < kAllocCount; ++i ) {
+            pointers[i] = std::calloc( 1u, kAllocSize );
+            if ( pointers[i] == nullptr ) {
+                state.SkipWithError( "std::calloc failed." );
+                return;
+            }
+            benchmark::DoNotOptimize( pointers[i] );
+        }
+        for ( cypher::engine::common::usize i = 0u; i < kAllocCount; ++i ) {
+            std::free( pointers[i] );
+            pointers[i] = nullptr;
+        }
+        benchmark::ClobberMemory();
+    }
+
+    state.SetItemsProcessed( state.iterations() * static_cast<benchmark::IterationCount>( kAllocCount * 2u ) );
+}
+
 } // namespace
 
 BENCHMARK( BM_Arena_Alloc64_ResetEachIteration );
 BENCHMARK( BM_Arena_AllocZero64_ResetEachIteration );
 BENCHMARK( BM_Pool_AllocFree64 );
+BENCHMARK( BM_MallocFree64 );
+BENCHMARK( BM_CallocFree64 );
