@@ -2,6 +2,9 @@
 
 #include <benchmark/benchmark.h>
 
+#include <array>
+#include <cstring>
+
 using namespace cypher::common;
 
 namespace
@@ -16,11 +19,61 @@ constexpr const char *kLongA =
     "scripts/entities/weapons/projectiles/arena_survival/rocket_launcher/projectile_rocket_fast.cfg";
 constexpr const char *kLongB =
     "scripts/entities/weapons/projectiles/arena_survival/rocket_launcher/projectile_rocket_slow.cfg";
+constexpr usize kMatrixStringLength = 128u;
+
+struct string_matrix_t {
+    std::array<char, kMatrixStringLength + 1u> equalA;
+    std::array<char, kMatrixStringLength + 1u> equalB;
+    std::array<char, kMatrixStringLength + 1u> earlyA;
+    std::array<char, kMatrixStringLength + 1u> earlyB;
+    std::array<char, kMatrixStringLength + 1u> middleA;
+    std::array<char, kMatrixStringLength + 1u> middleB;
+    std::array<char, kMatrixStringLength + 1u> lateA;
+    std::array<char, kMatrixStringLength + 1u> lateB;
+};
+
+string_matrix_t BuildStringMatrix()
+{
+    string_matrix_t matrix{};
+
+    for ( usize i = 0u; i < kMatrixStringLength; ++i ) {
+        const char chValue = static_cast<char>( 'a' + static_cast<char>( i % 26u ) );
+        matrix.equalA[i] = chValue;
+        matrix.equalB[i] = chValue;
+        matrix.earlyA[i] = chValue;
+        matrix.earlyB[i] = chValue;
+        matrix.middleA[i] = chValue;
+        matrix.middleB[i] = chValue;
+        matrix.lateA[i] = chValue;
+        matrix.lateB[i] = chValue;
+    }
+
+    matrix.earlyB[0] = 'z';
+    matrix.middleB[kMatrixStringLength / 2u] = 'z';
+    matrix.lateB[kMatrixStringLength - 1u] = 'z';
+
+    return matrix;
+}
+
+const string_matrix_t &GetStringMatrix()
+{
+    static const string_matrix_t matrix = BuildStringMatrix();
+    return matrix;
+}
 
 void BM_Cy_strlen_Short( benchmark::State &state )
 {
     for ( auto _ : state ) {
         benchmark::DoNotOptimize( Cy_strlen( kShortLower ) );
+    }
+}
+
+void BM_Std_strlen_Short( benchmark::State &state )
+{
+    const char *pString = kShortLower;
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pString );
+        benchmark::DoNotOptimize( std::strlen( pString ) );
     }
 }
 
@@ -31,10 +84,28 @@ void BM_Cy_strlen_Medium( benchmark::State &state )
     }
 }
 
+void BM_Std_strlen_Medium( benchmark::State &state )
+{
+    const char *pString = kMediumA;
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pString );
+        benchmark::DoNotOptimize( std::strlen( pString ) );
+    }
+}
+
 void BM_Cy_strlen_Long( benchmark::State &state )
 {
     for ( auto _ : state ) {
         benchmark::DoNotOptimize( Cy_strlen( kLongA ) );
+    }
+}
+
+void BM_Std_strlen_Long( benchmark::State &state )
+{
+    const char *pString = kLongA;
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pString );
+        benchmark::DoNotOptimize( std::strlen( pString ) );
     }
 }
 
@@ -66,6 +137,17 @@ void BM_Cy_strcmp_EqualShort( benchmark::State &state )
     }
 }
 
+void BM_Std_strcmp_EqualShort( benchmark::State &state )
+{
+    const char *pStringA = kShortLower;
+    const char *pStringB = kShortLower;
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( std::strcmp( pStringA, pStringB ) );
+    }
+}
+
 void BM_Cy_strcmp_DifferentMedium( benchmark::State &state )
 {
     for ( auto _ : state ) {
@@ -73,10 +155,162 @@ void BM_Cy_strcmp_DifferentMedium( benchmark::State &state )
     }
 }
 
+void BM_Cy_strcmp_Equal128_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.equalA.data();
+    const char *pStringB = matrix.equalB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( Cy_strcmp( pStringA, pStringB ) );
+    }
+}
+
+void BM_Std_strcmp_Equal128_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.equalA.data();
+    const char *pStringB = matrix.equalB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( std::strcmp( pStringA, pStringB ) );
+    }
+}
+
+void BM_Std_strcmp_DifferentMedium( benchmark::State &state )
+{
+    const char *pStringA = kMediumA;
+    const char *pStringB = kMediumB;
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( std::strcmp( pStringA, pStringB ) );
+    }
+}
+
+void BM_Cy_strcmp_EarlyMismatch128_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.earlyA.data();
+    const char *pStringB = matrix.earlyB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( Cy_strcmp( pStringA, pStringB ) );
+    }
+}
+
+void BM_Std_strcmp_EarlyMismatch128_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.earlyA.data();
+    const char *pStringB = matrix.earlyB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( std::strcmp( pStringA, pStringB ) );
+    }
+}
+
+void BM_Cy_strcmp_MiddleMismatch128_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.middleA.data();
+    const char *pStringB = matrix.middleB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( Cy_strcmp( pStringA, pStringB ) );
+    }
+}
+
+void BM_Std_strcmp_MiddleMismatch128_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.middleA.data();
+    const char *pStringB = matrix.middleB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( std::strcmp( pStringA, pStringB ) );
+    }
+}
+
+void BM_Cy_strcmp_LateMismatch128_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.lateA.data();
+    const char *pStringB = matrix.lateB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( Cy_strcmp( pStringA, pStringB ) );
+    }
+}
+
+void BM_Std_strcmp_LateMismatch128_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.lateA.data();
+    const char *pStringB = matrix.lateB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( std::strcmp( pStringA, pStringB ) );
+    }
+}
+
 void BM_Cy_strncmp_DifferentMediumCapped( benchmark::State &state )
 {
     for ( auto _ : state ) {
         benchmark::DoNotOptimize( Cy_strncmp( kMediumA, kMediumB, 32u ) );
+    }
+}
+
+void BM_Std_strncmp_DifferentMediumCapped( benchmark::State &state )
+{
+    const char *pStringA = kMediumA;
+    const char *pStringB = kMediumB;
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( std::strncmp( pStringA, pStringB, 32u ) );
+    }
+}
+
+void BM_Cy_strncmp_Equal128_Capped64_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.equalA.data();
+    const char *pStringB = matrix.equalB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( Cy_strncmp( pStringA, pStringB, 64u ) );
+    }
+}
+
+void BM_Std_strncmp_Equal128_Capped64_Buffer( benchmark::State &state )
+{
+    const string_matrix_t &matrix = GetStringMatrix();
+    const char *pStringA = matrix.equalA.data();
+    const char *pStringB = matrix.equalB.data();
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( pStringA );
+        benchmark::DoNotOptimize( pStringB );
+        benchmark::DoNotOptimize( std::strncmp( pStringA, pStringB, 64u ) );
     }
 }
 
@@ -122,20 +356,60 @@ void BM_Cy_strniequal_EqualMediumCaseCapped( benchmark::State &state )
     }
 }
 
+void BM_Cy_strncpy_Fits( benchmark::State &state )
+{
+    char szBuffer[128]{};
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( Cy_strncpy( szBuffer, kMediumA, sizeof( szBuffer ) ) );
+        benchmark::DoNotOptimize( szBuffer );
+        benchmark::ClobberMemory();
+    }
+}
+
+void BM_Cy_strncpy_Truncates( benchmark::State &state )
+{
+    char szBuffer[16]{};
+
+    for ( auto _ : state ) {
+        benchmark::DoNotOptimize( Cy_strncpy( szBuffer, kMediumA, sizeof( szBuffer ) ) );
+        benchmark::DoNotOptimize( szBuffer );
+        benchmark::ClobberMemory();
+    }
+}
+
 } // namespace
 
 BENCHMARK( BM_Cy_strlen_Short );
+BENCHMARK( BM_Std_strlen_Short );
 BENCHMARK( BM_Cy_strlen_Medium );
+BENCHMARK( BM_Std_strlen_Medium );
 BENCHMARK( BM_Cy_strlen_Long );
+BENCHMARK( BM_Std_strlen_Long );
 BENCHMARK( BM_Cy_strnlen_Capped );
 BENCHMARK( BM_Cy_strisempty_NotEmpty );
 BENCHMARK( BM_Cy_strisblank_NotBlank );
 BENCHMARK( BM_Cy_strcmp_EqualShort );
+BENCHMARK( BM_Std_strcmp_EqualShort );
 BENCHMARK( BM_Cy_strcmp_DifferentMedium );
+BENCHMARK( BM_Std_strcmp_DifferentMedium );
+BENCHMARK( BM_Cy_strcmp_Equal128_Buffer );
+BENCHMARK( BM_Std_strcmp_Equal128_Buffer );
+BENCHMARK( BM_Cy_strcmp_EarlyMismatch128_Buffer );
+BENCHMARK( BM_Std_strcmp_EarlyMismatch128_Buffer );
+BENCHMARK( BM_Cy_strcmp_MiddleMismatch128_Buffer );
+BENCHMARK( BM_Std_strcmp_MiddleMismatch128_Buffer );
+BENCHMARK( BM_Cy_strcmp_LateMismatch128_Buffer );
+BENCHMARK( BM_Std_strcmp_LateMismatch128_Buffer );
 BENCHMARK( BM_Cy_strncmp_DifferentMediumCapped );
+BENCHMARK( BM_Std_strncmp_DifferentMediumCapped );
+BENCHMARK( BM_Cy_strncmp_Equal128_Capped64_Buffer );
+BENCHMARK( BM_Std_strncmp_Equal128_Capped64_Buffer );
 BENCHMARK( BM_Cy_stricmp_EqualShort );
 BENCHMARK( BM_Cy_stricmp_EqualMediumCase );
 BENCHMARK( BM_Cy_strnicmp_EqualMediumCaseCapped );
 BENCHMARK( BM_Cy_strequal_EqualShort );
 BENCHMARK( BM_Cy_striequal_EqualMediumCase );
 BENCHMARK( BM_Cy_strniequal_EqualMediumCaseCapped );
+BENCHMARK( BM_Cy_strncpy_Fits );
+BENCHMARK( BM_Cy_strncpy_Truncates );
