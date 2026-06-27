@@ -4,7 +4,7 @@
    Author: ksiric <email@example.com>
    Created: 2026-06-21 10:31:11
    Last Modified by: ksiric
-   Last Modified: 2026-06-22 13:01:19
+   Last Modified: 2026-06-27 10:20:35
    ---------------------------------------------------------------------
    Description:
        
@@ -133,9 +133,16 @@ char Char_ToUpperAscii( char c )
 
 u8 Char_HexValueAscii( char c )
 {
-    const u8 value = static_cast<u8>( c );
-    const u8 lower = static_cast<u8>( c | 0x20u );
-    return ( ( value >= '0' && value <= '9' ) || ( lower >= 'a' && lower <= 'f' ) );
+    if ( c >= '0' && c <= '9' ) {
+        return static_cast<u8>( c - '0' );
+    }
+    if ( c >= 'A' && c <= 'F' ) {
+        return static_cast<u8>( c - 'A' + 10u );
+    }
+    if ( c >= 'a' && c <= 'f' ) {
+        return static_cast<u8>( c - 'a' + 10u );
+    }
+    return 0xFFu;
 }
 
 }       // namespace cypher::common
