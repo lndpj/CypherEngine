@@ -134,6 +134,14 @@ if (CYPHERENGINE_BUILD_TESTS)
     add_test(NAME cypher_common_tier0_smoke COMMAND cypher_common_tier0_smoke)
 
     if (Catch2_FOUND)
+        add_executable(cypher_common_tier1_char_tests
+            "${CYPHERENGINE_ROOT_DIR}/tests/CypherCommon_Tier1_Char_Tests.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1/CypherCommon_Char.cpp"
+        )
+        target_include_directories(cypher_common_tier1_char_tests PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
+        target_link_libraries(cypher_common_tier1_char_tests PRIVATE Catch2::Catch2WithMain)
+        add_test(NAME cypher_common_tier1_char_tests COMMAND cypher_common_tier1_char_tests)
+
         add_executable(cypher_common_tier1_string_tests
             "${CYPHERENGINE_ROOT_DIR}/tests/CypherCommon_Tier1_String_Tests.cpp"
             "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1/CypherCommon_Char.cpp"
@@ -188,6 +196,13 @@ if (CYPHERENGINE_BUILD_BENCHMARKS)
     find_package(benchmark CONFIG QUIET)
 
     if (benchmark_FOUND)
+        add_executable(cypher_common_char_bench
+            "${CYPHERENGINE_ROOT_DIR}/benchmarks/CypherCommon_Char_Bench.cpp"
+            "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1/CypherCommon_Char.cpp"
+        )
+        target_include_directories(cypher_common_char_bench PRIVATE ${CYPHERENGINE_INCLUDE_DIRS})
+        target_link_libraries(cypher_common_char_bench PRIVATE benchmark::benchmark_main)
+
         add_executable(cypher_common_string_bench
             "${CYPHERENGINE_ROOT_DIR}/benchmarks/CypherCommon_String_Bench.cpp"
             "${CYPHERENGINE_SRC_DIR}/CypherCommon/Tier1/CypherCommon_Char.cpp"
