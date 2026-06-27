@@ -47,7 +47,6 @@ char Char_ToUpperAscii( char c );
 
 u8 Char_HexValueAscii( char c );
 
-
 } // namespace cypher::common
 
 #endif // CYPHER_COMMON_TIER1_CHAR_H
