@@ -13,17 +13,19 @@ Current code snapshot:
 - the executable target is `cypherengine`
 - the runtime can create a window, initialize OpenGL, load shaders, and submit a basic mesh path
 - a CryEngine-inspired future subsystem skeleton now exists for editor, tools, resources, world, input, physics, audio, AI, animation, networking, scripting, and profiling
+- `CypherCommon` has moved into a broader Tier0/Tier1 foundation with active string, char, test and benchmark work
 
 ## What exists now
 
 - foundational types and shared error surface
 - common formatted print/error helpers
-- memory arena design and implementation work in progress
+- memory arenas and pools with benchmark coverage
 - logging runtime
 - early platform runtime helpers
 - host lifecycle scaffold
 - SDL3 window creation and event polling
 - filesystem mount/read path
+- CypherPak package archive path
 - OpenGL context bootstrap through GLAD
 - renderer lifecycle, shader, mesh, camera, and draw-list path
 - vector, matrix, quaternion, bounds, ray, plane, and frustum math
@@ -31,6 +33,7 @@ Current code snapshot:
 - cvar system backend
 - cfg loading/execution backend
 - documentation/process system
+- Catch2 tests and Google Benchmark targets for the current foundation
 
 ## What is done-for-now
 
@@ -93,24 +96,25 @@ Current code snapshot:
 
 ## Active milestone
 
-`M5 - Memory, Resources, and Runtime Ownership Foundation`
+`M6 - Common, Diagnostics, and Resource Ownership Preparation`
 
 This milestone is complete only when:
 
-- `CypherMemory` has working arenas, markers, rewinds, counters, and shutdown behavior
-- pool allocator design exists for long-lived entities/resources that cannot use pure linear reset
-- `CypherFileSystem` can read assets into caller-provided/arena-backed memory cleanly
-- `CypherResource` has a first asset-handle direction for shaders, meshes, textures, and materials
-- renderer draw submission keeps clear ownership over what is temporary, what is persistent, and who frees it
+- `CypherCommon_String` implements its declared API with correctness tests
+- Common hot paths have benchmark coverage before SIMD work begins
+- `CypherCommon_Simd` is designed as an optimization layer above tested scalar code
+- VFS/Pak production lessons are documented for missing-file, opened-file and package diagnostics
+- `CypherResource` has a first asset-handle direction for shaders, meshes, textures and materials
+- renderer draw submission starts moving toward resource handles instead of raw pointers
 
 ## Immediate next tasks
 
-1. finish the `CypherMemory` arena allocator
-2. add pool allocator design on top of the arena model
-3. strengthen `CypherFileSystem` around mounted roots and arena-backed file reads
-4. introduce `CypherResource` as the asset lifetime layer
-5. return to input, fly-camera, and renderer material/texture work
-6. keep docs and API references aligned as CypherEngine grows
+1. finish the remaining `CypherCommon_String` function groups
+2. add tests and benchmarks group by group
+3. design `CypherCommon_Simd` for SSE2/NEON after scalar String is stable
+4. add profiling/diagnostic skeletons needed to measure runtime growth
+5. introduce `CypherResource` as the asset lifetime layer
+6. return to input, fly-camera, and renderer material/texture work after Resource exists
 
 ## Explicitly not active yet
 
@@ -120,6 +124,7 @@ This milestone is complete only when:
 - custom model/material/archive tooling
 - custom editor tooling
 - VM/game-script runtime
+- full SIMD string/memory/math backend
 
 These are all intended, but they are not the current coding target.
 
