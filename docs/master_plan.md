@@ -1,8 +1,8 @@
 # CypherEngine Master Development Plan
 
-Last updated: 2026-06-12
+Last updated: 2026-06-27
 
-This document is the long-form plan for building CypherEngine into a serious game engine runtime, toolchain, and later `CypherStudio` editor.
+This document is the long-form plan for building CypherEngine into a serious game engine runtime, toolchain, and later Mason editor.
 
 It is intentionally practical. The goal is not to copy CryEngine, idTech, Dark Engine, Source, or Source 2. The goal is to learn from their shape:
 
@@ -149,7 +149,7 @@ LOC is not the goal, but LOC helps understand scope.
 | First serious runtime | 80k-150k | can build a playable FPS loop with engine-owned loading/render/world basics |
 | Strong solo runtime | 180k-350k | resource system, renderer, physics integration, audio, profiling, gameplay framework |
 | Runtime plus tools | 250k-500k | asset compiler, map compiler, pak tool, resource compiler, import/cook path |
-| Runtime plus editor | 400k-800k | serious `CypherStudio` with viewport, inspector, asset browser, editing tools |
+| Runtime plus editor | 400k-800k | serious Mason editor with viewport, inspector, asset browser, editing tools |
 | Long-term engine ecosystem | 600k-1M+ | advanced editor, networking, scripting, full pipeline, content, platform polish |
 
 The first real target is not 900k LOC.
@@ -590,7 +590,7 @@ Exit criteria:
 - gameplay scripting direction is clear
 - editor contracts are known
 
-### Q4 2027 - CypherStudio Foundation
+### Q4 2027 - Mason Foundation
 
 Focus:
 
@@ -615,7 +615,7 @@ Approx added LOC:
 
 Exit criteria:
 
-- `CypherStudio` can inspect and modify real engine world/resource data
+- Mason can inspect and modify real engine world/resource data
 
 ## 2028 Roadmap
 
@@ -623,7 +623,7 @@ Exit criteria:
 
 Focus:
 
-- make `CypherStudio` useful, not just visible
+- make Mason useful, not just visible
 
 Implement:
 
@@ -1248,7 +1248,7 @@ Approx final tool LOC:
 
 - 30k-150k
 
-### CypherStudio
+### Mason
 
 Purpose:
 
@@ -1442,7 +1442,7 @@ The correct path is:
 4. make a controllable world
 5. make collision and gameplay work
 6. make tools for the content pipeline
-7. start `CypherStudio`
+7. start Mason
 8. grow editor and runtime together
 
 The engine becomes large naturally when it has real coverage:
