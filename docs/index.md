@@ -14,6 +14,7 @@ Read these in order when resuming work:
 6. [architecture.md](architecture.md)
 7. [subsystems.md](subsystems.md)
 8. [toolchain_plan.md](toolchain_plan.md)
+9. [reference_engine_lessons.md](reference_engine_lessons.md)
 
 API docs:
 
@@ -25,6 +26,7 @@ Reference docs:
 - [build_guide.md](build_guide.md)
 - [coding_style.md](coding_style.md)
 - [reference_policy.md](reference_policy.md)
+- [reference_engine_lessons.md](reference_engine_lessons.md)
 
 Project memory:
 
@@ -57,6 +59,10 @@ Project memory:
   - what each module is responsible for
 - `toolchain_plan`
   - how maps, models, archives, scripts, and tools should be introduced
+- `reference_engine_lessons`
+  - architecture lessons from reference engines
+  - legal boundary for study-only source trees
+  - practical lessons for VFS, memory, resources, renderer, world, tools and editor
 - `CYPHERENGINE_API_REFERENCE`
   - the public engine-facing API surface that currently exists
 - `CYPHERENGINE_API_IMPLEMENTATION`
