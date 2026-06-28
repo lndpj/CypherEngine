@@ -56,3 +56,19 @@ engine/game/tools/editor layers above it. The migration order is:
 3. Runtime subsystems: memory, filesystem, package archives, console/CVars,
    platform, renderer, resources and networking.
 4. Tools/editor support after the runtime contracts are stable.
+
+## Shipped Engine Architecture Lessons
+
+Classic shipped engine trees show that a complete engine is a runtime plus a
+toolchain. The useful lessons are:
+
+- common/interface boundaries matter more than file count
+- the host/system layer should own explicit boot, update and shutdown order
+- VFS, package archives, streaming and resources are separate layers
+- resource compilers exist to move expensive transformation out of runtime
+- renderer resources should become handle-owned engine resources
+- memory diagnostics, cvars and profiler scopes are core engine features
+- world/entity data must exist before a serious editor can edit anything real
+
+See [reference_engine_lessons.md](reference_engine_lessons.md) for the full
+policy and milestone translation.
