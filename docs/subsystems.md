@@ -13,7 +13,8 @@ Expected contents:
 - shared error packing
 - platform-independent macros
 - common string/span/helpers when they become necessary
-- public interface contracts when editor/runtime/tools need them
+- SIMD, endian, alignment, bit, atomic, timer and low-level performance helpers
+- public interface contracts only when editor/runtime/tools need them
 - cross-subsystem data that truly has no single owner
 
 Rule:
@@ -21,6 +22,7 @@ Rule:
 - `CypherCommon` is not a junk drawer
 - implementation belongs in the owning subsystem
 - shared contracts move here only when multiple systems need them
+- scalar Common code is the correctness reference before SIMD paths are added
 
 ## `CypherRender`
 
@@ -144,6 +146,15 @@ Owns:
 - dependency tracking
 - hot reload direction
 - shader/mesh/texture/material/sound/animation/map resource registration
+- resource states
+- resource diagnostics and stats
+- bridge from VFS/streaming to renderer/audio/world/script consumers
+
+Does not own:
+
+- raw GPU API calls
+- source asset authoring
+- editor UI
 
 ## `CypherMemory`
 
@@ -155,6 +166,9 @@ Owns:
 - virtual memory backend abstraction
 - allocation stats
 - memory diagnostics
+- subsystem/tag memory reports
+- high-water tracking
+- debug allocation verification where practical
 
 ## `CypherConsole`
 
@@ -183,6 +197,9 @@ Owns:
 - flags
 - typed cached values
 - archive/readonly/cheat/development behavior
+- restart-required and reload-required behavior later
+- server-sync and diagnostic flags later
+- change callbacks later
 
 ## `CypherConfig`
 
