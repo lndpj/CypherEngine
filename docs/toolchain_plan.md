@@ -75,6 +75,7 @@ Target:
 - centralized load/unload/reload behavior
 - dependency tracking
 - editor/runtime hot-reload direction
+- runtime-ready cooked data where source formats are expensive
 
 Recommended order:
 
@@ -83,6 +84,13 @@ Recommended order:
 3. load mesh/texture/material resources through the resource layer
 4. track dependencies
 5. add hot reload once the editor or iteration flow needs it
+
+Important rule:
+
+- the runtime should not permanently parse heavy source formats when an offline
+  compiler can produce simpler runtime data
+- the resource compiler should reduce runtime transformations and small
+  allocation churn
 
 ## Scripts
 
@@ -104,6 +112,7 @@ Target:
 
 - packaged shipping asset archives
 - later custom Cypher package format if justified
+- package index data suitable for fast runtime lookup
 
 Recommended order:
 
@@ -112,11 +121,16 @@ Recommended order:
 3. build create/list/extract tooling
 4. keep archive design simple and debugger-friendly
 
+Future tools:
+
+- `cypherpak` for create/list/extract
+- package diagnostics for missing files, opened files and mounted archives
+
 ## Editor
 
 Target:
 
-- Qt-based all-in-one editor application
+- Qt-based all-in-one Mason editor application
 - live viewport
 - world/object editing
 - asset browser
