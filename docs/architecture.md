@@ -109,6 +109,49 @@ Owns:
 - `CypherScript` is the bridge between engine runtime and `rvm`
 - `CypherEditor` owns the Qt editor application and editor-only workflows
 
+## Reference-derived architecture rules
+
+CypherEngine studies shipped engines for structure, not source code.
+The durable lessons are:
+
+- `CypherCommon` is the primitive foundation, not a junk drawer.
+- a later public-interface layer may be needed for tool/editor/plugin
+  boundaries, but should not be created before those boundaries are real.
+- `CypherHost` should make boot, update, render and shutdown order explicit.
+- major subsystems should have clean create/shutdown boundaries even when
+  statically linked.
+- VFS, streaming and resources are separate layers.
+- renderer-facing data should move toward handles owned by `CypherResource`.
+- the editor comes after runtime data, resource handles and world format exist.
+
+Target runtime stack:
+
+```text
+Platform / Log / Memory
+        ↓
+FileSystem / Pak / Command / CVar / Config
+        ↓
+Stream / Resource
+        ↓
+Render / Input / World / Entity / Audio / Script
+        ↓
+Game or Editor product layer
+```
+
+Target asset path:
+
+```text
+loose files / packages
+        ↓
+CypherFileSystem
+        ↓
+CypherStream
+        ↓
+CypherResource
+        ↓
+Renderer / Audio / World / Script consumers
+```
+
 ## Current implementation reality
 
 The current repository is much earlier than the target structure.
