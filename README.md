@@ -46,6 +46,7 @@ ctest --test-dir build --output-on-failure --no-tests=error
 cmake -S . -B build-bench -DCMAKE_BUILD_TYPE=Release -DCYPHERENGINE_BUILD_BENCHMARKS=ON
 cmake --build build-bench --config Release
 ./build-bench/bin/cypher_common_string_bench
+./build-bench/bin/cypher_common_char_bench
 ./build-bench/bin/cypher_memory_bench
 ./build-bench/bin/cypher_filesystem_path_bench
 ./build-bench/bin/cypher_pak_bench
@@ -58,6 +59,7 @@ cmake --build build-bench --config Release
 - [docs/architecture.md](docs/architecture.md)
 - [docs/subsystems.md](docs/subsystems.md)
 - [docs/coding_style.md](docs/coding_style.md)
+- [docs/reference_engine_lessons.md](docs/reference_engine_lessons.md)
 
 ## License
 
