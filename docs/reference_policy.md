@@ -31,6 +31,9 @@ That inspiration is allowed and intentional.
 - blending copied code into original modules without provenance
 - assuming license concerns disappear because the architecture is similar
 - copying leaked/proprietary code or assets
+- using non-commercial or leaked source trees as implementation sources
+- copying code from reference repositories into CypherEngine because the
+  architecture is useful
 
 ## Working rule
 
@@ -38,3 +41,8 @@ We can be heavily inspired by the shape and discipline of classic engines.
 
 We still write CypherEngine’s implementation ourselves unless a later deliberate
 decision is documented and license-reviewed.
+
+If a reference tree is legally unclear, leaked, proprietary, or non-commercial,
+it is study-only. Use it to understand boundaries, naming, update order,
+toolchain shape, diagnostics, and subsystem responsibilities. Do not paste,
+port, or mechanically translate its implementation.
